@@ -48,7 +48,7 @@ parser.add_argument('--show', action = 'store_true',
                     help = 'Show plots (interactive).')
 parser.add_argument('--propagation', type = str, default = 'busy_window',
                     help = 'Event model propagation method (jitter, jitter_offset, busy_window).')
-parser.add_argument('--verbose', action = 'store_true',
+parser.add_argument('--verbose', '-v', action = 'store_true',
                     help = 'be more talkative')
 
 

@@ -15,25 +15,23 @@ SMFF Loader/Annotation example
 
 
 import os
+import string
 
 from pycpa import analysis
 from pycpa import smff_loader
 from pycpa import graph
 from pycpa import options
 
-def smff_test():
+def smff_test(file):
 
-    ## this is necessary because the file is also called from the regression test suite
-    path = os.path.dirname(os.path.realpath(__file__))
-
-    options.init_pycpa()
-
+    print "loading", file
     loader = smff_loader.SMFFLoader()
-    s = loader.parse(path + "/smff_system.xml")
-
+    s = loader.parse(file)
 
     # graph the smff system
-    graph.graph_system(s, filename = "smff_graph.pdf")
+    graph_file = string.replace(os.path.basename(file), ".xml", "") + ".pdf"
+    print "generating system graph to", graph_file
+    graph.graph_system(s, filename = graph_file)
 
     # analyze the system
     analysis.analyze_system(s)
@@ -53,4 +51,13 @@ def smff_test():
     loader.write(filename = "smff_annotated.xml")
 
 if __name__ == "__main__":
-    smff_test()
+    # this is necessary because the file is also called from the regression test suite
+    default_file = os.path.dirname(os.path.realpath(__file__)) + "/smff_system.xml"
+
+    options.parser.add_argument('--file', '-f', type = str, default = default_file,
+                    help = 'File to load. Plot will be saved to FILE.pdf in current directory')
+
+
+    options.init_pycpa()
+
+    smff_test(options.opts.file)
