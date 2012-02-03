@@ -20,8 +20,6 @@ from pycpa import options
 
 
 
-
-
 def offset_test():
     options.init_pycpa()
 

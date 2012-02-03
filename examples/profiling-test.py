@@ -13,7 +13,6 @@ Description
 How to profile pycpa bottlenecks (e.g. effects of event model caching, etc)
 """
 
-import sys
 try:
     import hotshot, hotshot.stats
     from matplotlib import pyplot
@@ -22,8 +21,6 @@ except ImportError:
     print "Please install or reconfigure the modules"
     print "and try again."
 
-
-sys.path.append('../src')
 
 import logging
 

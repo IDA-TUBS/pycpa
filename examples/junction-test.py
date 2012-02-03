@@ -13,9 +13,6 @@ Description
 Simple and-junction analysis
 """
 
-
-import sys
-
 from pycpa import plot
 from pycpa import model
 from pycpa import analysis
