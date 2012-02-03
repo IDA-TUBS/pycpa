@@ -445,5 +445,6 @@ class SMFFLoader:
 
     def write(self, filename):
         f = open(filename, 'w')
-        self.xml_root.writexml(f)
+        data = self.xml_root.toxml()
+        f.write(data)
         f.close()
