@@ -428,8 +428,9 @@ class SMFFLoader:
         analysis_node = None
 
         ## remove old analysis results
-        for analysis_node in self.xml_root.getElementsByTagName("Analysis"):
-            self.xml_root.removeChild(analysis_node)
+        while len(self.xml_root.childNodes[0].getElementsByTagName("Analysis")) > 0:
+            analysis_node = self.xml_root.childNodes[0].getElementsByTagName("Analysis")[0]
+            self.xml_root.childNodes[0].removeChild(analysis_node)
 
         analysis_node = self.xml_root.createElement("Analysis")
         self.xml_root.childNodes[-1].appendChild(analysis_node)
