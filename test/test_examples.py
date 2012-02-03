@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2011 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Jonas Diemer
@@ -31,7 +32,7 @@ class ExamplesTest(unittest.TestCase):
         self.fsock.write("# RUNNING EXAMPLE: %s" % self.file)
         self.fsock.write("######################################################")
 
-        retval = subprocess.check_call(['python', self.file], stderr=fsock, stdout=fsock)
+        retval = subprocess.check_call(['python', self.file], stderr = fsock, stdout = fsock)
 
         self.fsock.write("######################################################")
         # like above:
@@ -53,6 +54,6 @@ if __name__ == "__main__":
     for e in sorted(glob.glob(directory + '*.py')):
         suite.addTest(ExamplesTest(e, fsock))
 
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    unittest.TextTestRunner(verbosity = 2).run(suite)
 
     fsock.close()

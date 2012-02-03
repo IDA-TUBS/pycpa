@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2007-2012 Jonas Diemer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Jonas Diemer
@@ -23,7 +24,7 @@ class Router:
     it is just a set of tasks, resources and mutexes. 
     """
 
-    def __init__(self, n=3, w_func=slip.w_slip, name="R?", flit_time=1):
+    def __init__(self, n = 3, w_func = slip.w_slip, name = "R?", flit_time = 1):
         self.input = []
         self.output = []
         self.tasks = []
@@ -54,7 +55,7 @@ class Router:
 
     def add_task_cT(self, i, o, c, T):
         task = self.add_task(i, o)
-        task.in_event_model = model.EventModel(c=c, T=T)
+        task.in_event_model = model.EventModel(c = c, T = T)
         return task
 
     def print_task_set(self):

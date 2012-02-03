@@ -1,8 +1,18 @@
-'''
-Created on Mar 29, 2011
+"""
+| Copyright (C) 2011 Philip Axer
+| TU Braunschweig, Germany
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
-@author: paxer
-'''
+:Authors:
+         - Philip Axer
+
+Description
+-----------
+
+SymTA/S 1.4 Loader example
+"""
+
 
 import logging
 from pycpa import analysis
@@ -22,7 +32,7 @@ analysis.analyze_system(s)
 
 print("Result:")
 print(s)
-for r in sorted(s.resources, key=str):
+for r in sorted(s.resources, key = str):
     print "results for resource %s" % r.name
-    for t in sorted(r.tasks, key=str):
+    for t in sorted(r.tasks, key = str):
         print(str(t), " - ", t.wcrt)

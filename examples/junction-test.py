@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2010 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Philip Axer
@@ -25,10 +26,10 @@ from pycpa import spp
 def junction_test():
     # initialyze pycpa. (e.g. read command line switches and set up default options)
     options.init_pycpa()
-    
+
     # generate an new system
     s = model.System()
-    
+
     # add two resources to the system
     # register two schedulers
     r1 = s.add_resource("R1", spp.w_spp, spp.spp_multi_activation_stopping_condition)
@@ -37,7 +38,7 @@ def junction_test():
     # add a task
     t11 = r1.bind_task(model.Task(name = "T11", wcet = 3, bcet = 1, scheduling_parameter = 1))
     # register input event model
-    t11.in_event_model = model.EventModel(P = 30, J= 15)
+    t11.in_event_model = model.EventModel(P = 30, J = 15)
 
     # add three more tasks, these will be triggered by other tasks
     t12 = r1.bind_task(model.Task(name = "T12", wcet = 3, bcet = 2, scheduling_parameter = 2))
@@ -58,7 +59,7 @@ def junction_test():
 
     # graph the system
     graph.graph_system(s, "junction_example.pdf")
-    
+
     # analyze the system
     print("Performing analysis")
     analysis.analyze_system(s)

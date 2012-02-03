@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2007-2012 Philip Axer, Jonas DIemer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Philip Axer
@@ -31,7 +32,7 @@ def spp_multi_activation_stopping_condition(task, q, w):
         return True
     return False
 
-def w_spp(task, q, MAX_WINDOW=1000, **kwargs):
+def w_spp(task, q, MAX_WINDOW = 1000, **kwargs):
     """ Return the maximum time required to process q activations
         Priority stored in task.scheduling_parameter
         smaller priority number -> right of way
@@ -65,7 +66,7 @@ def w_spp(task, q, MAX_WINDOW=1000, **kwargs):
     assert(w >= q * task.wcet)
     return w
 
-def w_spp_domination(task, q, MAX_WINDOW=1000):
+def w_spp_domination(task, q, MAX_WINDOW = 1000):
     """ Return the maximum time required to process q activations
         Priority stored in task.scheduling_parameter
         smaller priority number -> right of way
@@ -99,7 +100,7 @@ def w_spp_domination(task, q, MAX_WINDOW=1000):
     assert(w >= q * task.wcet)
     return w
 
-def w_spp_roundrobin(task, q, MAX_WINDOW=1000):
+def w_spp_roundrobin(task, q, MAX_WINDOW = 1000):
     """ Return the maximum time required to process q activations
         Priority stored in task.scheduling_parameter
         smaller priority number -> right of way

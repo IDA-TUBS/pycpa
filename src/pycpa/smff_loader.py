@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2012 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Philip Axer
@@ -47,7 +48,7 @@ class InvalidSMFFXMLException (Exception):
 
 
 class SMFFApplication:
-    def __init__(self, xml_node=None):
+    def __init__(self, xml_node = None):
 
         ## corresponding dom node
         self.xml_node = xml_node
@@ -244,7 +245,7 @@ class SMFFLoader:
             ## source
             jitter = int(activation_pattern_node.attributes["activationJitter"].nodeValue)
             period = int(activation_pattern_node.attributes["activationPeriod"].nodeValue)
-            em = model.EventModel(P=period, J=jitter)
+            em = model.EventModel(P = period, J = jitter)
             task_model.in_event_model = em
             return
 
@@ -274,7 +275,7 @@ class SMFFLoader:
         task_id = int(task_node.attributes["ID"].nodeValue)
 
         # create the task
-        task_model = model.Task(name=short_name)
+        task_model = model.Task(name = short_name)
         task_model.xml_node = task_node
         task_model.smff_id = task_id
 
@@ -312,7 +313,7 @@ class SMFFLoader:
         if link_id in smff_application.task_link_mapping:
 
             # create pycpa object
-            task_model = model.Task(name=short_name)
+            task_model = model.Task(name = short_name)
             task_model.smff_id = link_id
             task_model.xml_node = task_link_node
 
@@ -443,5 +444,5 @@ class SMFFLoader:
 
     def write(self, filename):
         f = open(filename, 'w')
-        self.xml_root.writexml(f, indent=' ', addindent=' ', newl='\n')
+        self.xml_root.writexml(f, indent = ' ', addindent = ' ', newl = '\n')
         f.close()

@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2007-2012 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Jonas Diemer
@@ -30,41 +31,35 @@ import sys
 
 from pycpa import __license_text__
 
-parser = argparse.ArgumentParser(description='Scheduling Analysis')
-parser.add_argument('--max_iterations', type=int,
-                    default=MAX_ITERATIONS,
-                    help='Maximum number of iterations in a local analysis (default=%d)' % (MAX_ITERATIONS))
-parser.add_argument('--max_window', type=int,
-                    default=MAX_WINDOW,
-                    help='Maximum busy window length in a local analysis (default=%f)' % (MAX_WINDOW))
-parser.add_argument('--backlog', action='store_true',
-                    help='Compute the worst-case backlog.')
-parser.add_argument('--e2e_improved', action='store_true',
-                    help='enable improved end to end analysis (experimental)')                    
-parser.add_argument('--nocaching', action='store_true',
-                    help='disable event-model caching')
-parser.add_argument('--show', action='store_true',
-                    help='Show plots (interactive).')
-parser.add_argument('--propagation', type=str, default='busy_window',
-                    help='Event model propagation method (jitter, jitter_offset, busy_window).')
-parser.add_argument('--nonconservative', action='store_true',
-                    help='do not deem system unschedulable if busy window runs into max iterations')
-parser.add_argument('--earlytermination', action='store_true',
-                    help='terminate the analysis early (potentialy before worst-case was found)')
-parser.add_argument('--verbose', action='store_true',
-                    help='be more talkative')
-parser.add_argument("-o", "--options", help='generic option',
-                    action="append")
+parser = argparse.ArgumentParser(description = 'Scheduling Analysis')
+parser.add_argument('--max_iterations', type = int,
+                    default = MAX_ITERATIONS,
+                    help = 'Maximum number of iterations in a local analysis (default=%d)' % (MAX_ITERATIONS))
+parser.add_argument('--max_window', type = int,
+                    default = MAX_WINDOW,
+                    help = 'Maximum busy window length in a local analysis (default=%f)' % (MAX_WINDOW))
+parser.add_argument('--backlog', action = 'store_true',
+                    help = 'Compute the worst-case backlog.')
+parser.add_argument('--e2e_improved', action = 'store_true',
+                    help = 'enable improved end to end analysis (experimental)')
+parser.add_argument('--nocaching', action = 'store_true',
+                    help = 'disable event-model caching')
+parser.add_argument('--show', action = 'store_true',
+                    help = 'Show plots (interactive).')
+parser.add_argument('--propagation', type = str, default = 'busy_window',
+                    help = 'Event model propagation method (jitter, jitter_offset, busy_window).')
+parser.add_argument('--verbose', action = 'store_true',
+                    help = 'be more talkative')
 
 
 
-welcome = "PYCPA a Compositional Performance Analysis Toolkit based on Python.\n\n" \
+welcome = "pyCPA a Compositional Performance Analysis Toolkit implemented in Python.\n\n" \
 + __license_text__
 
 opts_dict = dict()
 opts = None
 
-def pprintTable(out, table, column_sperator="", header_separator=":"):
+def pprintTable(out, table, column_sperator = "", header_separator = ":"):
     """Prints out a table of data, padded for alignment
     @param out: Output stream (file-like object)
     @param table: The table to print. A list of lists.
@@ -87,12 +82,12 @@ def pprintTable(out, table, column_sperator="", header_separator=":"):
 
     for row in table:
         # left col
-        print(row[0].ljust(col_paddings[0] + 1), end=header_separator, file=out)
+        print(row[0].ljust(col_paddings[0] + 1), end = header_separator, file = out)
         # rest of the cols
         for i in range(1, len(row)):
             col = format(row[i]).rjust(col_paddings[i] + 1)
-            print(col, end=" " + column_sperator, file=out)
-        print(file=out)
+            print(col, end = " " + column_sperator, file = out)
+        print(file = out)
 
     return
 
@@ -103,9 +98,9 @@ def init_pycpa():
     # set up the general logging object
 
     if opts.verbose == True:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level = logging.DEBUG)
     else:
-        logging.basicConfig(level=logging.WARNING)
+        logging.basicConfig(level = logging.WARNING)
 
 
     print (welcome)

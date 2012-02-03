@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2011 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Philip Axer
@@ -51,7 +52,7 @@ def spnp_multi_activation_stopping_condition(task, q, w):
         return True
     return False
 
-def w_spnp(task, q, MAX_WINDOW=10000, **kwargs):
+def w_spnp(task, q, MAX_WINDOW = 10000, **kwargs):
     """ Return the maximum time required to process q activations
         Priority stored in task.scheduling_parameter
         smaller priority number -> right of way

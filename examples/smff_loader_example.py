@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2012 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Philip Axer
@@ -32,24 +33,24 @@ def smff_test():
 
 
     # graph the smff system
-    graph.graph_system(s, filename="smff_graph.pdf")
-    
+    graph.graph_system(s, filename = "smff_graph.pdf")
+
     # analyze the system
     analysis.analyze_system(s)
-    
+
     # print some analysis results
     print("Result:")
     print(s)
-    for r in sorted(s.resources, key=str):
+    for r in sorted(s.resources, key = str):
         print "results for resource %s" % r.name
-        for t in sorted(r.tasks, key=str):
+        for t in sorted(r.tasks, key = str):
             print("%s - %d " % (str(t.name) , t.wcrt))
 
     # backannotate the xml
     loader.annotate_results()
-    
+
     # write it
-    loader.write(filename="smff_annotated.xml")
-    
+    loader.write(filename = "smff_annotated.xml")
+
 if __name__ == "__main__":
-    smff_test()        
+    smff_test()
