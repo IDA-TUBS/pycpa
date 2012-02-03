@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2011 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Philip Axer
@@ -17,7 +18,7 @@ import analysis
 
 logger = logging.getLogger("fifo")
 
-def w_fifo(task, q, MAX_WINDOW=10000):
+def w_fifo(task, q, MAX_WINDOW = 10000):
     """ Return the maximum time required to process q activations
         simple fifo assumption: all other activations have been queued before mine
     """

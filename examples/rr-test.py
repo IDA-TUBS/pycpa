@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2010 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Jonas Diemer
@@ -31,10 +32,10 @@ def rr_test():
 
     # create and bind tasks
     # the scheduling_parameter denotes the slot size
-    t11 = r1.bind_task(model.Task(name = "T11", wcet=1, bcet=1, scheduling_parameter=1))
-    t12 = r1.bind_task(model.Task(name = "T12", wcet=1, bcet=1, scheduling_parameter=1))
-    t21 = r2.bind_task(model.Task(name = "T21", wcet=1, bcet=1, scheduling_parameter=1))
-    t22 = r2.bind_task(model.Task(name = "T22", wcet=1, bcet=1, scheduling_parameter=1))
+    t11 = r1.bind_task(model.Task(name = "T11", wcet = 1, bcet = 1, scheduling_parameter = 1))
+    t12 = r1.bind_task(model.Task(name = "T12", wcet = 1, bcet = 1, scheduling_parameter = 1))
+    t21 = r2.bind_task(model.Task(name = "T21", wcet = 1, bcet = 1, scheduling_parameter = 1))
+    t22 = r2.bind_task(model.Task(name = "T22", wcet = 1, bcet = 1, scheduling_parameter = 1))
 
     t11.link_dependent_task(t21)
     t22.link_dependent_task(t12)
@@ -53,4 +54,4 @@ def rr_test():
             print(t, " - ", t.wcrt)
 
 if __name__ == "__main__":
-    rr_test()    
+    rr_test()

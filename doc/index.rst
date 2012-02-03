@@ -6,7 +6,14 @@
 Welcome
 =================================
 
-.. image:: pycpa.png
+.. figure:: pycpa.png
+   :align:   right
+
+pyCPA is a pragmatic Python implementation of Compositional Performance Analysis
+(aka the SymTA/S approach provided by `Symtavision <http://www.symtavision.com>`_) 
+used for research in worst-case timing analysis.
+Unlike the commercial SymTA/S tool, pyCPA is not intended for commercial-grade use
+and does not guarantee correctness of the implementation.
 
 Contents:
 
@@ -15,6 +22,7 @@ Contents:
 
    intro
    modules
+   
 A examples and design concept must go here as well
 
 

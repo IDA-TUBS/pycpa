@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2010 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Jonas Diemer
@@ -26,7 +27,7 @@ def e2e_test():
 
     # generate an new system
     s = model.System()
-    
+
     # add a resource to the system
     # register round robin scheduler
     r1 = s.add_resource("R1", roundrobin.w_roundrobin)
@@ -39,7 +40,7 @@ def e2e_test():
     t11.link_dependent_task(t12)
 
 
-    t11.in_event_model = model.EventModel(P=4, J=3)
+    t11.in_event_model = model.EventModel(P = 4, J = 3)
 
     # register a task chain as a stream
     s1 = s.add_stream("S1", [t11, t12])
@@ -49,10 +50,10 @@ def e2e_test():
     analysis.analyze_system(s)
 
     # calculate the latency for the first 10 events
-    for n in range(1,11):
+    for n in range(1, 11):
         best_case_latency, worst_case_latency = analysis.end_to_end_latency(s1, n)
-        print("stream S1 e2e latency. best case: %d, worst case: %d" % (best_case_latency, worst_case_latency ))
+        print("stream S1 e2e latency. best case: %d, worst case: %d" % (best_case_latency, worst_case_latency))
 
 
 if __name__ == "__main__":
-    e2e_test()    
+    e2e_test()

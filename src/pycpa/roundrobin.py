@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2007-2012 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Jonas Diemer
@@ -16,7 +17,7 @@ Round robin busy window function
 import math
 import analysis
 
-def w_roundrobin(task, q, MAX_WINDOW=10000, **kwargs):
+def w_roundrobin(task, q, MAX_WINDOW = 10000, **kwargs):
     """ Return the maximum time required to process q activations
         (1 cycle WCET each) 
         under round-robin scheduling under presence of interfering tasks.

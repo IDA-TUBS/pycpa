@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2012 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Philip Axer
@@ -444,5 +445,5 @@ class SMFFLoader:
 
     def write(self, filename):
         f = open(filename, 'w')
-        self.xml_root.writexml(f, indent=' ', addindent=' ', newl='\n')
+        self.xml_root.writexml(f)
         f.close()

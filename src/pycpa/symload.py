@@ -1,7 +1,8 @@
 """
 | Copyright (C) 2011 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved
+| All rights reserved. 
+| See LICENSE file for copyright and license details.
 
 :Authors:
          - Philip Axer
@@ -190,7 +191,7 @@ class SymtaLoader14:
         wcet *= speedup
         #inport_list, outport_list = self._handle_ports(ports)
         logger.info("new task %s, tcore: [%f, %f] speedfactor %f" % (name, bcet, wcet, speedup))
-        task = model.Task(name=name, bcet=bcet, wcet=wcet, sched_param=None)
+        task = model.Task(name = name, bcet = bcet, wcet = wcet, sched_param = None)
         task.dom_node = task_node
         task.ports = ports # used later to connect the event streams
         self.tasks.add(task)
