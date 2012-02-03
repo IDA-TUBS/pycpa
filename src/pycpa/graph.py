@@ -83,7 +83,7 @@ def graph_system(s, filename = None, layout = 'dot',
                 lab = t.name
             if execTimes:
                 lab += '(%g,%g)' % (t.bcet, t.wcet)
-            g.add_node(t.name, label = lab)
+            g.add_node(t.name, label = str(lab))
             res_tasks.append(t.name)
             if t.mutex is not None:
                 g.add_node(t.mutex.name, color = '#aaccaa', shape = 'hexagon')
@@ -92,7 +92,7 @@ def graph_system(s, filename = None, layout = 'dot',
                     g.add_node(get_junction_name(nt), label = nt.mode, shape = 'diamond')
 
 
-        g.add_subgraph(res_tasks, "cluster_" + r.name)
+        g.add_subgraph(res_tasks, str("cluster_" + r.name))
 
     # now come the connections
 
