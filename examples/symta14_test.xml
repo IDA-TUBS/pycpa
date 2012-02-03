@@ -1,0 +1,852 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<SymTASystem xmlns="http://symtavision.com/xml/symtas" xmlns:analysis="http://symtavision.com/xml/symtas/analysis" xmlns:symtas="http://symtavision.com/xml/symtas" xmlns:map="http://symtavision.com/xml/symtas/mapping" version="0.9.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://symtavision.com/xml/symtas SymTA-S.xsd">
+  <!--Definition of the application structure-->
+  <application>
+    <task name="T0" xPosition="260" yPosition="0" width="0" height="0" orientation="false">
+      <ports>
+        <inputport name="i0">
+          <PropagationContainer type="propagation">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" position="INPUT" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="simple periodic" />
+                    <period>
+                      <timevalue numerator="30" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="0" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+              <OffsetPropagationElement reference="Sync0" position="input" propagate="true" dataChange="false" uri="Offset">
+                <!--Offset propagation is part of the core libraries.-->
+                <offset>
+                  <timevalue numerator="0" denominator="1" />
+                </offset>
+                <capturedPath />
+              </OffsetPropagationElement>
+            </PropagationElements>
+          </PropagationContainer>
+          <PropagationContainer type="inputRequirement">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="false">
+                    <eventmodeltype type="any" />
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </PropagationElements>
+            <RegisteredElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="false">
+                    <eventmodeltype type="any" />
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </RegisteredElements>
+          </PropagationContainer>
+        </inputport>
+        <outputport name="o0">
+          <PropagationContainer type="propagation">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" position="OUTPUT" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="periodic with jitter" />
+                    <period>
+                      <timevalue numerator="30" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="1" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+              <OffsetPropagationElement reference="Sync0" position="output" propagate="true" dataChange="true" uri="Offset">
+                <!--Offset propagation is part of the core libraries.-->
+                <offset>
+                  <timevalue numerator="6" denominator="1" />
+                </offset>
+                <capturedPath />
+              </OffsetPropagationElement>
+            </PropagationElements>
+          </PropagationContainer>
+        </outputport>
+      </ports>
+      <speedup factor="1.0" />
+      <tCore>
+        <timeinterval>
+          <timevalue numerator="5" denominator="1" />
+          <timevalue numerator="5" denominator="1" />
+        </timeinterval>
+      </tCore>
+    </task>
+    <task name="T1" xPosition="420" yPosition="270" width="0" height="0" orientation="false">
+      <ports>
+        <inputport name="i0">
+          <PropagationContainer type="propagation">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" position="INPUT" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="simple periodic" />
+                    <period>
+                      <timevalue numerator="20" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="0" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+              <OffsetPropagationElement reference="Sync2" position="input" propagate="true" dataChange="false" uri="Offset">
+                <!--Offset propagation is part of the core libraries.-->
+                <offset>
+                  <timevalue numerator="0" denominator="1" />
+                </offset>
+                <capturedPath />
+              </OffsetPropagationElement>
+            </PropagationElements>
+          </PropagationContainer>
+          <PropagationContainer type="inputRequirement">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="false">
+                    <eventmodeltype type="any" />
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </PropagationElements>
+            <RegisteredElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="false">
+                    <eventmodeltype type="any" />
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </RegisteredElements>
+          </PropagationContainer>
+        </inputport>
+        <outputport name="o0">
+          <PropagationContainer type="propagation">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" position="OUTPUT" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="periodic with jitter" />
+                    <period>
+                      <timevalue numerator="20" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="7" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+              <OffsetPropagationElement reference="Sync2" position="output" propagate="true" dataChange="true" uri="Offset">
+                <!--Offset propagation is part of the core libraries.-->
+                <offset>
+                  <timevalue numerator="6" denominator="1" />
+                </offset>
+                <capturedPath />
+              </OffsetPropagationElement>
+            </PropagationElements>
+          </PropagationContainer>
+        </outputport>
+      </ports>
+      <speedup factor="1.0" />
+      <tCore>
+        <timeinterval>
+          <timevalue numerator="5" denominator="1" />
+          <timevalue numerator="5" denominator="1" />
+        </timeinterval>
+      </tCore>
+    </task>
+    <task name="T2" xPosition="430" yPosition="0" width="0" height="0" orientation="false">
+      <ports>
+        <inputport name="i0">
+          <PropagationContainer type="propagation">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" position="INPUT" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="periodic with jitter" />
+                    <period>
+                      <timevalue numerator="30" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="1" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </PropagationElements>
+          </PropagationContainer>
+          <PropagationContainer type="inputRequirement">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="false">
+                    <eventmodeltype type="any" />
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </PropagationElements>
+            <RegisteredElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="false">
+                    <eventmodeltype type="any" />
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </RegisteredElements>
+          </PropagationContainer>
+        </inputport>
+        <outputport name="o0">
+          <PropagationContainer type="propagation">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="false" position="OUTPUT" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="simple periodic" />
+                    <period>
+                      <timevalue numerator="5" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="0" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </PropagationElements>
+          </PropagationContainer>
+        </outputport>
+      </ports>
+      <speedup factor="1.0" />
+      <tCore>
+        <timeinterval>
+          <timevalue numerator="1" denominator="1" />
+          <timevalue numerator="1" denominator="1" />
+        </timeinterval>
+      </tCore>
+    </task>
+    <task name="T4" xPosition="630" yPosition="270" width="0" height="0" orientation="false">
+      <ports>
+        <inputport name="i0">
+          <PropagationContainer type="propagation">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" position="INPUT" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="periodic with jitter" />
+                    <period>
+                      <timevalue numerator="20" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="7" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </PropagationElements>
+          </PropagationContainer>
+          <PropagationContainer type="inputRequirement">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="false">
+                    <eventmodeltype type="any" />
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </PropagationElements>
+            <RegisteredElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="false">
+                    <eventmodeltype type="any" />
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </RegisteredElements>
+          </PropagationContainer>
+        </inputport>
+        <outputport name="o0">
+          <PropagationContainer type="propagation">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="false" position="OUTPUT" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="simple periodic" />
+                    <period>
+                      <timevalue numerator="30" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="0" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </PropagationElements>
+          </PropagationContainer>
+        </outputport>
+      </ports>
+      <speedup factor="1.0" />
+      <tCore>
+        <timeinterval>
+          <timevalue numerator="10" denominator="1" />
+          <timevalue numerator="10" denominator="1" />
+        </timeinterval>
+      </tCore>
+    </task>
+    <source name="S0" xPosition="40" yPosition="0" width="0" height="0" orientation="false">
+      <GraphElementExtensionContainer>
+        <GraphElementExtension>
+          <SynchronizationExtension reference="Sync0" uri="SynchronizationExtension">
+            <!--Synchronization is part of the core libraries.-->
+            <offset>
+              <timevalue numerator="0" denominator="1" />
+            </offset>
+          </SynchronizationExtension>
+        </GraphElementExtension>
+      </GraphElementExtensionContainer>
+      <ports>
+        <outputport name="o0">
+          <PropagationContainer type="propagation">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="false" position="OUTPUT" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="simple periodic" />
+                    <period>
+                      <timevalue numerator="30" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="0" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+              <OffsetPropagationElement reference="Sync0" position="output" propagate="false" dataChange="true" uri="Offset">
+                <!--Offset propagation is part of the core libraries.-->
+                <offset>
+                  <timevalue numerator="0" denominator="1" />
+                </offset>
+                <capturedPath />
+              </OffsetPropagationElement>
+            </PropagationElements>
+            <RegisteredElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="simple periodic" />
+                    <period>
+                      <timevalue numerator="30" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="0" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+              <OffsetPropagationElement reference="Sync0" position="output" propagate="true" dataChange="false" uri="Offset">
+                <!--Offset propagation is part of the core libraries.-->
+                <offset>
+                  <timevalue numerator="0" denominator="1" />
+                </offset>
+                <capturedPath />
+              </OffsetPropagationElement>
+            </RegisteredElements>
+          </PropagationContainer>
+        </outputport>
+      </ports>
+    </source>
+    <source name="S2" xPosition="50" yPosition="270" width="0" height="0" orientation="false">
+      <GraphElementExtensionContainer>
+        <GraphElementExtension>
+          <SynchronizationExtension reference="Sync2" uri="SynchronizationExtension">
+            <!--Synchronization is part of the core libraries.-->
+            <offset>
+              <timevalue numerator="0" denominator="1" />
+            </offset>
+          </SynchronizationExtension>
+        </GraphElementExtension>
+      </GraphElementExtensionContainer>
+      <ports>
+        <outputport name="o0">
+          <PropagationContainer type="propagation">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="false" position="OUTPUT" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="simple periodic" />
+                    <period>
+                      <timevalue numerator="20" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="0" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+              <OffsetPropagationElement reference="Sync2" position="output" propagate="false" dataChange="true" uri="Offset">
+                <!--Offset propagation is part of the core libraries.-->
+                <offset>
+                  <timevalue numerator="0" denominator="1" />
+                </offset>
+                <capturedPath />
+              </OffsetPropagationElement>
+            </PropagationElements>
+            <RegisteredElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="simple periodic" />
+                    <period>
+                      <timevalue numerator="20" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="0" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+              <OffsetPropagationElement reference="Sync2" position="output" propagate="true" dataChange="false" uri="Offset">
+                <!--Offset propagation is part of the core libraries.-->
+                <offset>
+                  <timevalue numerator="0" denominator="1" />
+                </offset>
+                <capturedPath />
+              </OffsetPropagationElement>
+            </RegisteredElements>
+          </PropagationContainer>
+        </outputport>
+      </ports>
+    </source>
+    <sink name="S3" xPosition="630" yPosition="0" width="0" height="0" orientation="false">
+      <GraphElementExtensionContainer>
+        <GraphElementExtension>
+          <SynchronizationExtension reference="Sync3" uri="SynchronizationExtension">
+            <!--Synchronization is part of the core libraries.-->
+            <offset>
+              <timevalue numerator="0" denominator="1" />
+            </offset>
+          </SynchronizationExtension>
+        </GraphElementExtension>
+      </GraphElementExtensionContainer>
+      <ports>
+        <inputport name="i0">
+          <PropagationContainer type="propagation">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" position="INPUT" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="simple periodic" />
+                    <period>
+                      <timevalue numerator="5" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="0" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </PropagationElements>
+          </PropagationContainer>
+          <PropagationContainer type="inputRequirement">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="false">
+                    <eventmodeltype type="any" />
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+              <OffsetPropagationElement reference="Sync3" position="input" propagate="true" dataChange="true" uri="Offset">
+                <!--Offset propagation is part of the core libraries.-->
+                <offset>
+                  <timevalue numerator="0" denominator="1" />
+                </offset>
+                <capturedPath />
+              </OffsetPropagationElement>
+            </PropagationElements>
+            <RegisteredElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="false">
+                    <eventmodeltype type="any" />
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+              <OffsetPropagationElement reference="Sync3" position="output" propagate="true" dataChange="false" uri="Offset">
+                <!--Offset propagation is part of the core libraries.-->
+                <offset>
+                  <timevalue numerator="0" denominator="1" />
+                </offset>
+                <capturedPath />
+              </OffsetPropagationElement>
+            </RegisteredElements>
+          </PropagationContainer>
+        </inputport>
+      </ports>
+    </sink>
+    <sink name="S9" xPosition="840" yPosition="270" width="0" height="0" orientation="false">
+      <GraphElementExtensionContainer>
+        <GraphElementExtension>
+          <SynchronizationExtension reference="Sync9" uri="SynchronizationExtension">
+            <!--Synchronization is part of the core libraries.-->
+            <offset>
+              <timevalue numerator="0" denominator="1" />
+            </offset>
+          </SynchronizationExtension>
+        </GraphElementExtension>
+      </GraphElementExtensionContainer>
+      <ports>
+        <inputport name="i0">
+          <PropagationContainer type="propagation">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" position="INPUT" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="true">
+                    <eventmodeltype type="simple periodic" />
+                    <period>
+                      <timevalue numerator="30" denominator="1" />
+                    </period>
+                    <jitter>
+                      <timevalue numerator="0" denominator="1" />
+                    </jitter>
+                    <minDist>
+                      <timevalue numerator="0" denominator="1" />
+                    </minDist>
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+            </PropagationElements>
+          </PropagationContainer>
+          <PropagationContainer type="inputRequirement">
+            <PropagationElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="false">
+                    <eventmodeltype type="any" />
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+              <OffsetPropagationElement reference="Sync9" position="input" propagate="true" dataChange="true" uri="Offset">
+                <!--Offset propagation is part of the core libraries.-->
+                <offset>
+                  <timevalue numerator="0" denominator="1" />
+                </offset>
+                <capturedPath />
+              </OffsetPropagationElement>
+            </PropagationElements>
+            <RegisteredElements>
+              <EventModelPropagationElement propagate="true" uri="EventModel">
+                <!--Event Model propagation is part of the core libraries.-->
+                <myEventModel>
+                  <standardeventmodel periodic="false">
+                    <eventmodeltype type="any" />
+                  </standardeventmodel>
+                </myEventModel>
+              </EventModelPropagationElement>
+              <OffsetPropagationElement reference="Sync9" position="output" propagate="true" dataChange="false" uri="Offset">
+                <!--Offset propagation is part of the core libraries.-->
+                <offset>
+                  <timevalue numerator="0" denominator="1" />
+                </offset>
+                <capturedPath />
+              </OffsetPropagationElement>
+            </RegisteredElements>
+          </PropagationContainer>
+        </inputport>
+      </ports>
+    </sink>
+    <eventstream name="E1">
+      <src process="S0" outputPort="o0" type="source" />
+      <target process="T0" inputPort="i0" type="task" />
+      <emifeafType>PLAIN_EMIF</emifeafType>
+    </eventstream>
+    <eventstream name="E2">
+      <src process="S2" outputPort="o0" type="source" />
+      <target process="T1" inputPort="i0" type="task" />
+      <emifeafType>PLAIN_EMIF</emifeafType>
+    </eventstream>
+    <eventstream name="E3">
+      <src process="T2" outputPort="o0" type="task" />
+      <target process="S3" inputPort="i0" type="sink" />
+      <emifeafType>PLAIN_EMIF</emifeafType>
+    </eventstream>
+    <eventstream name="E9">
+      <src process="T4" outputPort="o0" type="task" />
+      <target process="S9" inputPort="i0" type="sink" />
+      <emifeafType>PLAIN_EMIF</emifeafType>
+    </eventstream>
+    <eventstream name="E5">
+      <src process="T1" outputPort="o0" type="task" />
+      <target process="T4" inputPort="i0" type="task" />
+      <emifeafType>PLAIN_EMIF</emifeafType>
+    </eventstream>
+    <eventstream name="E6">
+      <src process="T0" outputPort="o0" type="task" />
+      <target process="T2" inputPort="i0" type="task" />
+      <emifeafType>PLAIN_EMIF</emifeafType>
+    </eventstream>
+  </application>
+  <!--Observed paths with according deadlines-->
+  <observedpaths />
+  <!--Observed cycles with according deadlines-->
+  <observedcycles />
+  <!--Definition of the architecture-->
+  <architecture>
+    <cpu name="CPU0" xPosition="350" yPosition="190" width="80" height="50" scheduler="(IDA)spp">
+      <ports>
+        <resourceport name="o0" />
+      </ports>
+      <speedup type="continuous" factor="1.0" />
+      <analysis name="blind" />
+      <resourceextension ratemonotonic="false">
+        <contextswitch>
+          <timevalue numerator="0" denominator="1" />
+        </contextswitch>
+      </resourceextension>
+    </cpu>
+    <cpu name="CPU1" xPosition="350" yPosition="110" width="80" height="50" scheduler="(IDA)spp">
+      <ports>
+        <resourceport name="i0" />
+      </ports>
+      <speedup type="continuous" factor="1.0" />
+      <analysis name="blind" />
+      <resourceextension ratemonotonic="false">
+        <contextswitch>
+          <timevalue numerator="0" denominator="1" />
+        </contextswitch>
+      </resourceextension>
+    </cpu>
+  </architecture>
+  <!--Mapping of tasks and channels-->
+  <mapping>
+    <map:task name="T0">
+      <actualMapping name="CPU0">
+        <schedparam priority="2">
+          <tBlock>
+            <timevalue numerator="0" denominator="1" />
+          </tBlock>
+        </schedparam>
+      </actualMapping>
+    </map:task>
+    <map:task name="T2">
+      <actualMapping name="CPU0">
+        <schedparam priority="1">
+          <tBlock>
+            <timevalue numerator="0" denominator="1" />
+          </tBlock>
+        </schedparam>
+      </actualMapping>
+    </map:task>
+    <map:task name="T1">
+      <actualMapping name="CPU0">
+        <schedparam priority="3">
+          <tBlock>
+            <timevalue numerator="0" denominator="1" />
+          </tBlock>
+        </schedparam>
+      </actualMapping>
+    </map:task>
+    <map:task name="T4">
+      <actualMapping name="CPU1">
+        <schedparam priority="1">
+          <tBlock>
+            <timevalue numerator="0" denominator="1" />
+          </tBlock>
+        </schedparam>
+      </actualMapping>
+    </map:task>
+  </mapping>
+  <!--Internal status-->
+  <analysis>
+    <architecture>
+      <analysis:cpu name="CPU0" status="SUCCESS" upToDate="false" observed="false" hasLocalSpeed="false">
+        <ports>
+          <resourceport name="o0" status="UNKNOWN" upToDate="true" observed="false" />
+        </ports>
+        <totalLoad status="SUCCESS">0.6166666666666667</totalLoad>
+        <rtosLoad status="SUCCESS">0.0</rtosLoad>
+      </analysis:cpu>
+      <analysis:cpu name="CPU1" status="SUCCESS" upToDate="false" observed="false" hasLocalSpeed="false">
+        <ports>
+          <resourceport name="i0" status="UNKNOWN" upToDate="true" observed="false" />
+        </ports>
+        <totalLoad status="SUCCESS">0.3333333333333333</totalLoad>
+        <rtosLoad status="SUCCESS">0.0</rtosLoad>
+      </analysis:cpu>
+    </architecture>
+    <application>
+      <analysis:task name="T0" status="SUCCESS" upToDate="false" observed="true">
+        <ports>
+          <inputport name="i0" status="SUCCESS" upToDate="true" observed="false" />
+          <outputport name="o0" status="SUCCESS" upToDate="true" observed="false" />
+        </ports>
+        <responsetime>
+          <timeinterval>
+            <timevalue numerator="6" denominator="1" />
+            <timevalue numerator="7" denominator="1" />
+          </timeinterval>
+        </responsetime>
+        <maxload value="0.16666666666666666" />
+        <maxexbuf value="1" />
+      </analysis:task>
+      <analysis:task name="T1" status="SUCCESS" upToDate="false" observed="false">
+        <ports>
+          <inputport name="i0" status="SUCCESS" upToDate="true" observed="false" />
+          <outputport name="o0" status="SUCCESS" upToDate="true" observed="false" />
+        </ports>
+        <responsetime>
+          <timeinterval>
+            <timevalue numerator="6" denominator="1" />
+            <timevalue numerator="13" denominator="1" />
+          </timeinterval>
+        </responsetime>
+        <maxload value="0.25" />
+        <maxexbuf value="1" />
+      </analysis:task>
+      <analysis:task name="T2" status="SUCCESS" upToDate="false" observed="false">
+        <ports>
+          <inputport name="i0" status="SUCCESS" upToDate="true" observed="false" />
+          <outputport name="o0" status="SUCCESS" upToDate="true" observed="false" />
+        </ports>
+        <responsetime>
+          <timeinterval>
+            <timevalue numerator="1" denominator="1" />
+            <timevalue numerator="1" denominator="1" />
+          </timeinterval>
+        </responsetime>
+        <maxload value="0.2" />
+        <maxexbuf value="1" />
+      </analysis:task>
+      <analysis:task name="T4" status="SUCCESS" upToDate="false" observed="true">
+        <ports>
+          <inputport name="i0" status="SUCCESS" upToDate="true" observed="false" />
+          <outputport name="o0" status="SUCCESS" upToDate="true" observed="false" />
+        </ports>
+        <responsetime>
+          <timeinterval>
+            <timevalue numerator="10" denominator="1" />
+            <timevalue numerator="10" denominator="1" />
+          </timeinterval>
+        </responsetime>
+        <maxload value="0.3333333333333333" />
+        <maxexbuf value="1" />
+      </analysis:task>
+      <analysis:source name="S0" status="UNKNOWN" upToDate="true" observed="false">
+        <ports>
+          <outputport name="o0" status="SUCCESS" upToDate="true" observed="false" />
+        </ports>
+      </analysis:source>
+      <analysis:source name="S2" status="UNKNOWN" upToDate="true" observed="false">
+        <ports>
+          <outputport name="o0" status="SUCCESS" upToDate="true" observed="false" />
+        </ports>
+      </analysis:source>
+      <analysis:sink name="S3" status="UNKNOWN" upToDate="true" observed="false">
+        <ports>
+          <inputport name="i0" status="SUCCESS" upToDate="true" observed="false" />
+        </ports>
+      </analysis:sink>
+      <analysis:sink name="S9" status="UNKNOWN" upToDate="true" observed="false">
+        <ports>
+          <inputport name="i0" status="SUCCESS" upToDate="true" observed="false" />
+        </ports>
+      </analysis:sink>
+      <analysis:eventstream name="E1" status="SUCCESS" upToDate="true" observed="false" />
+      <analysis:eventstream name="E2" status="SUCCESS" upToDate="true" observed="false" />
+      <analysis:eventstream name="E3" status="SUCCESS" upToDate="true" observed="false" />
+      <analysis:eventstream name="E9" status="SUCCESS" upToDate="true" observed="false" />
+      <analysis:eventstream name="E5" status="SUCCESS" upToDate="true" observed="false" />
+      <analysis:eventstream name="E6" status="SUCCESS" upToDate="true" observed="false" />
+    </application>
+    <observedpaths />
+  </analysis>
+  <!--Definition of project metadata-->
+  <metadata>
+    <EditorGUIProperties>
+      <zoomScaleAppGraph>1.0</zoomScaleAppGraph>
+      <scrollBarXAppGraph>0</scrollBarXAppGraph>
+      <scrollBarYAppGraph>0</scrollBarYAppGraph>
+      <zoomScaleArchGraph>1.0</zoomScaleArchGraph>
+      <scrollBarXArchGraph>0</scrollBarXArchGraph>
+      <scrollBarYArchGraph>0</scrollBarYArchGraph>
+    </EditorGUIProperties>
+  </metadata>
+</SymTASystem>
+
