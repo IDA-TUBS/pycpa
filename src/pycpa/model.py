@@ -33,9 +33,9 @@ CACHE_HIT = 0
 
 logger = logging.getLogger("pycpa")
 
-def _warn_float(value):
+def _warn_float(value, reason = ""):
     if type(value) == float:
-        warnings.warn("you are using floats, this may yield non-pessimistic results", UserWarning)
+        warnings.warn("You are using floats, this may yield non-pessimistic results (" + reason + ")", UserWarning)
 
 class EventModel (object):
     """ An event model, i.e. worst- and best-case arrival functions.
@@ -246,9 +246,9 @@ class EventModel (object):
         """ Sets the event model to a periodic activation with jitter
         Formulas from [henia2005system]
         """
-        _warn_float(P)
-        _warn_float(J)
-        _warn_float(dmin)
+        _warn_float(P, "Period")
+        _warn_float(J, "Jitter")
+        _warn_float(dmin, "dmin")
 
         #save away the properties in case a local analysis uses them directly
         self.P = P
@@ -433,7 +433,7 @@ class Task (object):
 
     @wcet.setter
     def wcet(self, value):
-        _warn_float(value)
+        _warn_float(value, "WCET")
         self._wcet = value
 
     @property
@@ -443,7 +443,7 @@ class Task (object):
 
     @bcet.setter
     def bcet(self, value):
-        _warn_float(value)
+        _warn_float(value, "BCET")
 
         self._bcet = value
         self.bcrt = self.bcet # conservative assumption BCRT = BCET
