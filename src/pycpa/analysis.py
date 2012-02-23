@@ -393,15 +393,15 @@ def _event_exit(task, n, e_0):
 
     return e
 
-def end_to_end_latency(stream, n = 1):
+def end_to_end_latency(stream, n = 1, **kwargs):
     """ Computes the worst-/best-case e2e latency for n tokens to pass the stream.
     Arguments: 
     stream: a task chain
     n: amount of tokens
     """
     if options.opts.e2e_improved == True:
-        return end_to_end_latency_improved(stream, n)
-    return end_to_end_latency_classic(stream, n)
+        return end_to_end_latency_improved(stream, n, **kwargs)
+    return end_to_end_latency_classic(stream, n, **kwargs)
 
 def end_to_end_latency_classic(stream, n = 1, task_overhead = 0, stream_overhead = 0, reanalyzeTasks = True):
     """ Computes the worst-/best-case e2e latency
