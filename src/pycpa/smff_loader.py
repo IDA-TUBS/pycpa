@@ -203,8 +203,8 @@ class SMFFLoader:
         smff_application = SMFFApplication(application_node)
         self.smff_applications.add(smff_application)
 
-        smff_application.name = application_node.attributes["appID"].nodeValue
-        smff_application.id = int(application_node.attributes["appV"].nodeValue)
+        smff_application.name = application_node.attributes["appV"].nodeValue
+        smff_application.id = int(application_node.attributes["appID"].nodeValue)
 
         mapping_node = application_node.getElementsByTagName("Mapping")[0]
         self._handle_mapping(mapping_node, smff_application)
@@ -331,6 +331,9 @@ class SMFFLoader:
             src_pycpa.link_dependent_task(task_model)
             task_model.link_dependent_task(trgt_pycpa)
 
+            # add task to application pool
+            smff_application.links_pycpa.add(task_model)
+
         else:
             #no task just link src and trgt
             src_pycpa.link_dependent_task(trgt_pycpa)
@@ -402,11 +405,17 @@ class SMFFLoader:
             if task_model.xml_node.tagName == "Task":
                 task_result_node = self.xml_root.createElement("Task")
                 application_node.appendChild(task_result_node)
-            elif task_model.xml_node.tagName == "TaskLink":
+
+            else:
+                raise InvalidSMFFXMLException("Invalid task xml description, expected Task", task_model.xml_node)
+            self._annotate_task(task_result_node, task_model, smff_application)
+
+        for task_model in smff_application.links_pycpa:
+            if task_model.xml_node.tagName == "TaskLink":
                 task_result_node = self.xml_root.createElement("TaskLink")
                 application_node.appendChild(task_result_node)
             else:
-                raise InvalidSMFFXMLException("Invalid task xml description", task_model.xml_node)
+                raise InvalidSMFFXMLException("Invalid task xml description, expected TaskLink", task_model.xml_node)
             self._annotate_task(task_result_node, task_model, smff_application)
 
     def _annotate_applications(self, analysis_node):
