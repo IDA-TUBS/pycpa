@@ -1,0 +1,45 @@
+pyCPA a Compositional Performance Analysis Toolkit implemented in Python.
+
+Copyright (C) 2010-2012, TU Braunschweig, Germany. All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+invoked via: /home/paxer/workspace/pycpa_public/examples/spp-test.py
+
+backlog        :       False 
+e2e_improved   :       False 
+max_iterations :        1000 
+max_window     :         inf 
+nocaching      :       False 
+propagation    : busy_window 
+show           :       False 
+verbose        :       False 
+
+
+
+Performing analysis
+Result:
+streams:
+resources:R1:[T11[P=30 J=5] T12[P=15 J=6] ]
+ R2:[T21[P=30 J=5++] T22[P=15 J=6++] ]
+ 
+T11: wcrt=10
+T12: wcrt=13
+T21: wcrt=2
+T22: wcrt=21
