@@ -20,14 +20,14 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   intro
    examples
+   cmd_options
    modules
 
 Why pyCPA
 ---------   
 Why not?
-pyCPA is ideal for students who want to learn about real-time performance
+pyCPA is a reference implementation and ideal for students who want to learn about real-time performance
 analysis research as well as researchers who want to extend existing algorithms.
 pyCPA is -as the name suggests- written in Python and extremely easy to use
 and extend. If you want, you can easily plugin new schedulers or your own analyses.
@@ -50,6 +50,9 @@ pyCPA will then calculate the following metrics:
 * backlog (maximum buffer sizes)
 * output event models
 
+An introduction to the approach is provided in [Henia2005]_.
+If you want to understand the internals of pyCPA we advice to read the paper.
+
 Features:
 ^^^^^^^^^
 * schedulers: (non-)preemtive fixed priority , Round Robin, TDMA, FIFO
@@ -62,9 +65,11 @@ Features:
 
 What pyCPA is not
 -----------------
-pyCPA cannot and won't obtain the worst-case execution time of a task
-there is and will be no support for any specific protocols (e.g. Ethernet, CAN, ARINC, AUTOSAR, etc.).
-Contact `Symtavision <http://www.symtavision.com>`_ if you need commercial support for any protocols.
+pyCPA cannot and won't obtain the worst-case execution time of a task.
+Also, there is and will be no support for any specific protocols (e.g. Ethernet, CAN, ARINC, AUTOSAR, etc.).
+Contact `Symtavision <http://www.symtavision.com>`_ if you need commercial support for any protocols
+ or anything else that is beyond academic use-cases.
+
 
 
 Indices and tables
@@ -74,3 +79,7 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+References
+==========
+
+.. [Henia2005] Rafik Henia, Arne Hamann, Marek Jersak, Razvan Racu, Kai Richter, and Rolf Ernst, "System Level Performance Analysis - the SymTA/S Approach" IEE Proceedings Computers and Digital Techniques, 2005

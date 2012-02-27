@@ -4,20 +4,36 @@ Static Priority Preemtive Example
 .. figure:: spp_graph.png
    :align:   right
 
+Introduction
+------------
 In this section, we will dissect the spp example which is representative for the ideas behind pyCPA.
-The full source code of the example is shown below.
+The full source code of the example is shown at the end of this section.
+
+Before we begin some general reminder:
 
 pyCPA is NOT a tool! It rather is a package of methods and classes which 
 can be embedded into your pyhon application - the spp example is such an example application.
 
-Each analysis consists of two steps, we need to setup the architecture
-and analyze it.
+Each pyCPA program consists of three steps:
+
+* initalization
+* setting up the architecture
+* one or multiple scheduling analyses
 
 The architecture can be entered in two ways, either you provide it with the source code or you can use
-a provided xml loader such as the symta or the smff loader.
+a an xml loader such as the symta or the smff loader.
 However, in most cases it is sufficient to code your application directly in a python file.
+For this example we assume that our application consists of two resources (e.g. CPUs) scheduled by a 
+SPP scheduler and four tasks of which some communicate by event-triggering.
+The environment stimulus (e.g. an sensor or input from another system) is assumed to be periodic with
+jitter.
+The application graph is shown on on the right.
 
 .. First, each pyCPA application needs to call :py:func:`options.init_pycpa`.
+
+
+Initialization
+--------------
 
 Now, let's look at the example.
 Before we actually start with the program, we import all pycpa modules which are needed for this example
@@ -41,6 +57,8 @@ maximum-busy window, etc.
 Conveniently, this also prints the optiones which will be used for your pyCPA session.
 This is handy, when you run some analyses in batch jobs and want are uncertain about the exact settings after a few weeks.
 
+System Model
+------------
 Then we can continue to create an empty system, which is just a container for all other objects: 
 
 .. literalinclude:: ../examples/spp-test.py
@@ -80,6 +98,9 @@ In case of communication-overhead it must be modeled by using other resources/ta
 .. literalinclude:: ../examples/spp-test.py
    :language: python
    :lines: 45-47
+
+Plotting the Task-Graph
+-----------------------
        
 Then, we plot the taskgraph to a pdf file by using the graph module.
 
@@ -87,7 +108,14 @@ Then, we plot the taskgraph to a pdf file by using the graph module.
    :language: python
    :lines: 53-54
 
+Analysis
+--------
+
 The analysis is performed by calling :py:func:`pycpa.analysis.analyze_system()`.
+This will will find the fixed-point of the scheduling problem and terminate if 
+a result was found or if the system is not feasible (e.g. one busy window or the amount a propagations
+was larger than a limit or the load on a resource is larger one).
+
 The results are stored inside the task objects: each task has a new attribute wcrt
 which contains the worst-case response time.
 
