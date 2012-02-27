@@ -12,6 +12,7 @@ Description
 -----------
 
 This module contains methods to plot task/architecture graphs of your system
+
 """
 
 from . import model
@@ -36,25 +37,18 @@ def graph_system(s, filename=None, layout='dot',
                  emptyResources=False, shortTasks=False,
                  execTimes=False,
                  rankdir='LR'):
-    """ Return a graph of the system
+    """
+    Return a graph of the system
     
-    Keyword arguments:
-    
-    *s*
-        the system
-    *filename*
-        if not None, the graph is plotted to this file        
-    *layout*
-        graphviz layout algorithm (default l'dot' works best with hierarchical graphs)
-    *emptyResources*
-        Plot resources that have no tasks assigned
-    *shortTasks*
-        Label tasks using "T_nn" instead of their potentially long name
-    *execTimes*
-        Show execution times for each tasks
-    *rankdir*
-        Layout option for graphviz
-     
+    :param s: the system
+    :type s: model.System
+    :param filename:  if not None, the graph is plotted to this file        
+    :param layout: graphviz layout algorithm (default l'dot' works best with hierarchical graphs)
+    :param emptyResources:  Plot resources that have no tasks assigned
+    :param shortTasks: Label tasks using "T_nn" instead of their potentially long name
+    :param execTimes: Show execution times for each tasks
+    :param rankdir: Layout option for graphviz
+    :rtype: None 
     """
 
     g = pygraphviz.AGraph(directed='true', compound='true',
