@@ -83,9 +83,6 @@ def compute_wcrt(task, **kwargs):
     task.busy_times = [0]  # busy time of 0 activations
     while True:
 
-        if task.wcet == 0:
-            task.busy_times.append(0)
-            break
 
         w = task.busy_time(q, **kwargs)
         task.busy_times.append(w)

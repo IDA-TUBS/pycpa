@@ -13,7 +13,6 @@ Description
 SMFF import/annotate
 """
 
-
 import xml.dom.minidom
 
 import options
@@ -287,6 +286,10 @@ class SMFFLoader:
         for profile_node in task_node.getElementsByTagName("Profile"):
             self._handle_profile(profile_node, task_model)
 
+        # some tasks in smff have a wcet=0, these must be set to the highest priority
+        if task_model.wcet == 0:
+            task_model.scheduling_parameter = -1
+
         # register the id
         smff_application.id_to_task_pycpa[task_id] = task_model
 
@@ -323,6 +326,10 @@ class SMFFLoader:
 
             for profile_node in task_link_node.getElementsByTagName("Profile"):
                 self._handle_profile(profile_node, task_model)
+
+            # some tasks in smff have a wcet=0, these must be set to the highest priority
+            if task_model.wcet == 0:
+                task_model.scheduling_parameter = -1
 
             # register id -> pycpa model mapping
             smff_application.id_to_link_pycpa[link_id] = task_model
