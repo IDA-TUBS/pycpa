@@ -36,6 +36,7 @@ def get_junction_name(j):
 def graph_system(s, filename=None, layout='dot',
                  emptyResources=False, shortTasks=False,
                  execTimes=False,
+                 schedParam=False,
                  rankdir='LR'):
     """
     Return a graph of the system
@@ -47,6 +48,7 @@ def graph_system(s, filename=None, layout='dot',
     :param emptyResources:  Plot resources that have no tasks assigned
     :param shortTasks: Label tasks using "T_nn" instead of their potentially long name
     :param execTimes: Show execution times for each tasks
+    :param schedParam: Show scheduling parameter for each task
     :param rankdir: Layout option for graphviz
     :rtype: None 
     """
@@ -79,6 +81,8 @@ def graph_system(s, filename=None, layout='dot',
                 lab = t.name
             if execTimes:
                 lab += '(%g,%g)' % (t.bcet, t.wcet)
+            if schedParam:
+                lab += ' param: %s' % (str(t.scheduling_parameter))
             g.add_node(t.name, label=str(lab))
             res_tasks.append(t.name)
             if t.mutex is not None:
