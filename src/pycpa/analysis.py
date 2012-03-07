@@ -220,6 +220,10 @@ def _out_event_model_jitter(task, dmin=0):
     em = model.EventModel()
     resp_jitter = task.wcrt - task.bcrt
 
+    if options.opts.propagation == 'jitter':
+        # ignore dmin if propagation is jitter only
+        dmin = 0
+
     assert resp_jitter >= 0
     nonrecursive = True  # if True, a non-recursive (but less accurate) computation is used
     if nonrecursive:
@@ -405,13 +409,25 @@ def end_to_end_latency(stream, n=1, **kwargs):
         return end_to_end_latency_improved(stream, n, **kwargs)
     return end_to_end_latency_classic(stream, n, **kwargs)
 
-def end_to_end_latency_classic(stream, n=1, task_overhead=0, stream_overhead=0, reanalyzeTasks=True):
+def end_to_end_latency_classic(stream, n=1, task_overhead=0, stream_overhead=0, reanalyzeTasks=True, injection_rate='max'):
     """ Computes the worst-/best-case e2e latency
     Assumes that all tasks in the system have successfully been analyzed.
-    Assumes that events enter the stream at maximum rate.
+    Assumes that events enter the stream at maximum/minumum rate.
     The end-to-end latency is the sum of the individual task's worst-case response times
-    A constant task_overhead is added once per task to both min and max latency
-    A constant stream_overhead is added once per stream to both min and max latency
+    
+    :param stream: the stream
+    :type stream: model.Stream
+    :param n:  amount of events
+    :type n: integer
+    :param task_overhead: A constant task_overhead is added once per task to both min and max latency
+    :type task_overhead: integer
+    :param stream_overhead:  A constant stream_overhead is added once per stream to both min and max latency
+    :type stream_overhead: integer
+    :param reanalyzeTasks: reanalyze tasks (local analysis) before latency is calculated
+    :type reanalyzeTasks: bool 
+    :param injection_rate: injection rate is maximum or minimum
+    :type injection_rate: string 'max' or 'min' 
+    :rtype: tuple (best case latency, worst case latency)
     """
 
     lmax = 0
@@ -421,8 +437,14 @@ def end_to_end_latency_classic(stream, n=1, task_overhead=0, stream_overhead=0, 
         if isinstance(t, model.Task):
             lmax += t.wcrt + task_overhead
 
-    # add the latest possible release of event n
-    lmax += stream.tasks[0].in_event_model.delta_min(n) + stream_overhead
+    if injection_rate == 'max':
+        # add the eastliest possible release of event n
+        lmax += stream.tasks[0].in_event_model.delta_min(n) + stream_overhead
+
+    elif injection_rate == 'min':
+        # add the latest possible release of event n
+        lmax += stream.tasks[0].in_event_model.delta_plus(n) + stream_overhead
+
 
     lmin = 0
     for t in stream.tasks:

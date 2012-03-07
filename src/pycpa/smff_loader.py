@@ -47,7 +47,7 @@ class InvalidSMFFXMLException (Exception):
 
 
 class SMFFApplication:
-    def __init__(self, xml_node = None):
+    def __init__(self, xml_node=None):
 
         ## corresponding dom node
         self.xml_node = xml_node
@@ -244,7 +244,7 @@ class SMFFLoader:
             ## source
             jitter = int(activation_pattern_node.attributes["activationJitter"].nodeValue)
             period = int(activation_pattern_node.attributes["activationPeriod"].nodeValue)
-            em = model.EventModel(P = period, J = jitter)
+            em = model.EventModel(P=period, J=jitter)
             task_model.in_event_model = em
             return
 
@@ -274,7 +274,7 @@ class SMFFLoader:
         task_id = int(task_node.attributes["ID"].nodeValue)
 
         # create the task
-        task_model = model.Task(name = short_name)
+        task_model = model.Task(name=short_name)
         task_model.xml_node = task_node
         task_model.smff_id = task_id
 
@@ -316,7 +316,7 @@ class SMFFLoader:
         if link_id in smff_application.task_link_mapping:
 
             # create pycpa object
-            task_model = model.Task(name = short_name)
+            task_model = model.Task(name=short_name)
             task_model.smff_id = link_id
             task_model.xml_node = task_link_node
 
@@ -376,10 +376,18 @@ class SMFFLoader:
 
         in_jitter, out_jitter = _calc_in_out_jitter(task_model)
 
+        in_dmin = 0
+        if task_model.prev_task is not None:
+            in_dmin = task_model.prev_task.bcrt
+
+        out_dmin = task_model.bcrt
+
         task_result_node.setAttribute("name", str(task_model.name))
         task_result_node.setAttribute("id", str(task_model.smff_id))
         task_result_node.setAttribute("wcrt", str(task_model.wcrt))
         task_result_node.setAttribute("bcrt", str(task_model.bcrt))
+        task_result_node.setAttribute("input_dmin", str(in_dmin))
+        task_result_node.setAttribute("output_dmin", str(out_dmin))
         task_result_node.setAttribute("input_jitter", str(in_jitter))
         task_result_node.setAttribute("output_jitter", str(out_jitter))
 
