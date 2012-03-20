@@ -24,34 +24,26 @@ Contents:
    cmd_options
    modules
 
-Why pyCPA
----------   
-Why not?
-pyCPA is a reference implementation and ideal for students who want to learn about real-time performance
-analysis research as well as researchers who want to extend existing algorithms.
-pyCPA is -as the name suggests- written in Python and extremely easy to use
-and extend. If you want, you can easily plugin new schedulers or your own analyses.
 
-pyCPA *should not* be used in any commercial-grade, safety-critical designs.
-
-
-What does pyCPA?
+What does pyCPA do?
 ----------------
 Given, you have a (distributed) real-time system and you want to know about
 worst-case (end-to-end) timing behavior, then you can use pyCPA to obtain these bounds.
 You provide your architecture in the form of resources such as busses and 
-cpus and the corresponding scheduling policies.
+CPUs and the corresponding scheduling policies.
 In a second step, you define your task-graph which is a specification
-of task-communication (precedence relations) and tasks' properties (best/worst-case execution times).
+of task-communication (precedence relations) and tasks' properties 
+(best/worst-case execution times, priorities, activation patterns).
 pyCPA will then calculate the following metrics:
 
-* worst-case response times (wcrt)
-* end-to-end timing
-* backlog (maximum buffer sizes)
-* output event models
+* worst-case response times (WCRT) for tasks
+* end-to-end timing for chains of tasks
+* maximum backlog of task activations (maximum buffer sizes)
+* output event models for tasks
 
 An introduction to the approach is provided in [Henia2005]_.
 If you want to understand the internals of pyCPA we advice to read the paper.
+
 
 Features:
 ^^^^^^^^^
@@ -63,13 +55,24 @@ Features:
 * graphviz plots of your taskgraph
 * `SMFF <http://smff.sourceforge.net/>`_ support (through xml interface)
 
+
+Why pyCPA
+---------   
+Why not?
+pyCPA is a reference implementation and ideal for students who want to learn about real-time performance
+analysis research as well as researchers who want to extend existing algorithms.
+pyCPA is -as the name suggests- written in Python and extremely easy to use
+and extend. If you want, you can easily plugin new schedulers or your own analyses.
+
+pyCPA *should not* be used in any commercial-grade, safety-critical designs.
+
+
 What pyCPA is not
 -----------------
 pyCPA cannot and won't obtain the worst-case execution time of a task.
 Also, there is and will be no support for any specific protocols (e.g. Ethernet, CAN, ARINC, AUTOSAR, etc.).
 Contact `Symtavision <http://www.symtavision.com>`_ if you need commercial support for any protocols
  or anything else that is beyond academic use-cases.
-
 
 
 Indices and tables
