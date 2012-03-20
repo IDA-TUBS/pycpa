@@ -25,7 +25,6 @@ Contents:
    modules
    bibliography
 
-
 What does pyCPA do?
 ----------------
 Given, you have a (distributed) real-time system and you want to know about
@@ -83,6 +82,4 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-
-.. include:: bibliography.rst 
 
