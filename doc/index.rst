@@ -23,6 +23,7 @@ Contents:
    examples
    cmd_options
    modules
+   bibliography
 
 
 What does pyCPA do?
@@ -72,7 +73,7 @@ What pyCPA is not
 pyCPA cannot and won't obtain the worst-case execution time of a task.
 Also, there is and will be no support for any specific protocols (e.g. Ethernet, CAN, ARINC, AUTOSAR, etc.).
 Contact `Symtavision <http://www.symtavision.com>`_ if you need commercial support for any protocols
- or anything else that is beyond academic use-cases.
+or anything else that is beyond academic use-cases.
 
 
 Indices and tables
@@ -82,7 +83,6 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-References
-==========
 
-.. [Henia2005] Rafik Henia, Arne Hamann, Marek Jersak, Razvan Racu, Kai Richter, and Rolf Ernst, "System Level Performance Analysis - the SymTA/S Approach" IEE Proceedings Computers and Digital Techniques, 2005
+.. include:: bibliography.rst 
+
