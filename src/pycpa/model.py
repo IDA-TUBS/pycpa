@@ -93,7 +93,7 @@ class EventModel (object):
             Return the minimum time window containing n activations.
             The delta_minus-function is derived from the eta_plus-function.
             This function is rarely needed, as EventModels are represented by delta-functions internally.
-            Equation 3.7 from [Schliecker2010]_.
+            Equation 3.7 from [Schliecker2011]_.
         """
         MAXX = 1000
         if n < 2: return 0
@@ -110,7 +110,7 @@ class EventModel (object):
             Return the maximum time window containing n activations.            
             The delta_plus-function is derived from the eta_minus-function.
             This function is rarely needed, as EventModels are represented by delta-functions internally.
-            Equation 3.8 from [Schliecker2010]_.            
+            Equation 3.8 from [Schliecker2011]_.            
         """
         MAXX = 1000
         if n < 2: return 0
@@ -124,7 +124,7 @@ class EventModel (object):
     def eta_plus_old(self, w):
         """ Eta-plus Function
             Return the maximum number of activations in a time window w.
-            Equation 3.5 from [Schliecker2010]_.
+            Equation 3.5 from [Schliecker2011]_.
             Deprecated, as it uses a slow linear search.
         """
         # if the window does not include 2 activations, assume that one has occured
@@ -144,7 +144,7 @@ class EventModel (object):
     def eta_plus(self, w):
         """ Eta-plus Function
             Return the maximum number of activations in a time window w.
-            Equation 3.5 from [Schliecker2010]_.            
+            Equation 3.5 from [Schliecker2011]_.            
         """
         # if the window does not include 2 activations, assume that one has occured
         if self.delta_min(2) > w: return 1
@@ -178,7 +178,7 @@ class EventModel (object):
     def eta_min(self, w):
         """ Eta-minus Function
             Return the minimum number of activations in a time window w.
-            Equation 3.6 from [Schliecker2010]_.
+            Equation 3.6 from [Schliecker2011]_.
         """
         MAX_EVENTS = 10000
         n = 2
@@ -623,7 +623,7 @@ class Mutex:
     Shared resources create timing interferences between tasks
     which may be executed on different resources (e.g. multi-core CPU)
     but require access to a common resource (e.g. shared main memory) to execute.
-    See e.g. Chapter 5 in [Schliecker2010]_. 
+    See e.g. Chapter 5 in [Schliecker2011]_. 
     """
 
     def __init__(self, name = None):

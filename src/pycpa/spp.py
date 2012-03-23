@@ -36,7 +36,8 @@ def w_spp(task, q, MAX_WINDOW = 1000, **kwargs):
     """ Return the maximum time required to process q activations
         Priority stored in task.scheduling_parameter
         smaller priority number -> right of way
-        Policy for equal priority is FCFS (i.e. max. interference)
+        Policy for equal priority is FCFS (i.e. max. interference).
+        This corresponds to Theorem 1 in [Lehoczky1990]_ or Equation 2.3 in [Richter2005]_.
     """
     assert(task.scheduling_parameter != None)
     assert(task.wcet >= 0)

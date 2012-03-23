@@ -10,7 +10,9 @@
 Description
 -----------
 
-Static Priority Non Preemptive busy window function 
+Static Priority Non Preemptive Analysis functions (see [Davis2007]_).
+
+
 """
 
 

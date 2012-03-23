@@ -1,4 +1,5 @@
-"""
+""" Generic Compositional Performance Analysis Algorithms
+
 | Copyright (C) 2007-2012 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
 | All rights reserved. 
@@ -53,10 +54,15 @@ def _multi_activation_stopping_condition(task, q, w):
 
 def compute_wcrt(task, **kwargs):
     """ Compute the worst-case response time of Task
+    For this, we construct busy windows for q=1, 2, ... task activations (see [Lehoczky1990]_)
+    and iterate until a stop condition (e.g. resource idle again).
+    The response time is then the maximum time difference between
+    the arrival and the completion of q events.
+    See also Equations 2.3, 2.4, 2.5 in [Richter2005]_.
     Should not be called directly (use System.analyze() instead)
     Uses task.resource.w_function -- a function in the form f(task, q)
     that computes the busy-window of q activations of task
-    (depending on the scheduler used)
+    (depending on the scheduler used).
     """
 
     if  "MAX_ITERATIONS" not in kwargs:
@@ -69,7 +75,7 @@ def compute_wcrt(task, **kwargs):
 
     if task.resource.compute_wcrt is not None:
         return task.resource.compute_wcrt(task,
-                                          MAX_ITERATIONS=MAX_ITERATIONS)
+                                          MAX_ITERATIONS = MAX_ITERATIONS)
 
     stop_condition = _multi_activation_stopping_condition
     if task.resource.multi_activation_stopping_condition is not None:
@@ -82,8 +88,6 @@ def compute_wcrt(task, **kwargs):
     wcrt = task.bcet
     task.busy_times = [0]  # busy time of 0 activations
     while True:
-
-
         w = task.busy_time(q, **kwargs)
         task.busy_times.append(w)
 
@@ -131,7 +135,7 @@ def compute_service(task, t):
     return n - 1
 
 
-def compute_max_backlog(task, output_delay=0):
+def compute_max_backlog(task, output_delay = 0):
     """ Compute the maximum backlog of Task t.
         This is the maximum number of outstanding activations.
     """
@@ -151,9 +155,9 @@ def compute_max_backlog(task, output_delay=0):
             return float("inf")
 
 
-def analyze_task(task, COMPUTE_BACKLOG=None):
-    """ Analyze Task BUT DONT _propagate event model.
-    This is the "local analysis step".
+def analyze_task(task, COMPUTE_BACKLOG = None):
+    """ Analyze Task BUT DONT propagate event model.
+    This is the "local analysis step", see Section 7.1.4 in [Richter2005]_.
     """
 
     if  "COMPUTE_BACKLOG" is None:
@@ -183,8 +187,11 @@ def analyze_task(task, COMPUTE_BACKLOG=None):
     assert(task.bcrt <= task.wcrt)
 
 
-def out_event_model(task, dmin=0):
-    """ Wrapper to call the actual out_event_model_XXX. """
+def out_event_model(task, dmin = 0):
+    """ Wrapper to call the actual out_event_model_XXX,
+    which computes the output event model of a task.
+    See Chapter 4 in [Richter2005]_ for an overview.    
+    """
     # if there is no valid input model, there is no valid output model
     if task.in_event_model is None:
         return None
@@ -194,9 +201,9 @@ def out_event_model(task, dmin=0):
     return task.resource.out_event_model(task, dmin)
 
 
-def _out_event_model_jitter_offset(task, dmin=0):
+def _out_event_model_jitter_offset(task, dmin = 0):
     """ Derive an output event model including offset from response time jitter
-     and in_event_model (used as reference).
+    and in_event_model (used as reference).
     """
     em = copy.copy(task.in_event_model)
     resp_jitter = task.wcrt - task.bcrt
@@ -211,10 +218,13 @@ def _out_event_model_jitter_offset(task, dmin=0):
     return em
 
 
-def _out_event_model_jitter(task, dmin=0):
+def _out_event_model_jitter(task, dmin = 0):
     """ Derive an output event model from response time jitter
      and in_event_model (used as reference).
-    Formula taken from schliecker2009response
+    
+    This corresponds to Equations 1 (non-recursive) and 2 (recursive from [Schliecker2009]_    
+    This is equivalent to Equation 5 in [Henia2005]_ or Equation 4.6 in [Richter2005]_.
+    
     Uses a reference to task.deltamin_func
     """
     em = model.EventModel()
@@ -240,11 +250,12 @@ def _out_event_model_jitter(task, dmin=0):
     return em
 
 
-def _out_event_model_busy_window(task, dmin=0):
+def _out_event_model_busy_window(task, dmin = 0):
     """ Derive an output event model from busy window
      and in_event_model (used as reference).
     Gives better results than _out_event_model_jitter.
-    Formula taken from schliecker2008providing
+    
+    This results from Theorems 1, 2 and 3 from [Schliecker2008]_.
     """
     em = model.EventModel()
     busy_times = task.busy_times  # copy, because task.busy_times changes!
@@ -285,7 +296,8 @@ def _out_event_model_busy_window(task, dmin=0):
 
 
 def _out_event_model_junction(junction, non_cycle_prev):
-    """ calculate the output event model for this junction """
+    """ Calculate the output event model for this junction. 
+    Actually a wrapper to .._or and .._and."""
     junction.in_event_models = set()
     for t in non_cycle_prev:
         if out_event_model(t) is not None:
@@ -303,10 +315,16 @@ def _out_event_model_junction(junction, non_cycle_prev):
 
 
 def _out_event_model_junction_or(junction):
+    """ Compute output event models for an OR junction. 
+    This corresponds to Section 4.2, Equations 4.11 and 4.12 in [Jersak2005]_.
+    """
     raise NotImplementedError("OR not implemented")
 
 
 def _out_event_model_junction_and(junction):
+    """ Compute output event models for an AND junction.
+    This corresponds to Lemma 4.2 in [Jersak2005]_.
+    """
     assert len(junction.in_event_models) > 0
     em = model.EventModel()
     em.deltamin_func = lambda n: (min(emif.delta_min(n) for emif in junction.in_event_models))
@@ -322,6 +340,8 @@ def _invalidate_event_model_caches(task):
 
 
 def _propagate(task):
+    """ Propagate the event models for a task.
+    """
     _invalidate_event_model_caches(task)
     for t in task.next_tasks:
         # logger.debug("propagating to " + str(t))
@@ -333,7 +353,7 @@ def _propagate(task):
             raise TypeError("invalid propagation target")
 
 
-def _assert_event_model_conservativeness(emif_small, emif_large, n_max=1000):
+def _assert_event_model_conservativeness(emif_small, emif_large, n_max = 1000):
     if emif_small is None:
         return
     for n in range(2, n_max):
@@ -399,7 +419,7 @@ def _event_exit(task, n, e_0):
 
     return e
 
-def end_to_end_latency(stream, n=1, **kwargs):
+def end_to_end_latency(stream, n = 1, **kwargs):
     """ Computes the worst-/best-case e2e latency for n tokens to pass the stream.
     Arguments: 
     stream: a task chain
@@ -409,11 +429,13 @@ def end_to_end_latency(stream, n=1, **kwargs):
         return end_to_end_latency_improved(stream, n, **kwargs)
     return end_to_end_latency_classic(stream, n, **kwargs)
 
-def end_to_end_latency_classic(stream, n=1, task_overhead=0, stream_overhead=0, reanalyzeTasks=True, injection_rate='max'):
-    """ Computes the worst-/best-case e2e latency
+def end_to_end_latency_classic(stream, n = 1, task_overhead = 0, stream_overhead = 0, reanalyzeTasks = True, injection_rate = 'max'):
+    """ Computes the worst-/best-case end-to-end latency
     Assumes that all tasks in the system have successfully been analyzed.
     Assumes that events enter the stream at maximum/minumum rate.
-    The end-to-end latency is the sum of the individual task's worst-case response times
+    The end-to-end latency is the sum of the individual task's worst-case response times.
+    
+    This corresponds to Definition 7.3 in [Richter2005]_.
     
     :param stream: the stream
     :type stream: model.Stream
@@ -457,11 +479,11 @@ def end_to_end_latency_classic(stream, n=1, task_overhead=0, stream_overhead=0, 
     return lmin, lmax
 
 
-def _event_arrival_stream(stream, n, e_0=0):
+def _event_arrival_stream(stream, n, e_0 = 0):
     """ Returns the latest arrival time of the n-th event
     with respect to an event 0 of task 0 (first task in stream)
 
-    $e_0(n)$ (cf. [schliecker2009recursive], Lemma 1)
+    This is :math:`e_0(n)` from Lemma 1 in [Schliecker2009recursive]_.
     """
     #if e_0 is None:
         # the entry time of the first event
@@ -479,7 +501,7 @@ def _event_arrival_stream(stream, n, e_0=0):
 def _event_exit_stream(stream, i, n):
     """ Returns the latest exit time of the n-th event
     relative to the arrival of an event 0
-    (cf. [schliecker2009recursive], Lemma 2)
+    (cf. Lemma 2 in [Schliecker2009recursive]_)
     """
 
     logger.debug("calculating exit for task %d, n=%d" % (i, n))
@@ -505,8 +527,8 @@ def _event_exit_stream(stream, i, n):
     return e
 
 
-def end_to_end_latency_improved(stream, n=1):
-    """ Performs the path analysis presented in [schliecker2009recursive],
+def end_to_end_latency_improved(stream, n = 1):
+    """ Performs the path analysis presented in [Schliecker2009recursive]_,
     which improves results compared to end_to_end_latency() for
     n>1 and bursty event models.
     lat(n)
@@ -523,7 +545,7 @@ class AnalysisContext(object):
     At the moment this is only the list of dirty tasks.
     Half the anlysis context is stored in the Task class itself!
     """
-    def __init__(self, name="global default"):
+    def __init__(self, name = "global default"):
         ## Set of tasks requiring another local analysis due to updated input events
         self.dirtyTasks = set()
         ## Dictionary storing the dependent task sets of each task
@@ -587,7 +609,7 @@ def _init_dependent_tasks(system, context):
     #    print t, ":", context.dependentTask[t]
 
 
-def _breadth_first_search(task, func=None):
+def _breadth_first_search(task, func = None):
     """ returns a set of nodes (tasks) which is reachable starting from the starting task.
     calls func on the first discover of a task
     """
@@ -643,7 +665,7 @@ def _dijkstra(source):
 
     while len(Q) > 0:
         # get node with minimum distance
-        u = min(Q, key=lambda x: dist[x])
+        u = min(Q, key = lambda x: dist[x])
 
         if dist[u] == float('inf'):
             break  # all remaining vertices are inaccessible from source
@@ -694,7 +716,7 @@ def print_subgraphs(system):
     return subgraphs
 
 
-def init_analysis(system, context, clean=False):
+def init_analysis(system, context, clean = False):
     """ Initialize the analysis """
 
     _mark_all_dirty(system, context)
@@ -703,7 +725,7 @@ def init_analysis(system, context, clean=False):
 
     # analyze tasks with most dependencies first
     context.analysisOrder = context.dependentTask.keys()
-    context.analysisOrder.sort(key=lambda x: len(context.dependentTask[x]), reverse=True)
+    context.analysisOrder.sort(key = lambda x: len(context.dependentTask[x]), reverse = True)
 
 #    print "analysis order:"
 #    for x in context.analysisOrder:
@@ -741,11 +763,13 @@ def init_analysis(system, context, clean=False):
             raise NotSchedulableException("load on %s exceeds 1.0" % r.name)
 
 
-def analyze_system(system, clean=False, onlyDependent=False):
+def analyze_system(system, clean = False, onlyDependent = False):
     """ Analyze all tasks until we find a fixed point
 
         system -- the system to analyze
         clean -- if true, all intermediate analysis results (from previous analysis) are cleaned
+        
+        This based on the procedure described in Section 7.2 in [Richter2005]_.
     """
 
     context = AnalysisContext()
