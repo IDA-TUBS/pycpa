@@ -11,8 +11,10 @@
 Description
 -----------
 
-This module contains classes for real-time scheduling analysis.
+This module contains classes for modeling systems for real-time scheduling analysis.
 It should be imported in scripts that do the analysis.
+We model systems composed of resources and tasks. Tasks are activated by events, modeled as event models.
+The general System Model is described in Section 3.6.1 in [Jersak2005]_ or Section 3.1 in [Henia2005]_.
 """
 
 from __future__ import print_function
@@ -33,15 +35,19 @@ CACHE_HIT = 0
 
 logger = logging.getLogger("pycpa")
 
-def _warn_float(value, reason=""):
+def _warn_float(value, reason = ""):
     if type(value) == float:
         warnings.warn("You are using floats, this may yield non-pessimistic results (" + reason + ")", UserWarning)
 
 class EventModel (object):
-    """ An event model, i.e. worst- and best-case arrival functions.
+    """ The event model describing the activation of tasks as described in [Jersak2005]_, [Richter2005]_, [Henia2005]_.
+    Internally, we use :math:`\delta^-(n)` and  :math:`\delta^+(n)`, 
+    which represent the minimum/maximum time window containing n events.
+    They can be transformed into :math:`\eta^+(\Delta t)` and :math:`\eta^-(\Delta t)` 
+    which represent the maximum/minimum number of events arriving within :math:`\Delta t`.
     """
 
-    def __init__(self, P=None, J=None, dmin=None, c=None, T=None, name='min', cache=None):
+    def __init__(self, P = None, J = None, dmin = None, c = None, T = None, name = 'min', cache = None):
         """ CTOR 
         If called without parameters, a minimal event model (1 single activation) is created        
         """
@@ -85,7 +91,9 @@ class EventModel (object):
     def delta_min_from_eta_plus(n, eta_plus):
         """ Delta-minus Function
             Return the minimum time window containing n activations.
-            The delta_min-minus function is derived from the eta_plus-function
+            The delta_minus-function is derived from the eta_plus-function.
+            This function is rarely needed, as EventModels are represented by delta-functions internally.
+            Equation 3.7 from [Schliecker2010]_.
         """
         MAXX = 1000
         if n < 2: return 0
@@ -99,9 +107,10 @@ class EventModel (object):
     @staticmethod
     def delta_plus_from_eta_min(n, eta_min):
         """ Delta-plus Function
-            Return the maximum time window containing n activations.
-            The delta_min-plus function is derived from the eta_plus-minus-function
-            TODO: Test
+            Return the maximum time window containing n activations.            
+            The delta_plus-function is derived from the eta_minus-function.
+            This function is rarely needed, as EventModels are represented by delta-functions internally.
+            Equation 3.8 from [Schliecker2010]_.            
         """
         MAXX = 1000
         if n < 2: return 0
@@ -115,6 +124,8 @@ class EventModel (object):
     def eta_plus_old(self, w):
         """ Eta-plus Function
             Return the maximum number of activations in a time window w.
+            Equation 3.5 from [Schliecker2010]_.
+            Deprecated, as it uses a slow linear search.
         """
         # if the window does not include 2 activations, assume that one has occured
         if self.delta_min(2) > w: return 1
@@ -133,6 +144,7 @@ class EventModel (object):
     def eta_plus(self, w):
         """ Eta-plus Function
             Return the maximum number of activations in a time window w.
+            Equation 3.5 from [Schliecker2010]_.            
         """
         # if the window does not include 2 activations, assume that one has occured
         if self.delta_min(2) > w: return 1
@@ -159,13 +171,14 @@ class EventModel (object):
         assert self.delta_min(hi) <= w
         assert self.delta_min(hi + 1) > w
 
-        #TODO: double check! This should be removed ASAP
+        #Double check with linear search (slow)
         #assert self.eta_plus_old(w) == hi
         return hi
 
     def eta_min(self, w):
         """ Eta-minus Function
             Return the minimum number of activations in a time window w.
+            Equation 3.6 from [Schliecker2010]_.
         """
         MAX_EVENTS = 10000
         n = 2
@@ -182,7 +195,7 @@ class EventModel (object):
     def delta_min(self, n):
         """ Delta-minus Function
             Return the minimum time window containing n activations.
-            The delta_min-minus function is derived from the eta_plus-function
+            This is actually a wrapper to allow caching of delta functions.
         """
         if n < 2: return 0
 
@@ -218,8 +231,8 @@ class EventModel (object):
 
     def delta_plus(self, n):
         """ Delta-plus Function
-            Return the maximum time window containing n activations.
-            The delta_min-plus function is derived from the eta_plus-minus-function
+            Return the maximum time window containing n activations.            
+            This is actually a wrapper to allow caching of delta functions.
         """
         if n < 2:
             #return self.deltaplus_func(2)
@@ -242,9 +255,9 @@ class EventModel (object):
         return self.deltaplus_func(n)
 
 
-    def set_PJd(self, P, J=0, dmin=0, early_arrival=False):
-        """ Sets the event model to a periodic activation with jitter
-        Formulas from [henia2005system]
+    def set_PJd(self, P, J = 0, dmin = 0, early_arrival = False):
+        """ Sets the event model to a periodic activation with jitter and minimum distance.
+        Equations 1 and 2 from [Schliecker2008]_.
         """
         _warn_float(P, "Period")
         _warn_float(J, "Jitter")
@@ -263,17 +276,20 @@ class EventModel (object):
             self.deltamin_func = lambda n: max((n - 1) * dmin, (n - 1) * P - J)
 
 
-    def set_PJ(self, P, J=0, early_arrival=False):
+    def set_PJ(self, P, J = 0, early_arrival = False):
+        """ Sets the event model to a periodic activation with jitter."""
         return self.set_PJd(P, J, 0, early_arrival)
 
 
-    def set_periodic(self, P, early_arrival=False, offset=0):
+    def set_periodic(self, P, early_arrival = False, offset = 0):
+        """ Sets the event model to a periodic activation."""
         return self.set_PJd(P, 0, 0, early_arrival)
 
-    def set_c_in_T(self, c, T, dmin=1):
+    def set_c_in_T(self, c, T, dmin = 1):
         """ Sets the event-model to a periodic Task
          with period T and c activations per period.
-         No minimum arrival rate is assumed (delta_plus = infinity)!        
+         No minimum arrival rate is assumed (delta_plus = infinity)!
+         Cf. Equation 1 in [Diemer2010]_.    
         """
         self.__description__ = "%d every %d, dmin=%d" % (c, T, dmin)
         if c == 0 or T >= INFINITY:
@@ -288,7 +304,7 @@ class EventModel (object):
         self.deltaplus_func = lambda n: INFINITY
 
 
-    def load(self, accuracy=100):
+    def load(self, accuracy = 100):
         """ Returns the asymptotic load, i.e. the avg. number of events per time """
         #print "load = ", float(self.eta_plus(accuracy)),"/",accuracy
         #return float(self.eta_plus(accuracy)) / accuracy
@@ -298,12 +314,11 @@ class EventModel (object):
             return float(accuracy) / self.delta_min(accuracy)
 
 
-    def delta_caching(self, active=True):
+    def delta_caching(self, active = True):
         self.en_delta_caching = active
 
     def flush_cache(self):
         self.delta_min_cache = dict()
-
 
     def __repr__(self):
         """ Return a description of the Event-Model"""
@@ -313,10 +328,11 @@ class EventModel (object):
 class Junction (object):
     """ A junction combines multiple event models into one output event model
         This is used to model multi-input tasks.
-        Valid semantics are "and" and "or" junctions
+        Valid semantics are "and" and "or" junctions.
+        See Chapter 4 in [Jersak2005]_ for definitions and details.
     """
 
-    def __init__(self, name="unknown", mode='and'):
+    def __init__(self, name = "unknown", mode = 'and'):
         """ CTOR """
         ## Name
         self.name = name
@@ -366,33 +382,16 @@ class Junction (object):
 
 
 class Task (object):
-    """ Task """
+    """ A Task is an entity which is mapped on a resource and consumes its service.
+    Tasks are activated by events, which are described by EventModel.
+    Events are queued in FIFO order at the input of the task, 
+    see Section 3.6.1 in [Jersak2005]_ or Section 3.1 in [Henia2005]_.
+    """
 
     def __init__(self, name, *args, **kwargs):
         """ CTOR """
         ## Descriptive string
         self.name = name
-
-        ## Worst-case execution time
-        self._wcet = 0
-
-        ## Best-case execution time
-        self._bcet = 0
-
-        ## Event model activating the Task
-        self.in_event_model = None
-
-        ## Worst-case response time (derived from analysis)
-        self.wcrt = 0
-
-        ## Best-case response time (derived from analysis)
-        self.bcrt = 0
-
-        ## Computed busy times
-        self.busy_times = list()
-
-        ## Maximum worst-case backlog (derived from analysis)
-        self.max_backlog = 0
 
         ## Link to Resource to which Task is mapped
         self.resource = None
@@ -409,6 +408,29 @@ class Task (object):
 
         ## Link to previous Task, i.e. the one which supplies our in_event_model
         self.prev_task = None
+
+        ## Worst-case execution time
+        self._wcet = 0
+
+        ## Best-case execution time
+        self._bcet = 0
+
+        ## Event model activating the Task
+        self.in_event_model = None
+
+        ## Worst-case response time (derived from analysis)
+        self.wcrt = 0
+
+        ## Best-case response time (derived from analysis)
+        self.bcrt = 0
+
+        ## Computed busy times (derived from analysis)
+        self.busy_times = list()
+
+        ## Maximum worst-case backlog (derived from analysis)
+        self.max_backlog = 0
+
+
 
         # compatability to the old call semantics (name, bcet, wcet, scheduling_parameter)
         if len(args) == 3:
@@ -530,9 +552,9 @@ class Task (object):
 
 
 class Resource:
-    """ A Resource shared by tasks """
+    """ A Resource provides service to tasks. """
 
-    def __init__(self, name=None, w_function=None, multi_activation_stopping_condition=None):
+    def __init__(self, name = None, w_function = None, multi_activation_stopping_condition = None):
         """ CTOR """
 
         ## Set of tasks mapped to this Resource
@@ -561,7 +583,7 @@ class Resource:
     def __repr__(self):
         """ Return string representation of Resource """
         s = str(self.name) + ':['
-        for t in sorted(self.tasks, key=str):
+        for t in sorted(self.tasks, key = str):
             s += str(t) + " "
         s += ']'
         return s
@@ -573,7 +595,7 @@ class Resource:
         t.bind_resource(self)
         return t
 
-    def load(self, accuracy=10000):
+    def load(self, accuracy = 10000):
         """ returns the asymptotic load """
         l = 0
         for t in self.tasks:
@@ -597,9 +619,14 @@ class Resource:
         self.tasks = set()
 
 class Mutex:
-    """ A mutually-exclusive shared Resource """
+    """ A mutually-exclusive shared Resource.
+    Shared resources create timing interferences between tasks
+    which may be executed on different resources (e.g. multi-core CPU)
+    but require access to a common resource (e.g. shared main memory) to execute.
+    See e.g. Chapter 5 in [Schliecker2010]_. 
+    """
 
-    def __init__(self, name=None):
+    def __init__(self, name = None):
         """ CTOR """
 
         ## Set of tasks mapped to this Resource
@@ -610,11 +637,13 @@ class Mutex:
 
 
 class Stream:
-    """ A Stream, i.e. a Task chain or Path.
+    """ A Stream describes a chain of tasks.
     Required for path analysis (e.g. end-to-end latency).
+    The information stored in Stream classes could be derived from the task graph (see Task.next_tasks and Task.prev_task),
+    but having redundancy here is more flexible (e.g. path analysis may only be interesting for some task chains).    
     """
 
-    def __init__(self, name, tasks=None):
+    def __init__(self, name, tasks = None):
         """ CTOR """
         ## List of tasks in stream (must be in correct order)
         if tasks is not None:
@@ -655,7 +684,9 @@ class Stream:
 
 
 class System:
-    """ A collection of resources """
+    """ The System is the top-level entity of the system model.
+    It contains resources, junctions, tasks and streams.
+    """
 
     def __init__(self):
         """ CTOR """
@@ -673,16 +704,16 @@ class System:
     def __repr__(self):
         """ Return a string representation of the System """
         s = 'streams:\n'
-        for h in sorted(self.streams, key=str):
+        for h in sorted(self.streams, key = str):
             s += str(h) + "\n"
         s += 'resources:'
-        for r in sorted(self.resources, key=str):
+        for r in sorted(self.resources, key = str):
             #s += str(k)+":"+str(r)+", "
             s += str(r) + "\n "
 
         return s
 
-    def add_junction(self, name="J", junc_type="and"):
+    def add_junction(self, name = "J", junc_type = "and"):
         """ Creates and registers a junction object in the System.
             Logically, the junction neither belongs to a system nor to a resource,
             for sake of convenience we associate junctions with the system.
@@ -691,13 +722,13 @@ class System:
         self.junctions.add(j)
         return j
 
-    def add_resource(self, rid, w_func=None, multi_activation_stop_condition=None):
+    def add_resource(self, rid, w_func = None, multi_activation_stop_condition = None):
         """ Create and add a Resource to the System """
         r = Resource(rid, w_func, multi_activation_stop_condition)
         self.resources.add(r)
         return r
 
-    def add_stream(self, name, tasks=None):
+    def add_stream(self, name, tasks = None):
         """ Create and add a Stream to the System """
         s = Stream(name, tasks)
         self.streams.add(s)
