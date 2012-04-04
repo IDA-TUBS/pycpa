@@ -548,7 +548,7 @@ class AnalysisContext(object):
     def __init__(self, name = "global default"):
         ## Set of tasks requiring another local analysis due to updated input events
         self.dirtyTasks = set()
-        ## Dictionary storing the dependent task sets of each task
+        ## Dictionary storing the set of all tasks that are immediately dependent on each task (i.e. require re-analysis if the tasks output changes)
         self.dependentTask = {}
         ## List of tasks sorted in the order in which the should be analyzed
         self.analysisOrder = []
@@ -727,6 +727,11 @@ def init_analysis(system, context, clean = False):
     _init_dependent_tasks(system, context)
 
     # analyze tasks with most dependencies first
+
+    # TODO: Improve this:
+    #  dependentTasks only contains immediate dependencies, which may have their own dependencies again.
+    #  This should be respected in the analysis order, but NOT in the dependentTask,
+    #  because that would mark too many tasks dirty after each analysis (which is safe but not efficient).    
     context.analysisOrder = context.dependentTask.keys()
     context.analysisOrder.sort(key = lambda x: len(context.dependentTask[x]), reverse = True)
 
