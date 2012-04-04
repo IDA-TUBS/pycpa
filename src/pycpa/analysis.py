@@ -612,6 +612,36 @@ def _init_dependent_tasks(system, context):
     #    print t, ":", context.dependentTask[t]
 
 
+def init_all_dependent_tasks(task, context, all_dep_tasks):
+    dependent_tasks = set(context.dependentTask[task])
+
+    for t in context.dependentTask[task]:
+        if t not in all_dep_tasks:
+            init_all_dependent_tasks(t, context, all_dep_tasks)
+        dependent_tasks |= all_dep_tasks[t]
+
+    all_dep_tasks[task] = dependent_tasks
+    #return dependent_tasks
+
+
+def init_analysis_order(context):
+    all_dep_tasks = {}
+
+    print "building dependencies for %d tasks" % (len(context.dirtyTasks))
+    for task in context.dirtyTasks: # go through all tasks
+        init_all_dependent_tasks(task, context, all_dep_tasks)
+
+        #print "got %d dependencies for task %s" % (len(all_dep_tasks[task]), task)
+
+    print "got them"
+    context.analysisOrder = context.dependentTask.keys()
+    context.analysisOrder.sort(key = lambda x: len(all_dep_tasks[x]), reverse = True)
+
+
+def init_analysis_order_simple(context):
+    context.analysisOrder = context.dependentTask.keys()
+    context.analysisOrder.sort(key = lambda x: len(context.dependentTask[x]), reverse = True)
+
 def _breadth_first_search(task, func = None):
     """ returns a set of nodes (tasks) which is reachable starting from the starting task.
     calls func on the first discover of a task
@@ -731,9 +761,9 @@ def init_analysis(system, context, clean = False):
     # TODO: Improve this:
     #  dependentTasks only contains immediate dependencies, which may have their own dependencies again.
     #  This should be respected in the analysis order, but NOT in the dependentTask,
-    #  because that would mark too many tasks dirty after each analysis (which is safe but not efficient).    
-    context.analysisOrder = context.dependentTask.keys()
-    context.analysisOrder.sort(key = lambda x: len(context.dependentTask[x]), reverse = True)
+    #  because that would mark too many tasks dirty after each analysis (which is safe but not efficient).
+    init_analysis_order(context)
+
 
 #    print "analysis order:"
 #    for x in context.analysisOrder:
