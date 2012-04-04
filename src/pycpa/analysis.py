@@ -602,8 +602,10 @@ def _init_dependent_tasks(system, context):
         for task in r.tasks:
             for t in _breadth_first_search(task):
                 if isinstance(t, model.Task):
-                    context.dependentTask[task].add(t)
-                    context.dependentTask[task] |= context.dependentTask[t]
+                    if t is not task:
+                        context.dependentTask[task].add(t)
+                        context.dependentTask[task] |= context.dependentTask[t]
+
 
     #for t in context.dependentTask.keys():
     #    print t, ":", context.dependentTask[t]
@@ -778,6 +780,9 @@ def analyze_system(system, clean = False, onlyDependent = False):
 
     iteration = 0
     while len(context.dirtyTasks) > 0:
+        logger.info("Analyzing, %d tasks left" %
+                            (len(context.dirtyTasks)))
+
         for t in context.analysisOrder:
             if t not in context.dirtyTasks:
                 continue
@@ -807,8 +812,9 @@ def analyze_system(system, clean = False, onlyDependent = False):
                 # including their dependent tasks and so forth...
                 # so mark them and all other tasks on their resource for another analysis
 
-                logger.info("Propagating output of %s to %d dependent tasks. busy_times=%s" %
+                logger.debug("Propagating output of %s to %d dependent tasks. busy_times=%s" %
                             (t.name, len(context.dependentTask[t]), t.busy_times))
+                #print "dependents of %s: %s" % (t.name, context.dependentTask[t])
 
                 _propagate(t)  # TODO: This could go into mark_dirty...
 
@@ -822,7 +828,9 @@ def analyze_system(system, clean = False, onlyDependent = False):
                 pass
 
             elapsed = (time.clock() - start)
-            logger.info("iteration: %d, time: %.1f task: %s wcrt: %f dirty: %d" % (iteration, elapsed, t.name, t.wcrt, len(context.dirtyTasks)))
+            logger.debug("iteration: %d, time: %.1f task: %s wcrt: %f dirty: %d" % (iteration, elapsed, t.name, t.wcrt, len(context.dirtyTasks)))
             iteration += 1
 
     #print "Global iteration done after %d iterations" % (round)
+
+
