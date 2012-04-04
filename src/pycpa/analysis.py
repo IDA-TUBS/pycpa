@@ -591,20 +591,21 @@ def _mark_dependents_dirty(task, context):
 def _init_dependent_tasks(system, context):
     """ Initialize context.dependentTask """
 
+    # First find out which tasks need to be reanalyzed if the input of a specific task changes
+    inputDependentTask = {}
     for r in system.resources:
         for task in r.tasks:
             # also mark all tasks on the same resource
-            context.dependentTask[task] |= set(task.get_resource_interferers())
+            inputDependentTask[task] = set(task.get_resource_interferers())
             # also mark all tasks on the same shared resource
-            context.dependentTask[task] |= set(task.get_mutex_interferers())
+            inputDependentTask[task] |= set(task.get_mutex_interferers())
 
     for r in system.resources:
         for task in r.tasks:
             for t in _breadth_first_search(task):
-                if isinstance(t, model.Task):
-                    if t is not task:
-                        context.dependentTask[task].add(t)
-                        context.dependentTask[task] |= context.dependentTask[t]
+                if isinstance(t, model.Task) and t is not task:
+                    context.dependentTask[task].add(t)
+                    context.dependentTask[task] |= inputDependentTask[t]
 
 
     #for t in context.dependentTask.keys():
@@ -779,6 +780,7 @@ def analyze_system(system, clean = False, onlyDependent = False):
     init_analysis(system, context, clean)
 
     iteration = 0
+    #print "Order:", context.analysisOrder
     while len(context.dirtyTasks) > 0:
         logger.info("Analyzing, %d tasks left" %
                             (len(context.dirtyTasks)))
