@@ -49,11 +49,27 @@ def plot_eta(eta, plot_range, label = None, color = None):
     pyplot.xlabel("$\Delta t$")
 
 
-def plot_event_model(model, plot_range, file_format = None, separate_plots = True):
-    """ Plot the Task's eta and delta_min functions """
+def plot_event_model(model, num_events, file_format = None, separate_plots = True, file_prefix = ''):
+    """ Plot the Task's eta and delta_min functions 
+    
+    :param model: the event model
+    :type model: model.EventModel
+    :param num_events: Number of events to plot
+    :type n: integer
+    :param file_format: the format of the file to be plotted 
+    :type file_format: string
+    :param separate_plots:  whether eta and delta plots should be combined
+    :type separate_plots: bool
+    :param file_prefix: prefix of file name of plots
+    :type file_prefix: string 
+    :rtype: None
+    """
+
+    max_delta_t = model.delta_min(num_events + 1)
+    range_eta = range(max_delta_t + 1)
 
     # range including surroundings of integers
-    augmented_range = plot_range + [x + 0.0001 for x in plot_range] + [x - 0.0001 for x in plot_range]
+    augmented_range = range_eta + [x + 0.0001 for x in range_eta] + [x - 0.0001 for x in range_eta]
     augmented_range.sort()
     w, h = pyplot.figaspect(0.7)
     pyplot.figure(figsize = (w, h))
@@ -61,43 +77,48 @@ def plot_event_model(model, plot_range, file_format = None, separate_plots = Tru
     if not separate_plots:
         pyplot.subplot(121)
         pyplot.subplots_adjust(left = 0.05, bottom = 0.1, right = 0.97, top = 0.92, wspace = None, hspace = None)
-    pyplot.plot(augmented_range, [model.eta_plus(x) for x in augmented_range], 'b-^',
+    pyplot.plot(augmented_range, [model.eta_plus(x) for x in augmented_range], 'r-v',
                 label = "$\eta^+(\Delta t)$")
-    pyplot.plot(augmented_range, [model.eta_min(x) for x in augmented_range], 'b-v',
+    pyplot.plot(augmented_range, [model.eta_min(x) for x in augmented_range], 'g-^',
                 label = "$\eta^-(\Delta t)$")
-    #pyplot.plot(plot_range,[self.eta(x) for x in plot_range], 'bo',)        
-    pyplot.xlim(xmin = 0)
-    pyplot.ylim(ymin = 0)
+    #pyplot.plot(range_eta,[self.eta(x) for x in range_eta], 'bo',)        
+    pyplot.xlim(xmin = 0, xmax = max_delta_t)
+    pyplot.ylim(ymin = 0, ymax = num_events + .5)
     pyplot.title("$\eta(\Delta t)$")
     pyplot.xlabel("$\Delta t$")
+    pyplot.ylabel("$n$")
     pyplot.legend(loc = 'best')
 
     if separate_plots and file_format is not None:
-            pyplot.savefig("plot-eta." + file_format)
+            pyplot.savefig(file_prefix + "plot-eta." + file_format)
 
     ## plot delta_min
     if separate_plots:
         pyplot.figure()
-    delta_range = list(range(2, max(plot_range)))
+
     if not separate_plots:
         pyplot.subplot(122)
-    pyplot.plot(delta_range, [model.delta_min(x) for x in delta_range], 'v',
+    range_delta = range(num_events + 1)
+    pyplot.plot(range_delta, [model.delta_min(x) for x in range_delta], 'r^',
                 label = "$\delta^-(n)$")
     if model.delta_plus(2) < float('inf'):
         # only plot delta+ if it is not infinity
-        pyplot.plot(delta_range, [model.delta_plus(x) for x in delta_range], '^',
+        pyplot.plot(range_delta, [model.delta_plus(x) for x in range_delta], 'gv',
                     label = "$\delta^+(n)$")
-    pyplot.xlim(xmin = 0)
+    pyplot.xlim(xmin = 0, xmax = num_events + .5)
     pyplot.ylim(ymin = 0)
     pyplot.title("$\delta(n)$")
     pyplot.xlabel("n")
+    pyplot.ylabel("$\Delta t$")
     pyplot.legend(loc = 'best')
 
     if file_format is not None:
         if separate_plots:
-            pyplot.savefig("plot-delta_min." + file_format)
+            pyplot.savefig(file_prefix + "plot-delta_min." + file_format)
         else:
-            pyplot.savefig("plot." + file_format)
+            pyplot.savefig(file_prefix + "plot." + file_format)
+    else:
+        pyplot.show()
 
 def aesthetic_paper_parameters(column_size = 252):
     fig_width_pt = column_size  # Get this from LaTeX using \showthe\columnwidth
