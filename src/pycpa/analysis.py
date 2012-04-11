@@ -627,13 +627,11 @@ def init_all_dependent_tasks(task, context, all_dep_tasks):
 def init_analysis_order(context):
     all_dep_tasks = {}
 
-    print "building dependencies for %d tasks" % (len(context.dirtyTasks))
+    #print "building dependencies for %d tasks" % (len(context.dirtyTasks))
     for task in context.dirtyTasks: # go through all tasks
         init_all_dependent_tasks(task, context, all_dep_tasks)
-
         #print "got %d dependencies for task %s" % (len(all_dep_tasks[task]), task)
 
-    print "got them"
     context.analysisOrder = context.dependentTask.keys()
     context.analysisOrder.sort(key = lambda x: len(all_dep_tasks[x]), reverse = True)
 
