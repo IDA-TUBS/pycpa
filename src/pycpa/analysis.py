@@ -548,12 +548,18 @@ class AnalysisContext(object):
     def __init__(self, name = "global default"):
         ## Set of tasks requiring another local analysis due to updated input events
         self.dirtyTasks = set()
-        ## Dictionary storing the set of all tasks that are immediately dependent on each task (i.e. require re-analysis if the tasks output changes)
+        ## Dictionary storing the set of all tasks that are immediately dependent on each task
+        ## (i.e. tasks that require re-analysis if a task's output changes)
         self.dependentTask = {}
         ## List of tasks sorted in the order in which the should be analyzed
         self.analysisOrder = []
         ## set of junctions used during depdency detection in order to avoid infinite recursions
         self.mark_junctions = set()
+
+    def get_dependent_tasks(self, task):
+        """ Return all tasks which immediately depend on task.
+        """
+        return self.dependentTask[task]
 
     def clean(self):
         """ Clear all intermediate analysis data """
@@ -595,54 +601,53 @@ def _init_dependent_tasks(system, context):
     inputDependentTask = {}
     for r in system.resources:
         for task in r.tasks:
-            # also mark all tasks on the same resource
-            inputDependentTask[task] = set(task.get_resource_interferers())
-            # also mark all tasks on the same shared resource
+            inputDependentTask[task] = set()
+            # all tasks on the same shared resource
             inputDependentTask[task] |= set(task.get_mutex_interferers())
+            for t in task.next_tasks:
+                if isinstance(t, model.Task): # skip junctions
 
-    for r in system.resources:
-        for task in r.tasks:
-            for t in _breadth_first_search(task):
-                if isinstance(t, model.Task) and t is not task:
-                    context.dependentTask[task].add(t)
-                    context.dependentTask[task] |= inputDependentTask[t]
+                    # all directly dependent task
+                    inputDependentTask[task].add(t)
 
+                    # all tasks on the same resource as directly dependent tasks (only for tasks, not junctions)    
+                    inputDependentTask[task] |= set(t.get_resource_interferers())
 
-    #for t in context.dependentTask.keys():
-    #    print t, ":", context.dependentTask[t]
-
-
-def init_all_dependent_tasks(task, context, all_dep_tasks):
-    dependent_tasks = set(context.dependentTask[task])
-
-    for t in context.dependentTask[task]:
-        if t not in all_dep_tasks:
-            init_all_dependent_tasks(t, context, all_dep_tasks)
-        dependent_tasks |= all_dep_tasks[t]
-
-    all_dep_tasks[task] = dependent_tasks
-    #return dependent_tasks
+    context.dependentTask = inputDependentTask
 
 
-def init_analysis_order(context):
+def _init_analysis_order(context):
+    """ Init the ananlysis order, using the number of all potentially tasks that require re-analysis 
+     as an indicator as to which task to analyze first
+    """
+
     all_dep_tasks = {}
 
     #print "building dependencies for %d tasks" % (len(context.dirtyTasks))
     for task in context.dirtyTasks: # go through all tasks
-        init_all_dependent_tasks(task, context, all_dep_tasks)
+        all_dep_tasks[task] = _breadth_first_search(task, None, context.get_dependent_tasks)
         #print "got %d dependencies for task %s" % (len(all_dep_tasks[task]), task)
 
     context.analysisOrder = context.dependentTask.keys()
     context.analysisOrder.sort(key = lambda x: len(all_dep_tasks[x]), reverse = True)
 
 
-def init_analysis_order_simple(context):
+def _init_analysis_order_simple(context):
+    """ Init the analysis order using only the number of immediately dependent
+     tasks as an indicator as to which task to analyze first
+    """
     context.analysisOrder = context.dependentTask.keys()
     context.analysisOrder.sort(key = lambda x: len(context.dependentTask[x]), reverse = True)
 
-def _breadth_first_search(task, func = None):
+
+def get_next_tasks(task):
+    return task.next_tasks
+
+def _breadth_first_search(task, func = None, get_reachable_tasks = get_next_tasks):
     """ returns a set of nodes (tasks) which is reachable starting from the starting task.
-    calls func on the first discover of a task
+    calls func on the first discover of a task.
+    
+    get_reachable_tasks(task) specifies a function which returns all tasks considered immediately reachable for a given task.
     """
     marked = set()
     queue = deque()
@@ -655,7 +660,7 @@ def _breadth_first_search(task, func = None):
 
     while len(queue) > 0:
         v = queue.popleft()
-        for e in v.next_tasks:
+        for e in get_reachable_tasks(v):
             if e not in marked:
                 if func is not None:
                     func(task)
@@ -760,7 +765,7 @@ def init_analysis(system, context, clean = False):
     #  dependentTasks only contains immediate dependencies, which may have their own dependencies again.
     #  This should be respected in the analysis order, but NOT in the dependentTask,
     #  because that would mark too many tasks dirty after each analysis (which is safe but not efficient).
-    init_analysis_order(context)
+    _init_analysis_order(context)
 
 
 #    print "analysis order:"
@@ -818,6 +823,7 @@ def analyze_system(system, clean = False, onlyDependent = False):
         logger.info("Analyzing, %d tasks left" %
                             (len(context.dirtyTasks)))
 
+        print context.dirtyTasks
         for t in context.analysisOrder:
             if t not in context.dirtyTasks:
                 continue
@@ -851,7 +857,7 @@ def analyze_system(system, clean = False, onlyDependent = False):
                             (t.name, len(context.dependentTask[t]), t.busy_times))
                 #print "dependents of %s: %s" % (t.name, context.dependentTask[t])
 
-                _propagate(t)  # TODO: This could go into mark_dirty...
+                _propagate(t)
 
                 _mark_dependents_dirty(t, context)  # mark all dependencies dirty
                 #_mark_all_dirty(system, context) # this is always conservative
