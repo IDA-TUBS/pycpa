@@ -236,7 +236,7 @@ class EventModel (object):
         """
         if n < 2:
             #return self.deltaplus_func(2)
-            return 0 # TODO: Check
+            return self.delta_plus(2) # TODO: Check
 
         ## Caching is activated
         if self.en_delta_caching == True:
