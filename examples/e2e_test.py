@@ -43,7 +43,7 @@ def e2e_test():
     t11.in_event_model = model.EventModel(P = 4, J = 3)
 
     # register a task chain as a stream
-    s1 = s.add_stream("S1", [t11, t12])
+    s1 = s.add_path("S1", [t11, t12])
 
     # perform a system analysis
     print("analyzing")

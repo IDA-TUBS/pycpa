@@ -33,16 +33,16 @@ def calculate_candidates(task):
     tasks_in_transaction = dict()
     transactions = set()
 
-    tasks_in_transaction[task.stream] = [i for i in task.stream.tasks if i.resource == task.resource and  i.scheduling_parameter < task.scheduling_parameter]
-    tasks_in_transaction[task.stream].append(task)
-    transactions.add(task.stream)
+    tasks_in_transaction[task.path] = [i for i in task.path.tasks if i.resource == task.resource and  i.scheduling_parameter < task.scheduling_parameter]
+    tasks_in_transaction[task.path].append(task)
+    transactions.add(task.path)
 
     for ti in task.get_resource_interferers():
         if ti.scheduling_parameter < task.scheduling_parameter:
-            tasks = [i for i in ti.stream.tasks if i.resource == task.resource]
+            tasks = [i for i in ti.path.tasks if i.resource == task.resource]
             if len(tasks) > 0:
-                tasks_in_transaction[ti.stream] = tasks
-                transactions.add(ti.stream)
+                tasks_in_transaction[ti.path] = tasks
+                transactions.add(ti.path)
 
     for trans in transactions:
         logger.debug("identified the following transaction %s ntasks: %d ", trans, len(tasks_in_transaction[trans]))
@@ -94,7 +94,7 @@ def transaction_contribution(tasks_in_transaction, task_ik, task, t):
 def w_spp_candidate(tasks_in_transaction, task, candidate, q, **kwargs):
 
     #initiator of the critical instant for the transaction of task
-    va = [x for x in candidate if task.stream == x.stream][0]
+    va = [x for x in candidate if task.path == x.path][0]
     T = task.in_event_model.P
 
     w = float(task.wcet)
@@ -108,7 +108,7 @@ def w_spp_candidate(tasks_in_transaction, task, candidate, q, **kwargs):
         for i in candidate:
             if i == task:
                 continue
-            w_trans = transaction_contribution(tasks_in_transaction[i.stream], i, task, w)
+            w_trans = transaction_contribution(tasks_in_transaction[i.path], i, task, w)
             logger.debug("   w_trans: %f", w_trans)
             #print "w_trans", w_trans
             w_new += w_trans

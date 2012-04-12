@@ -396,8 +396,8 @@ class Task (object):
         ## Link to Resource to which Task is mapped
         self.resource = None
 
-        ## Link the Stream if the task takes part in chained communication
-        self.stream = None
+        ## Link the Path if the task takes part in chained communication
+        self.path = None
 
         ## Link to Mutex to which Task is mapped
         self.mutex = None
@@ -636,27 +636,27 @@ class Mutex:
         self.name = name
 
 
-class Stream:
-    """ A Stream describes a chain of tasks.
+class Path:
+    """ A Path describes a chain of tasks.
     Required for path analysis (e.g. end-to-end latency).
-    The information stored in Stream classes could be derived from the task graph (see Task.next_tasks and Task.prev_task),
+    The information stored in Path classes could be derived from the task graph (see Task.next_tasks and Task.prev_task),
     but having redundancy here is more flexible (e.g. path analysis may only be interesting for some task chains).    
     """
 
     def __init__(self, name, tasks = None):
         """ CTOR """
-        ## List of tasks in stream (must be in correct order)
+        ## List of tasks in Path (must be in correct order)
         if tasks is not None:
             self.tasks = tasks
             self.__link_tasks(tasks)
         else:
             self.tasks = list()
-        ## create backlink to this stream from the tasks
-        ## so a task knows its stream
+        ## create backlink to this path from the tasks
+        ## so a task knows its Path
         for t in self.tasks:
-            t.stream = self
+            t.path = self
 
-        ## Name of Stream
+        ## Name of Path
         self.name = name
 
     def __link_tasks(self, tasks):
@@ -676,7 +676,7 @@ class Stream:
         return s
 
     def print_all(self):
-        """ Print all tasks in Stream. Uses __str__() """
+        """ Print all tasks in Path. Uses __str__() """
         print(str(self))
 
 
@@ -685,7 +685,7 @@ class Stream:
 
 class System:
     """ The System is the top-level entity of the system model.
-    It contains resources, junctions, tasks and streams.
+    It contains resources, junctions, tasks and paths.
     """
 
     def __init__(self):
@@ -695,7 +695,7 @@ class System:
         self.resources = set()
 
         ## Set of task chains
-        self.streams = set()
+        self.paths = set()
 
         ## Set of junctions
         self.junctions = set()
@@ -703,8 +703,8 @@ class System:
 
     def __repr__(self):
         """ Return a string representation of the System """
-        s = 'streams:\n'
-        for h in sorted(self.streams, key = str):
+        s = 'paths:\n'
+        for h in sorted(self.paths, key = str):
             s += str(h) + "\n"
         s += 'resources:'
         for r in sorted(self.resources, key = str):
@@ -728,11 +728,11 @@ class System:
         self.resources.add(r)
         return r
 
-    def add_stream(self, name, tasks = None):
-        """ Create and add a Stream to the System """
-        s = Stream(name, tasks)
-        self.streams.add(s)
-        #NOTE: call to "link_dependent_tasks()" on each task of the stream now inside Stream
+    def add_path(self, name, tasks = None):
+        """ Create and add a Path to the System """
+        s = Path(name, tasks)
+        self.paths.add(s)
+        #NOTE: call to "link_dependent_tasks()" on each task of the path now inside Path
         return s
 
 

@@ -419,32 +419,32 @@ def _event_exit(task, n, e_0):
 
     return e
 
-def end_to_end_latency(stream, n = 1, **kwargs):
-    """ Computes the worst-/best-case e2e latency for n tokens to pass the stream.
+def end_to_end_latency(path, n = 1, **kwargs):
+    """ Computes the worst-/best-case e2e latency for n tokens to pass the path.
     Arguments: 
-    stream: a task chain
+    path: a task chain
     n: amount of tokens
     """
     if options.opts.e2e_improved == True:
-        return end_to_end_latency_improved(stream, n, **kwargs)
-    return end_to_end_latency_classic(stream, n, **kwargs)
+        return end_to_end_latency_improved(path, n, **kwargs)
+    return end_to_end_latency_classic(path, n, **kwargs)
 
-def end_to_end_latency_classic(stream, n = 1, task_overhead = 0, stream_overhead = 0, reanalyzeTasks = True, injection_rate = 'max'):
+def end_to_end_latency_classic(path, n = 1, task_overhead = 0, path_overhead = 0, reanalyzeTasks = True, injection_rate = 'max'):
     """ Computes the worst-/best-case end-to-end latency
     Assumes that all tasks in the system have successfully been analyzed.
-    Assumes that events enter the stream at maximum/minumum rate.
+    Assumes that events enter the path at maximum/minumum rate.
     The end-to-end latency is the sum of the individual task's worst-case response times.
     
     This corresponds to Definition 7.3 in [Richter2005]_.
     
-    :param stream: the stream
-    :type stream: model.Stream
+    :param path: the path
+    :type path: model.Path
     :param n:  amount of events
     :type n: integer
     :param task_overhead: A constant task_overhead is added once per task to both min and max latency
     :type task_overhead: integer
-    :param stream_overhead:  A constant stream_overhead is added once per stream to both min and max latency
-    :type stream_overhead: integer
+    :param path_overhead:  A constant path_overhead is added once per path to both min and max latency
+    :type path_overhead: integer
     :param reanalyzeTasks: reanalyze tasks (local analysis) before latency is calculated
     :type reanalyzeTasks: bool 
     :param injection_rate: injection rate is maximum or minimum
@@ -453,7 +453,7 @@ def end_to_end_latency_classic(stream, n = 1, task_overhead = 0, stream_overhead
     """
 
     lmax = 0
-    for t in stream.tasks:
+    for t in path.tasks:
         if reanalyzeTasks:
             analyze_task(t)
         if isinstance(t, model.Task):
@@ -461,27 +461,27 @@ def end_to_end_latency_classic(stream, n = 1, task_overhead = 0, stream_overhead
 
     if injection_rate == 'max':
         # add the eastliest possible release of event n
-        lmax += stream.tasks[0].in_event_model.delta_min(n) + stream_overhead
+        lmax += path.tasks[0].in_event_model.delta_min(n) + path_overhead
 
     elif injection_rate == 'min':
         # add the latest possible release of event n
-        lmax += stream.tasks[0].in_event_model.delta_plus(n) + stream_overhead
+        lmax += path.tasks[0].in_event_model.delta_plus(n) + path_overhead
 
 
     lmin = 0
-    for t in stream.tasks:
+    for t in path.tasks:
         if isinstance(t, model.Task):
             lmin += t.bcrt + task_overhead
 
     # add the earliest possible release of event n
-    lmin += stream.tasks[0].in_event_model.delta_min(n) + stream_overhead
+    lmin += path.tasks[0].in_event_model.delta_min(n) + path_overhead
 
     return lmin, lmax
 
 
-def _event_arrival_stream(stream, n, e_0 = 0):
+def _event_arrival_path(path, n, e_0 = 0):
     """ Returns the latest arrival time of the n-th event
-    with respect to an event 0 of task 0 (first task in stream)
+    with respect to an event 0 of task 0 (first task in path)
 
     This is :math:`e_0(n)` from Lemma 1 in [Schliecker2009recursive]_.
     """
@@ -489,16 +489,16 @@ def _event_arrival_stream(stream, n, e_0 = 0):
         # the entry time of the first event
 
     if n > 0:
-        e = e_0 + stream.tasks[0].in_event_model.delta_plus(n + 1)
+        e = e_0 + path.tasks[0].in_event_model.delta_plus(n + 1)
     elif n < 0:
-        e = e_0 - stream.tasks[0].in_event_model.delta_min(-n + 1)
+        e = e_0 - path.tasks[0].in_event_model.delta_min(-n + 1)
     else:
         e = 0   # same event, so the difference is 0
 
     return e
 
 
-def _event_exit_stream(stream, i, n):
+def _event_exit_path(path, i, n):
     """ Returns the latest exit time of the n-th event
     relative to the arrival of an event 0
     (cf. Lemma 2 in [Schliecker2009recursive]_)
@@ -509,15 +509,15 @@ def _event_exit_stream(stream, i, n):
     if i == -1:
         # Task -1 is the input event model of task 0,
         # so compute the arrival of n events at task 0
-        e = _event_arrival_stream(stream, n)
+        e = _event_arrival_path(path, n)
     else:
         e = float('-inf')
-        k_max = len(stream.tasks[i - 1].busy_times)
+        k_max = len(path.tasks[i - 1].busy_times)
         #print("k_max:",k_max)
         for k in range(k_max + 1):
-            e_k = _event_exit_stream(stream, i - 1, n - k) + stream.tasks[i].busy_time(k + 1)
+            e_k = _event_exit_path(path, i - 1, n - k) + path.tasks[i].busy_time(k + 1)
 
-            logger.debug("busy time for t%d (%d):%d" % (i, k + 1, stream.tasks[i].busy_time(k + 1)))
+            logger.debug("busy time for t%d (%d):%d" % (i, k + 1, path.tasks[i].busy_time(k + 1)))
             #print("e_k:",e_k)
             if e_k > e:
                 logger.debug("task %d, n=%d k=%d, new e=%d" % (i, n, k, e_k))
@@ -527,7 +527,7 @@ def _event_exit_stream(stream, i, n):
     return e
 
 
-def end_to_end_latency_improved(stream, n = 1):
+def end_to_end_latency_improved(path, n = 1):
     """ Performs the path analysis presented in [Schliecker2009recursive]_,
     which improves results compared to end_to_end_latency() for
     n>1 and bursty event models.
@@ -535,7 +535,7 @@ def end_to_end_latency_improved(stream, n = 1):
     FIXME: Currently broken
     """
 
-    lat = _event_exit_stream(stream, len(stream.tasks) - 1, n - 1) - 0
+    lat = _event_exit_path(path, len(path.tasks) - 1, n - 1) - 0
 
     return 0, lat
 

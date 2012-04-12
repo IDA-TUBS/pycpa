@@ -69,7 +69,7 @@ def offset_test():
     t51.in_event_model = model.EventModel()
     t51.in_event_model.set_PJd(200, 0, 0)
 
-    s1 = s.add_stream("S1", (t21, t22, t23, t24, t25))
+    s1 = s.add_path("S1", (t21, t22, t23, t24, t25))
 
     for r in s.resources:
         for t in r.tasks:
