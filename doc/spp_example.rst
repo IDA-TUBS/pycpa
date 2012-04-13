@@ -54,7 +54,7 @@ The first step is to initialize the pyCPA environment.
 
 This will parse the pyCPA related options such as the propagation method, verbosity,
 maximum-busy window, etc.
-Conveniently, this also prints the optiones which will be used for your pyCPA session.
+Conveniently, this also prints the options which will be used for your pyCPA session.
 This is handy, when you run some analyses in batch jobs and want are uncertain about the exact settings after a few weeks.
 
 System Model
@@ -67,11 +67,11 @@ Then we can continue to create an empty system, which is just a container for al
 
 The next step is to create two resources R1 and R2.
 The first argument of :py:func:`pycpa.model.add_resource()` sets the scheduling policy.
-Infact, the first argument is a "function pointer" to a function which computes the multiple-event busy window on that resource
+In fact, the first argument is a "function pointer" to a function which computes the multiple-event busy window on that resource
 in this example we use the static priority busy window algorithm.
 The second parameter is the abort criteria for that particular scheduling policy.
 
-By default (if the paramter is omitted) pyCPA will wait until the resource is idle again.
+By default (if the parameter is omitted) pyCPA will wait until the resource is idle again.
 This is a conservative approach for work-conserving scheduling policies such as RR, FIFO, SPP, SPNP. 
 Note, that TDMA is not work-conserving.
 
@@ -92,7 +92,7 @@ The scheduling_paramter denotes the priority, wcet and bcet the worst- and best-
 
 In case tasks communicate with each other through event propagation (e.g. one task fills the queue of another task),
 we model this through task links.
-A task link is abstract and does not consume any additionoal time.
+A task link is abstract and does not consume any additional time.
 In case of communication-overhead it must be modeled by using other resources/tasks.
  
 .. literalinclude:: ../examples/spp_test.py
