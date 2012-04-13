@@ -419,17 +419,44 @@ def _event_exit(task, n, e_0):
 
     return e
 
-def end_to_end_latency(path, n = 1, **kwargs):
-    """ Computes the worst-/best-case e2e latency for n tokens to pass the path.
-    Arguments: 
-    path: a task chain
-    n: amount of tokens
-    """
-    if options.opts.e2e_improved == True:
-        return end_to_end_latency_improved(path, n, **kwargs)
-    return end_to_end_latency_classic(path, n, **kwargs)
 
-def end_to_end_latency_classic(path, n = 1, task_overhead = 0, path_overhead = 0, reanalyzeTasks = True, injection_rate = 'max'):
+def end_to_end_latency(path, n = 1, task_overhead = (0, 0), path_overhead = (0, 0), reanalyzeTasks = True, **kwargs):
+    """ Computes the worst-/best-case e2e latency for n tokens to pass the path.    
+
+    :param path: the path
+    :type path: model.Path
+    :param n:  amount of events
+    :type n: integer
+    :param task_overhead: A constant task_overhead is added once per task to both min and max latency
+    :type task_overhead: tuple (best case overhead, worst-case overhead)
+    :param path_overhead:  A constant path_overhead is added once per path to both min and max latency
+    :type path_overhead: tuple (best case overhead, worst-case overhead)
+    :param reanalyzeTasks: reanalyze tasks (local analysis) before latency is calculated
+    :type reanalyzeTasks: bool     
+    :rtype: tuple (best-case latency, worst-case latency)
+    """
+
+    if options.opts.e2e_improved == True:
+        (lmin, lmax) = end_to_end_latency_improved(path, n, **kwargs)
+    else:
+        (lmin, lmax) = end_to_end_latency_classic(path, n, **kwargs)
+
+    for t in path.tasks:
+        if reanalyzeTasks:
+            analyze_task(t)
+
+        if isinstance(t, model.Task):
+            # add per-task overheads            
+            lmin += task_overhead[0]
+            lmax += task_overhead[1]
+
+    # add per-path overhead
+    lmin += path_overhead[0]
+    lmax += path_overhead[1]
+
+    return (lmin, lmax)
+
+def end_to_end_latency_classic(path, n = 1, injection_rate = 'max'):
     """ Computes the worst-/best-case end-to-end latency
     Assumes that all tasks in the system have successfully been analyzed.
     Assumes that events enter the path at maximum/minumum rate.
@@ -440,41 +467,30 @@ def end_to_end_latency_classic(path, n = 1, task_overhead = 0, path_overhead = 0
     :param path: the path
     :type path: model.Path
     :param n:  amount of events
-    :type n: integer
-    :param task_overhead: A constant task_overhead is added once per task to both min and max latency
-    :type task_overhead: integer
-    :param path_overhead:  A constant path_overhead is added once per path to both min and max latency
-    :type path_overhead: integer
-    :param reanalyzeTasks: reanalyze tasks (local analysis) before latency is calculated
-    :type reanalyzeTasks: bool 
-    :param injection_rate: injection rate is maximum or minimum
+    :type n: integer   
+    :param injection_rate: assumed injection rate is maximum or minimum
     :type injection_rate: string 'max' or 'min' 
     :rtype: tuple (best case latency, worst case latency)
     """
 
     lmax = 0
-    for t in path.tasks:
-        if reanalyzeTasks:
-            analyze_task(t)
-        if isinstance(t, model.Task):
-            lmax += t.wcrt + task_overhead
-
-    if injection_rate == 'max':
-        # add the eastliest possible release of event n
-        lmax += path.tasks[0].in_event_model.delta_min(n) + path_overhead
-
-    elif injection_rate == 'min':
-        # add the latest possible release of event n
-        lmax += path.tasks[0].in_event_model.delta_plus(n) + path_overhead
-
-
     lmin = 0
     for t in path.tasks:
         if isinstance(t, model.Task):
-            lmin += t.bcrt + task_overhead
+            # sum up best- and worst-case response times
+            lmax += t.wcrt
+            lmin += t.bcrt
+
+    if injection_rate == 'max':
+        # add the eastliest possible release of event n
+        lmax += path.tasks[0].in_event_model.delta_min(n)
+
+    elif injection_rate == 'min':
+        # add the latest possible release of event n
+        lmax += path.tasks[0].in_event_model.delta_plus(n)
 
     # add the earliest possible release of event n
-    lmin += path.tasks[0].in_event_model.delta_min(n) + path_overhead
+    lmin += path.tasks[0].in_event_model.delta_min(n)
 
     return lmin, lmax
 
