@@ -548,12 +548,22 @@ def end_to_end_latency_improved(path, n = 1):
     which improves results compared to end_to_end_latency() for
     n>1 and bursty event models.
     lat(n)
-    FIXME: Currently broken
+    FIXME: BROKEN
     """
+    lmax = 0
+    lmin = 0
+    lmax = _event_exit_path(path, len(path.tasks) - 1, n - 1) - 0
 
-    lat = _event_exit_path(path, len(path.tasks) - 1, n - 1) - 0
+    for t in path.tasks:
+       if isinstance(t, model.Task):
+           # sum up best-case response times        
+           lmin += t.bcrt
 
-    return 0, lat
+    # add the earliest possible release of event n
+    # TODO: Can lmin be improved?
+    lmin += path.tasks[0].in_event_model.delta_min(n)
+
+    return lmin, lmax
 
 
 class AnalysisContext(object):
