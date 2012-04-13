@@ -849,7 +849,6 @@ def analyze_system(system, clean = False, onlyDependent = False):
         logger.info("Analyzing, %d tasks left" %
                             (len(context.dirtyTasks)))
 
-        print context.dirtyTasks
         for t in context.analysisOrder:
             if t not in context.dirtyTasks:
                 continue
