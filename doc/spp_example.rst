@@ -38,7 +38,7 @@ Initialization
 Now, let's look at the example.
 Before we actually start with the program, we import all pycpa modules which are needed for this example
 
-.. literalinclude:: ../examples/spp-test.py
+.. literalinclude:: ../examples/spp_test.py
    :language: python
    :lines: 16-23
    
@@ -48,7 +48,7 @@ which controls various modes in which pyCPA can be executed.
 
 The first step is to initialize the pyCPA environment.
 
-.. literalinclude:: ../examples/spp-test.py
+.. literalinclude:: ../examples/spp_test.py
    :language: python
    :lines: 26-28
 
@@ -61,7 +61,7 @@ System Model
 ------------
 Then we can continue to create an empty system, which is just a container for all other objects: 
 
-.. literalinclude:: ../examples/spp-test.py
+.. literalinclude:: ../examples/spp_test.py
    :language: python
    :lines: 29-30
 
@@ -78,7 +78,7 @@ Note, that TDMA is not work-conserving.
 Some busy-window algorithms come with their own abort criteria (e.g. TDMA) either because the default criterion 
 is not conservative or because there is a quicker way to do that - like for SPP. 
 
-.. literalinclude:: ../examples/spp-test.py
+.. literalinclude:: ../examples/spp_test.py
    :language: python
    :lines: 34-35
 
@@ -86,7 +86,7 @@ The next part is to create tasks and bind them to a resource.
 In the example, this is done in one step.
 The scheduling_paramter denotes the priority, wcet and bcet the worst- and best-case execution time.    
 
-.. literalinclude:: ../examples/spp-test.py
+.. literalinclude:: ../examples/spp_test.py
    :language: python
    :lines: 37-39
 
@@ -95,7 +95,7 @@ we model this through task links.
 A task link is abstract and does not consume any additionoal time.
 In case of communication-overhead it must be modeled by using other resources/tasks.
  
-.. literalinclude:: ../examples/spp-test.py
+.. literalinclude:: ../examples/spp_test.py
    :language: python
    :lines: 45-47
 
@@ -104,7 +104,7 @@ Plotting the Task-Graph
        
 Then, we plot the taskgraph to a pdf file by using the graph module.
 
-.. literalinclude:: ../examples/spp-test.py
+.. literalinclude:: ../examples/spp_test.py
    :language: python
    :lines: 53-54
 
@@ -119,7 +119,7 @@ was larger than a limit or the load on a resource is larger one).
 The results are stored inside the task objects: each task has a new attribute wcrt
 which contains the worst-case response time.
 
-.. literalinclude:: ../examples/spp-test.py
+.. literalinclude:: ../examples/spp_test.py
    :language: python
    :lines: 56-66       
 
@@ -133,4 +133,4 @@ This is the full spp-test file.
 As you can see, the worst-case response times of the tasks 
 are 10, 13, 2 and 21.
 
-.. literalinclude:: ../examples/spp-test.py
+.. literalinclude:: ../examples/spp_test.py
