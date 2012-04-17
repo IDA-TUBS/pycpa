@@ -30,7 +30,7 @@ The example pyCPA applications and you own application will potentially add some
    
 .. cmdoption:: --propagation <method>
 
-   Event model propagation method (jitter, jitter_offset, busy_window).
+   Event model propagation method (jitter, jitter_dmin, jitter_offset, busy_window).
    default is busy_window
    
 .. cmdoption:: --verbose
