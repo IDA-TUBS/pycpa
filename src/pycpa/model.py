@@ -35,7 +35,7 @@ CACHE_HIT = 0
 
 logger = logging.getLogger("pycpa")
 
-def _warn_float(value, reason = ""):
+def _warn_float(value, reason=""):
     if type(value) == float:
         warnings.warn("You are using floats, this may yield non-pessimistic results (" + reason + ")", UserWarning)
 
@@ -47,7 +47,7 @@ class EventModel (object):
     which represent the maximum/minimum number of events arriving within :math:`\Delta t`.
     """
 
-    def __init__(self, P = None, J = None, dmin = None, c = None, T = None, name = 'min', cache = None):
+    def __init__(self, P=None, J=None, dmin=None, c=None, T=None, name='min', cache=None):
         """ CTOR 
         If called without parameters, a minimal event model (1 single activation) is created        
         """
@@ -257,7 +257,7 @@ class EventModel (object):
         return self.deltaplus_func(n)
 
 
-    def set_PJd(self, P, J = 0, dmin = 0, early_arrival = False):
+    def set_PJd(self, P, J=0, dmin=0, early_arrival=False):
         """ Sets the event model to a periodic activation with jitter and minimum distance.
         Equations 1 and 2 from [Schliecker2008]_.
         """
@@ -278,16 +278,16 @@ class EventModel (object):
             self.deltamin_func = lambda n: max((n - 1) * dmin, (n - 1) * P - J)
 
 
-    def set_PJ(self, P, J = 0, early_arrival = False):
+    def set_PJ(self, P, J=0, early_arrival=False):
         """ Sets the event model to a periodic activation with jitter."""
         return self.set_PJd(P, J, 0, early_arrival)
 
 
-    def set_periodic(self, P, early_arrival = False, offset = 0):
+    def set_periodic(self, P, early_arrival=False, offset=0):
         """ Sets the event model to a periodic activation."""
         return self.set_PJd(P, 0, 0, early_arrival)
 
-    def set_c_in_T(self, c, T, dmin = 1):
+    def set_c_in_T(self, c, T, dmin=1):
         """ Sets the event-model to a periodic Task
          with period T and c activations per period.
          No minimum arrival rate is assumed (delta_plus = infinity)!
@@ -306,7 +306,7 @@ class EventModel (object):
         self.deltaplus_func = lambda n: INFINITY
 
 
-    def load(self, accuracy = 100):
+    def load(self, accuracy=100):
         """ Returns the asymptotic load, i.e. the avg. number of events per time """
         #print "load = ", float(self.eta_plus(accuracy)),"/",accuracy
         #return float(self.eta_plus(accuracy)) / accuracy
@@ -316,7 +316,7 @@ class EventModel (object):
             return float(accuracy) / self.delta_min(accuracy)
 
 
-    def delta_caching(self, active = True):
+    def delta_caching(self, active=True):
         self.en_delta_caching = active
 
     def flush_cache(self):
@@ -334,7 +334,7 @@ class Junction (object):
         See Chapter 4 in [Jersak2005]_ for definitions and details.
     """
 
-    def __init__(self, name = "unknown", mode = 'and'):
+    def __init__(self, name="unknown", mode='and'):
         """ CTOR """
         ## Name
         self.name = name
@@ -556,7 +556,7 @@ class Task (object):
 class Resource:
     """ A Resource provides service to tasks. """
 
-    def __init__(self, name = None, w_function = None, multi_activation_stopping_condition = None):
+    def __init__(self, name=None, w_function=None, multi_activation_stopping_condition=None):
         """ CTOR """
 
         ## Set of tasks mapped to this Resource
@@ -585,7 +585,7 @@ class Resource:
     def __repr__(self):
         """ Return string representation of Resource """
         s = str(self.name) + ':['
-        for t in sorted(self.tasks, key = str):
+        for t in sorted(self.tasks, key=str):
             s += str(t) + " "
         s += ']'
         return s
@@ -597,7 +597,7 @@ class Resource:
         t.bind_resource(self)
         return t
 
-    def load(self, accuracy = 10000):
+    def load(self, accuracy=10000):
         """ returns the asymptotic load """
         l = 0
         for t in self.tasks:
@@ -628,7 +628,7 @@ class Mutex:
     See e.g. Chapter 5 in [Schliecker2011]_. 
     """
 
-    def __init__(self, name = None):
+    def __init__(self, name=None):
         """ CTOR """
 
         ## Set of tasks mapped to this Resource
@@ -645,7 +645,7 @@ class Path:
     but having redundancy here is more flexible (e.g. path analysis may only be interesting for some task chains).    
     """
 
-    def __init__(self, name, tasks = None):
+    def __init__(self, name, tasks=None):
         """ CTOR """
         ## List of tasks in Path (must be in correct order)
         if tasks is not None:
@@ -706,16 +706,16 @@ class System:
     def __repr__(self):
         """ Return a string representation of the System """
         s = 'paths:\n'
-        for h in sorted(self.paths, key = str):
+        for h in sorted(self.paths, key=str):
             s += str(h) + "\n"
         s += 'resources:'
-        for r in sorted(self.resources, key = str):
+        for r in sorted(self.resources, key=str):
             #s += str(k)+":"+str(r)+", "
             s += str(r) + "\n "
 
         return s
 
-    def add_junction(self, name = "J", junc_type = "and"):
+    def add_junction(self, name="J", junc_type="and"):
         """ Creates and registers a junction object in the System.
             Logically, the junction neither belongs to a system nor to a resource,
             for sake of convenience we associate junctions with the system.
@@ -724,13 +724,13 @@ class System:
         self.junctions.add(j)
         return j
 
-    def add_resource(self, rid, w_func = None, multi_activation_stop_condition = None):
+    def add_resource(self, rid, w_func=None, multi_activation_stop_condition=None):
         """ Create and add a Resource to the System """
         r = Resource(rid, w_func, multi_activation_stop_condition)
         self.resources.add(r)
         return r
 
-    def add_path(self, name, tasks = None):
+    def add_path(self, name, tasks=None):
         """ Create and add a Path to the System """
         s = Path(name, tasks)
         self.paths.add(s)
