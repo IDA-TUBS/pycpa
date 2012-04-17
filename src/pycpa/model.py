@@ -143,7 +143,7 @@ class EventModel (object):
 
     def eta_plus(self, w):
         """ Eta-plus Function
-            Return the maximum number of activations in a time window w.
+            Return the maximum number of events in a time window w.
             Equation 3.5 from [Schliecker2011]_.            
         """
         # if the window does not include 2 activations, assume that one has occured
@@ -177,7 +177,7 @@ class EventModel (object):
 
     def eta_min(self, w):
         """ Eta-minus Function
-            Return the minimum number of activations in a time window w.
+            Return the minimum number of events in a time window w.
             Equation 3.6 from [Schliecker2011]_.
         """
         MAX_EVENTS = 10000
@@ -194,7 +194,8 @@ class EventModel (object):
 
     def delta_min(self, n):
         """ Delta-minus Function
-            Return the minimum time window containing n activations.
+            Return the minimum time interval between the first and the last event 
+             of any series of n events.
             This is actually a wrapper to allow caching of delta functions.
         """
         if n < 2: return 0
@@ -231,12 +232,13 @@ class EventModel (object):
 
     def delta_plus(self, n):
         """ Delta-plus Function
-            Return the maximum time window containing n activations.            
+            Return the maximum time interval between the first and the last event 
+             of any series of n events.            
             This is actually a wrapper to allow caching of delta functions.
         """
         if n < 2:
-            #return self.deltaplus_func(2)
-            return self.delta_plus(2) # TODO: Check
+            return 0
+            # This would be the "nice way": return self.delta_plus(2) # TODO: Check
 
         ## Caching is activated
         if self.en_delta_caching == True:
