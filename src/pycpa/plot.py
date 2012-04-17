@@ -65,11 +65,15 @@ def plot_event_model(model, num_events, file_format = None, separate_plots = Tru
     :rtype: None
     """
 
+    eps = 1e-10
     max_delta_t = model.delta_min(num_events + 1)
     range_eta = range(max_delta_t + 1)
 
+    steps_eta_plus = [model.delta_min(x) for x in range(num_events + 1)]
+    steps_eta_min = [model.delta_plus(x) for x in range(num_events + 1)]
+
     # range including surroundings of integers
-    augmented_range = range_eta + [x + 0.0001 for x in range_eta] + [x - 0.0001 for x in range_eta]
+    augmented_range = range_eta + [x + eps for x in range_eta] + [x - eps for x in range_eta]
     augmented_range.sort()
     w, h = pyplot.figaspect(0.7)
     pyplot.figure(figsize = (w, h))
@@ -77,10 +81,20 @@ def plot_event_model(model, num_events, file_format = None, separate_plots = Tru
     if not separate_plots:
         pyplot.subplot(121)
         pyplot.subplots_adjust(left = 0.05, bottom = 0.1, right = 0.97, top = 0.92, wspace = None, hspace = None)
-    pyplot.plot(augmented_range, [model.eta_plus(x) for x in augmented_range], 'r-v',
-                label = "$\eta^+(\Delta t)$")
-    pyplot.plot(augmented_range, [model.eta_min(x) for x in augmented_range], 'g-^',
-                label = "$\eta^-(\Delta t)$")
+
+
+    #eta minus first (so it appears below in case of overlaps)
+    pyplot.plot([0], [0], 'g-^', label = "$\eta^-(\Delta t)$") #only one point for label + legend (with line and marker)
+    pyplot.plot(augmented_range, [model.eta_min(x) for x in augmented_range], 'g-') # line only
+    pyplot.plot(steps_eta_min, [model.eta_min(x + eps) for x in steps_eta_min], 'g^') # inclusive markers
+    pyplot.plot(steps_eta_min, [model.eta_min(x) for x in steps_eta_min], 'w^') # exclusive markers
+
+    #now eta plus on top    
+    pyplot.plot([0], [0], 'r-v', label = "$\eta^+(\Delta t)$") #only one point for label + legend (with line and marker)
+    pyplot.plot(augmented_range, [model.eta_plus(x) for x in augmented_range], 'r-') # line only
+    pyplot.plot(steps_eta_plus, [model.eta_plus(x - eps) for x in steps_eta_plus], 'rv') # inclusive markers
+    pyplot.plot(steps_eta_plus, [model.eta_plus(x) for x in steps_eta_plus], 'wv') # exclusive markers
+
     #pyplot.plot(range_eta,[self.eta(x) for x in range_eta], 'bo',)        
     pyplot.xlim(xmin = 0, xmax = max_delta_t)
     pyplot.ylim(ymin = 0, ymax = num_events + .5)
