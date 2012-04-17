@@ -17,7 +17,17 @@ Round robin busy window function
 import math
 import analysis
 
-def w_roundrobin(task, q, MAX_WINDOW = 10000, **kwargs):
+def rr_multi_activation_stopping_condition(task, q, w):
+    """ Check if we have looked far enough
+        Returns True if stopping-condition is satisfied, False otherwise     
+    """
+
+    # if there are no new activations when the current busy period has been completed, we terminate
+    if task.in_event_model.delta_min(q + 1) > w:
+        return True
+    return False
+
+def w_roundrobin(task, q, MAX_WINDOW=10000, **kwargs):
     """ Return the maximum time required to process q activations
         (1 cycle WCET each) 
         under round-robin scheduling under presence of interfering tasks.

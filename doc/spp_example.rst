@@ -70,13 +70,9 @@ The first argument of :py:func:`pycpa.model.add_resource()` sets the scheduling 
 In fact, the first argument is a "function pointer" to a function which computes the multiple-event busy window on that resource
 in this example we use the static priority busy window algorithm.
 The second parameter is the abort criteria for that particular scheduling policy.
-
-By default (if the parameter is omitted) pyCPA will wait until the resource is idle again.
-This is a conservative approach for work-conserving scheduling policies such as RR, FIFO, SPP, SPNP. 
-Note, that TDMA is not work-conserving.
-
-Some busy-window algorithms come with their own abort criteria (e.g. TDMA) either because the default criterion 
-is not conservative or because there is a quicker way to do that - like for SPP. 
+All busy-window algorithms come with their own abort criteria. 
+The abort criteria specifies how many activations of a task have to be considered for the analysis.
+For spp we have to look at all activations which fall in the level-i busy window, thus we choose the spp stopping condition. 
 
 .. literalinclude:: ../examples/spp_test.py
    :language: python

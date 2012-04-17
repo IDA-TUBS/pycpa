@@ -23,6 +23,16 @@ import options
 
 logger = logging.getLogger("spp_offset")
 
+def spp_offset_multi_activation_stopping_condition(task, q, w):
+    """ Check if we have looked far enough
+        Returns True if stopping-condition is satisfied, False otherwise 
+    """
+    #TODO: CHECK!!!!!
+    # if there are no new activations when the current busy period has been completed, we terminate
+    if task.in_event_model.delta_min(q + 1) > w:
+        return True
+    return False
+
 def calculate_candidates(task):
     """
         Identifies the transactions on the local component, by looking at the event streams.

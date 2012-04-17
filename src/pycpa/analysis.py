@@ -35,22 +35,6 @@ class NotSchedulableException(Exception):
         return repr(self.value)
 
 
-def _multi_activation_stopping_condition(task, q, w):
-    """ Check if we have looked far enough
-        compute the time the resource is busy processing q activations of task
-        and activations of all other task during that time
-        Returns True if stopping-condition is satisfied, False otherwise
-    """
-    busy_period = q * task.wcet
-    for t in task.get_resource_interferers():
-        # FIXME: what about my own activations??
-        busy_period += t.in_event_model.eta_plus(w) * t.wcet
-    # if there are no new activations when the
-    # current busy period has been completed, we terminate
-    if q >= task.in_event_model.eta_plus(busy_period):
-        return True
-    return False
-
 
 def compute_wcrt(task, **kwargs):
     """ Compute the worst-case response time of Task
@@ -75,11 +59,12 @@ def compute_wcrt(task, **kwargs):
 
     if task.resource.compute_wcrt is not None:
         return task.resource.compute_wcrt(task,
-                                          MAX_ITERATIONS = MAX_ITERATIONS)
+                                          MAX_ITERATIONS=MAX_ITERATIONS)
 
-    stop_condition = _multi_activation_stopping_condition
-    if task.resource.multi_activation_stopping_condition is not None:
-        stop_condition = task.resource.multi_activation_stopping_condition
+    print task.resource
+    assert task.resource.multi_activation_stopping_condition is not None
+
+    stop_condition = task.resource.multi_activation_stopping_condition
 
     # This could possibly be improved by using the previously computed
     #  WCRT and q as a starting point. Is this conservative?
@@ -135,7 +120,7 @@ def compute_service(task, t):
     return n - 1
 
 
-def compute_max_backlog(task, output_delay = 0):
+def compute_max_backlog(task, output_delay=0):
     """ Compute the maximum backlog of Task t.
         This is the maximum number of outstanding activations.
     """
@@ -155,7 +140,7 @@ def compute_max_backlog(task, output_delay = 0):
             return float("inf")
 
 
-def analyze_task(task, COMPUTE_BACKLOG = None):
+def analyze_task(task, COMPUTE_BACKLOG=None):
     """ Analyze Task BUT DONT propagate event model.
     This is the "local analysis step", see Section 7.1.4 in [Richter2005]_.
     """
@@ -187,7 +172,7 @@ def analyze_task(task, COMPUTE_BACKLOG = None):
     assert(task.bcrt <= task.wcrt)
 
 
-def out_event_model(task, dmin = 0):
+def out_event_model(task, dmin=0):
     """ Wrapper to call the actual out_event_model_XXX,
     which computes the output event model of a task.
     See Chapter 4 in [Richter2005]_ for an overview.    
@@ -201,7 +186,7 @@ def out_event_model(task, dmin = 0):
     return task.resource.out_event_model(task, dmin)
 
 
-def _out_event_model_jitter_offset(task, dmin = 0):
+def _out_event_model_jitter_offset(task, dmin=0):
     """ Derive an output event model including offset from response time jitter
     and in_event_model (used as reference).
     """
@@ -218,7 +203,7 @@ def _out_event_model_jitter_offset(task, dmin = 0):
     return em
 
 
-def _out_event_model_jitter(task, dmin = 0):
+def _out_event_model_jitter(task, dmin=0):
     """ Derive an output event model from response time jitter
      and in_event_model (used as reference).
     
@@ -250,7 +235,7 @@ def _out_event_model_jitter(task, dmin = 0):
     return em
 
 
-def _out_event_model_busy_window(task, dmin = 0):
+def _out_event_model_busy_window(task, dmin=0):
     """ Derive an output event model from busy window
      and in_event_model (used as reference).
     Gives better results than _out_event_model_jitter.
@@ -353,7 +338,7 @@ def _propagate(task):
             raise TypeError("invalid propagation target")
 
 
-def _assert_event_model_conservativeness(emif_small, emif_large, n_max = 1000):
+def _assert_event_model_conservativeness(emif_small, emif_large, n_max=1000):
     if emif_small is None:
         return
     for n in range(2, n_max):
@@ -420,7 +405,7 @@ def _event_exit(task, n, e_0):
     return e
 
 
-def end_to_end_latency(path, n = 1, task_overhead = (0, 0), path_overhead = (0, 0), reanalyzeTasks = True, **kwargs):
+def end_to_end_latency(path, n=1, task_overhead=(0, 0), path_overhead=(0, 0), reanalyzeTasks=True, **kwargs):
     """ Computes the worst-/best-case e2e latency for n tokens to pass the path.    
 
     :param path: the path
@@ -456,7 +441,7 @@ def end_to_end_latency(path, n = 1, task_overhead = (0, 0), path_overhead = (0, 
 
     return (lmin, lmax)
 
-def end_to_end_latency_classic(path, n = 1, injection_rate = 'max'):
+def end_to_end_latency_classic(path, n=1, injection_rate='max'):
     """ Computes the worst-/best-case end-to-end latency
     Assumes that all tasks in the system have successfully been analyzed.
     Assumes that events enter the path at maximum/minumum rate.
@@ -495,7 +480,7 @@ def end_to_end_latency_classic(path, n = 1, injection_rate = 'max'):
     return lmin, lmax
 
 
-def _event_arrival_path(path, n, e_0 = 0):
+def _event_arrival_path(path, n, e_0=0):
     """ Returns the latest arrival time of the n-th event
     with respect to an event 0 of task 0 (first task in path)
 
@@ -543,7 +528,7 @@ def _event_exit_path(path, i, n):
     return e
 
 
-def end_to_end_latency_improved(path, n = 1):
+def end_to_end_latency_improved(path, n=1):
     """ Performs the path analysis presented in [Schliecker2009recursive]_,
     which improves results compared to end_to_end_latency() for
     n>1 and bursty event models.
@@ -571,7 +556,7 @@ class AnalysisContext(object):
     At the moment this is only the list of dirty tasks.
     Half the anlysis context is stored in the Task class itself!
     """
-    def __init__(self, name = "global default"):
+    def __init__(self, name="global default"):
         ## Set of tasks requiring another local analysis due to updated input events
         self.dirtyTasks = set()
         ## Dictionary storing the set of all tasks that are immediately dependent on each task
@@ -655,7 +640,7 @@ def _init_analysis_order(context):
         #print "got %d dependencies for task %s" % (len(all_dep_tasks[task]), task)
 
     context.analysisOrder = context.dependentTask.keys()
-    context.analysisOrder.sort(key = lambda x: len(all_dep_tasks[x]), reverse = True)
+    context.analysisOrder.sort(key=lambda x: len(all_dep_tasks[x]), reverse=True)
 
 
 def _init_analysis_order_simple(context):
@@ -663,13 +648,13 @@ def _init_analysis_order_simple(context):
      tasks as an indicator as to which task to analyze first
     """
     context.analysisOrder = context.dependentTask.keys()
-    context.analysisOrder.sort(key = lambda x: len(context.dependentTask[x]), reverse = True)
+    context.analysisOrder.sort(key=lambda x: len(context.dependentTask[x]), reverse=True)
 
 
 def get_next_tasks(task):
     return task.next_tasks
 
-def _breadth_first_search(task, func = None, get_reachable_tasks = get_next_tasks):
+def _breadth_first_search(task, func=None, get_reachable_tasks=get_next_tasks):
     """ returns a set of nodes (tasks) which is reachable starting from the starting task.
     calls func on the first discover of a task.
     
@@ -727,7 +712,7 @@ def _dijkstra(source):
 
     while len(Q) > 0:
         # get node with minimum distance
-        u = min(Q, key = lambda x: dist[x])
+        u = min(Q, key=lambda x: dist[x])
 
         if dist[u] == float('inf'):
             break  # all remaining vertices are inaccessible from source
@@ -778,7 +763,7 @@ def print_subgraphs(system):
     return subgraphs
 
 
-def init_analysis(system, context, clean = False):
+def init_analysis(system, context, clean=False):
     """ Initialize the analysis """
 
     _mark_all_dirty(system, context)
@@ -824,13 +809,14 @@ def init_analysis(system, context, clean = False):
             uninizialized.append(t)
 
     for r in system.resources:
-        if r.load() > 1.0:
+        logger.info("load on %s: %f" % (r.name, r.load()))
+        if r.load() >= 1.0:
             logger.warning("load on %s exceeds 1.0" % r.name)
             logger.warning("tasks: %s" % ([(x.name, x.wcet, x.in_event_model.delta_min(11) / 10) for x in r.tasks]))
             raise NotSchedulableException("load on %s exceeds 1.0" % r.name)
 
 
-def analyze_system(system, clean = False, onlyDependent = False):
+def analyze_system(system, clean=False, onlyDependent=False):
     """ Analyze all tasks until we find a fixed point
 
         system -- the system to analyze

@@ -34,7 +34,7 @@ def smff_test(file, outfile, plot, verbose):
         graph_file = string.replace(os.path.basename(file), ".xml", "") + ".pdf"
         graph.graph_system(s, filename=graph_file)
 
-    # analyze the system
+    # analyze the system            
     analysis.analyze_system(s)
 
     # print some analysis results
