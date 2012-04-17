@@ -448,7 +448,7 @@ class Task (object):
 
     def __repr__(self):
         """ Returns string representation of Task """
-        return self.name + "[" + str(self.in_event_model) + "]"
+        return self.name
 
     @property
     def wcet(self):
