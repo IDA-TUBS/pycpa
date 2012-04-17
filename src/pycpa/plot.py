@@ -50,7 +50,8 @@ def plot_eta(eta, plot_range, label = None, color = None):
 
 
 def plot_event_model(model, num_events, file_format = None, separate_plots = True, file_prefix = ''):
-    """ Plot the Task's eta and delta_min functions 
+    """ Plot the Task's eta and delta_min functions.
+    Intervals in eta are shown half-open, as defined in [Richter2005]_.
     
     :param model: the event model
     :type model: model.EventModel
@@ -65,10 +66,11 @@ def plot_event_model(model, num_events, file_format = None, separate_plots = Tru
     :rtype: None
     """
 
-    eps = 1e-10
+    eps = 1e-10 # epsilon
     max_delta_t = model.delta_min(num_events + 1)
     range_eta = range(max_delta_t + 1)
 
+    # create ranges which have one point at each step of eta
     steps_eta_plus = [model.delta_min(x) for x in range(num_events + 1)]
     steps_eta_min = [model.delta_plus(x) for x in range(num_events + 1)]
 
@@ -78,10 +80,10 @@ def plot_event_model(model, num_events, file_format = None, separate_plots = Tru
     w, h = pyplot.figaspect(0.7)
     pyplot.figure(figsize = (w, h))
 
+    # plot eta functions
     if not separate_plots:
         pyplot.subplot(121)
         pyplot.subplots_adjust(left = 0.05, bottom = 0.1, right = 0.97, top = 0.92, wspace = None, hspace = None)
-
 
     #eta minus first (so it appears below in case of overlaps)
     pyplot.plot([0], [0], 'g-^', label = "$\eta^-(\Delta t)$") #only one point for label + legend (with line and marker)
@@ -95,7 +97,6 @@ def plot_event_model(model, num_events, file_format = None, separate_plots = Tru
     pyplot.plot(steps_eta_plus, [model.eta_plus(x - eps) for x in steps_eta_plus], 'rv') # inclusive markers
     pyplot.plot(steps_eta_plus, [model.eta_plus(x) for x in steps_eta_plus], 'wv') # exclusive markers
 
-    #pyplot.plot(range_eta,[self.eta(x) for x in range_eta], 'bo',)        
     pyplot.xlim(xmin = 0, xmax = max_delta_t)
     pyplot.ylim(ymin = 0, ymax = num_events + .5)
     pyplot.title("$\eta(\Delta t)$")
@@ -106,19 +107,24 @@ def plot_event_model(model, num_events, file_format = None, separate_plots = Tru
     if separate_plots and file_format is not None:
             pyplot.savefig(file_prefix + "plot-eta." + file_format)
 
-    ## plot delta_min
+    ## plot delta functions
     if separate_plots:
         pyplot.figure()
 
     if not separate_plots:
         pyplot.subplot(122)
     range_delta = range(num_events + 1)
+
+    # plot delta_min first so it appears below when overlapping
     pyplot.plot(range_delta, [model.delta_min(x) for x in range_delta], 'r^',
                 label = "$\delta^-(n)$")
+
+    # plot delta_plus on top
     if model.delta_plus(2) < float('inf'):
         # only plot delta+ if it is not infinity
         pyplot.plot(range_delta, [model.delta_plus(x) for x in range_delta], 'gv',
                     label = "$\delta^+(n)$")
+
     pyplot.xlim(xmin = 0, xmax = num_events + .5)
     pyplot.ylim(ymin = 0)
     pyplot.title("$\delta(n)$")
