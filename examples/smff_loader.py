@@ -32,19 +32,19 @@ def smff_test(file, outfile, plot, verbose):
     if plot == True:
         # graph the smff system
         graph_file = string.replace(os.path.basename(file), ".xml", "") + ".pdf"
-        graph.graph_system(s, filename=graph_file)
+        graph.graph_system(s, schedParam=True, execTimes=True, filename=graph_file)
 
     # analyze the system            
     analysis.analyze_system(s)
 
     # print some analysis results
-    if verbose == True:
-        print("Result:")
-        print(s)
-        for r in sorted(s.resources, key=str):
-            print "results for resource %s" % r.name
-            for t in sorted(r.tasks, key=str):
-                print("%s - %d " % (str(t.name) , t.wcrt))
+
+    print("Result:")
+    print(s)
+    for r in sorted(s.resources, key=str):
+        print "results for resource %s" % r.name
+        for t in sorted(r.tasks, key=str):
+            print("%s - %d " % (str(t.name) , t.wcrt))
 
     if outfile is not None:
         # backannotate the xml
