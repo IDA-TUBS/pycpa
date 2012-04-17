@@ -654,16 +654,20 @@ def _init_analysis_order(context):
         all_dep_tasks[task] = _breadth_first_search(task, None, context.get_dependent_tasks)
         #print "got %d dependencies for task %s" % (len(all_dep_tasks[task]), task)
 
-    context.analysisOrder = context.dependentTask.keys()
-    context.analysisOrder.sort(key = lambda x: len(all_dep_tasks[x]), reverse = True)
+    #sort by name first (as secondary key in case the lengths are the same
+    all_tasks_by_name = sorted(context.dependentTask.keys(), key = lambda x: x.name)
+    context.analysisOrder = sorted(all_tasks_by_name, key = lambda x: len(all_dep_tasks[x]), reverse = True)
+
 
 
 def _init_analysis_order_simple(context):
     """ Init the analysis order using only the number of immediately dependent
      tasks as an indicator as to which task to analyze first
     """
-    context.analysisOrder = context.dependentTask.keys()
-    context.analysisOrder.sort(key = lambda x: len(context.dependentTask[x]), reverse = True)
+
+    #sort by name first (as secondary key in case the lengths are the same
+    all_tasks_by_name = sorted(context.dependentTask.keys(), key = lambda x: x.name)
+    context.analysisOrder = sorted(all_tasks_by_name, key = lambda x: len(context.dependentTask[x]), reverse = True)
 
 
 def get_next_tasks(task):
@@ -844,7 +848,7 @@ def analyze_system(system, clean = False, onlyDependent = False):
     init_analysis(system, context, clean)
 
     iteration = 0
-    #print "Order:", context.analysisOrder
+    logger.debug("analysisOrder: %s" % (context.analysisOrder))
     while len(context.dirtyTasks) > 0:
         logger.info("Analyzing, %d tasks left" %
                             (len(context.dirtyTasks)))
