@@ -19,20 +19,15 @@ import analysis
 
 def spp_multi_activation_stopping_condition(task, q, w):
     """ Check if we have looked far enough
-        compute the time the resource is busy processing q activations of task
-        and activations of all higher priority tasks during that time
         Returns True if stopping-condition is satisfied, False otherwise 
     """
-    busy_period = q * task.wcet
-    for t in task.get_resource_interferers(): # FIXME: what about my own activations??
-        if t.scheduling_parameter <= task.scheduling_parameter:
-            busy_period += t.in_event_model.eta_plus(w) * t.wcet
+
     # if there are no new activations when the current busy period has been completed, we terminate
-    if q >= task.in_event_model.eta_plus(busy_period):
+    if task.in_event_model.delta_min(q + 1) > w:
         return True
     return False
 
-def w_spp(task, q, MAX_WINDOW = 1000, **kwargs):
+def w_spp(task, q, MAX_WINDOW=1000, **kwargs):
     """ Return the maximum time required to process q activations
         Priority stored in task.scheduling_parameter
         smaller priority number -> right of way
@@ -67,7 +62,7 @@ def w_spp(task, q, MAX_WINDOW = 1000, **kwargs):
     assert(w >= q * task.wcet)
     return w
 
-def w_spp_domination(task, q, MAX_WINDOW = 1000):
+def w_spp_domination(task, q, MAX_WINDOW=1000):
     """ Return the maximum time required to process q activations
         Priority stored in task.scheduling_parameter
         smaller priority number -> right of way
@@ -101,7 +96,7 @@ def w_spp_domination(task, q, MAX_WINDOW = 1000):
     assert(w >= q * task.wcet)
     return w
 
-def w_spp_roundrobin(task, q, MAX_WINDOW = 1000):
+def w_spp_roundrobin(task, q, MAX_WINDOW=1000):
     """ Return the maximum time required to process q activations
         Priority stored in task.scheduling_parameter
         smaller priority number -> right of way

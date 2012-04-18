@@ -125,13 +125,13 @@ class SMFFLoader:
         for comm_resource_node in platform_node.getElementsByTagName("CommResource"):
             self._handle_comm_resource(comm_resource_node)
 
-    def _w_func_from_scheduler_string(self, scheduler):
+    def _window_stopping_from_scheduler_string(self, scheduler):
         """ parse the scheduling string and return a window function
         """
         if scheduler == "SPPScheduler":
-            return spp.w_spp
+            return spp.w_spp, spp.spp_multi_activation_stopping_condition
         if scheduler == "SPNPScheduler":
-            return spnp.w_spnp
+            return spnp.w_spnp, spnp.spnp_multi_activation_stopping_condition
 
         return None
 
@@ -153,13 +153,13 @@ class SMFFLoader:
         scheduler_node = resource_node.getElementsByTagName("Scheduler")[0]
         scheduler_string = scheduler_node.attributes["name"].nodeValue
 
-        w_func = self._w_func_from_scheduler_string(scheduler_string)
+        w_func, stopping = self._window_stopping_from_scheduler_string(scheduler_string)
 
         if w_func == None:
             raise InvalidSMFFXMLException("Scheduler not recognized", scheduler_node)
 
         # add a resource to pycpa
-        resource_model = self.system.add_resource(short_name, w_func)
+        resource_model = self.system.add_resource(short_name, w_func, stopping)
         resource_model.xml_node = resource_node
         resource_model.smff_id = resource_id
 
@@ -176,13 +176,13 @@ class SMFFLoader:
         scheduler_node = comm_resource_node.getElementsByTagName("Scheduler")[0]
         scheduler_string = scheduler_node.attributes["name"].nodeValue
 
-        w_func = self._w_func_from_scheduler_string(scheduler_string)
+        w_func, stopping = self._window_stopping_from_scheduler_string(scheduler_string)
 
         if w_func == None:
             raise InvalidSMFFXMLException("Scheduler not recognized", scheduler_node)
 
         # add a resource to pycpa
-        resource_model = self.system.add_resource(short_name, w_func)
+        resource_model = self.system.add_resource(short_name, w_func, stopping)
         resource_model.xml_node = comm_resource_node
         resource_model.smff_id = resource_id
 
