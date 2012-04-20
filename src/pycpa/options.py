@@ -57,7 +57,16 @@ welcome = "pyCPA a Compositional Performance Analysis Toolkit implemented in Pyt
 + __license_text__
 
 opts_dict = dict()
-opts = None
+#opts = None
+
+
+def get_opt(option):
+    """ Returns the option specified by the parameter.
+    If called for the first time, the parsing is done.
+    """
+    global opts_dict
+    if len(opts_dict) == 0: _init_pycpa()
+    return opts_dict[option]
 
 def pprintTable(out, table, column_sperator="", header_separator=":"):
     """Prints out a table of data, padded for alignment
@@ -91,8 +100,8 @@ def pprintTable(out, table, column_sperator="", header_separator=":"):
 
     return
 
-def init_pycpa():
-    global opts
+def _init_pycpa():
+    global opts_dict
     opts = parser.parse_args()
 
     # set up the general logging object

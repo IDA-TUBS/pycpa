@@ -21,11 +21,9 @@ from pycpa import options
 
 
 def offset_test():
-    options.init_pycpa()
-
-    if options.opts.propagation != "jitter_offset":
+    if options.get_opt('propagation') != "jitter_offset":
         print "propagation is forced to jitter_offset"
-        options.opts.propagation = "jitter_offset"
+        options.opts_dict['propagation'] = "jitter_offset"
 
     s = model.System()
 

@@ -24,7 +24,6 @@ from pycpa import options
 
 
 def rr_test():
-    options.init_pycpa()
 
     s = model.System()
     r1 = s.add_resource("R1", roundrobin.w_roundrobin, roundrobin.rr_multi_activation_stopping_condition)

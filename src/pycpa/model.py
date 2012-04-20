@@ -53,7 +53,7 @@ class EventModel (object):
         """
 
         if cache is None:
-            cache = not options.opts.nocaching
+            cache = not options.get_opt('nocaching')
 
         ## Cache to speedup busy window calculations
         self.delta_min_cache = dict()
@@ -97,7 +97,7 @@ class EventModel (object):
         """
         MAXX = 1000
         if n < 2: return 0
-        x = options.opts.epsilon
+        x = options.get_opt('epsilon')
         while eta_plus(x) < n:
             #print "eta_plus(",x,")=",self.eta_plus(x)
             x += 1
@@ -114,7 +114,7 @@ class EventModel (object):
         """
         MAXX = 1000
         if n < 2: return 0
-        x = options.opts.epsilon
+        x = options.get_opt('epsilon')
         while eta_min(x) < n:
             #print "eta_plus(",x,")=",self.eta_plus(x)
             x += 1
@@ -124,8 +124,8 @@ class EventModel (object):
     def eta_plus_old(self, w):
         """ Eta-plus Function
             Return the maximum number of activations in a time window w.
-            Equation 3.5 from [Schliecker2011]_.
             Deprecated, as it uses a slow linear search.
+            See EventModel.eta_plus.
         """
         # if the window does not include 2 activations, assume that one has occured
         if self.delta_min(2) > w: return 1
@@ -133,7 +133,7 @@ class EventModel (object):
         if self.delta_min(INFINITY) == 0: return INFINITY
         n = 2
 
-        while self.delta_min(n) <= w:
+        while self.delta_min(n) < w:
             n += 1
 
         n -= 1
@@ -144,9 +144,13 @@ class EventModel (object):
     def eta_plus(self, w):
         """ Eta-plus Function
             Return the maximum number of events in a time window w.
-            Equation 3.5 from [Schliecker2011]_.            
+            Derived from Equation 3.5 from [Schliecker2011]_,
+             but assuming half-open intervals for w
+             as defined in [Richter2005]_.            
         """
-        # if the window does not include 2 activations, assume that one has occured
+        # the window for 0 activations is 0
+        if w == 0: return 0
+        # if the window does not include 2 activations, assume that one has occured        
         if self.delta_min(2) > w: return 1
         # if delta_min is constant zero, eta_plus is always infinity
         if self.delta_min(INFINITY) == 0: return INFINITY
@@ -154,7 +158,7 @@ class EventModel (object):
         lo = 2
 
         # search an upper bound
-        while self.delta_min(hi) <= w:
+        while self.delta_min(hi) < w:
             lo = hi
             hi *= 10
 
@@ -162,14 +166,14 @@ class EventModel (object):
         while lo < hi:
             mid = (lo + hi) // 2
             midval = self.delta_min(mid)
-            if midval <= w:
+            if midval < w:
                 lo = mid + 1
             else:
                 hi = mid
         hi -= 1
 
-        assert self.delta_min(hi) <= w
-        assert self.delta_min(hi + 1) > w
+        assert self.delta_min(hi) < w
+        assert self.delta_min(hi + 1) >= w
 
         #Double check with linear search (slow)
         #assert self.eta_plus_old(w) == hi
@@ -178,11 +182,12 @@ class EventModel (object):
     def eta_min(self, w):
         """ Eta-minus Function
             Return the minimum number of events in a time window w.
-            Equation 3.6 from [Schliecker2011]_.
+            Derived from Equation 3.6 from [Schliecker2011]_,
+             but different, as Eq. 3.6 is wrong.
         """
         MAX_EVENTS = 10000
         n = 2
-        while self.delta_plus(n) < w:
+        while self.delta_plus(n) <= w:
             if(n > MAX_EVENTS):
                 logger.error("w=%f" % w + " n=%d" % n + "deltaplus(n)=%d" % self.delta_plus(n))
                 return n
@@ -238,7 +243,6 @@ class EventModel (object):
         """
         if n < 2:
             return 0
-            # This would be the "nice way": return self.delta_plus(2) # TODO: Check
 
         ## Caching is activated
         if self.en_delta_caching == True:
@@ -570,7 +574,7 @@ class Resource:
         self.compute_wcrt = None
         self.multi_activation_stopping_condition = multi_activation_stopping_condition
 
-        method = options.opts.propagation
+        method = options.get_opt('propagation')
         if method == 'jitter_offset':
             self.out_event_model = analysis._out_event_model_jitter_offset
         elif method == 'busy_window':

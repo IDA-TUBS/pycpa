@@ -140,8 +140,8 @@ def w_spp_offset(task, q, **kwargs):
         smaller priority number -> right of way
     """
 
-    if options.opts.propagation != "jitter_offset":
-        raise options.InvalidParameterError("propagation must be set to \"jitter_offset\"")
+    if options.get_opt('propagation') != "jitter_offset":
+        raise options.argparse.ArgumentError("propagation must be set to \"jitter_offset\"")
 
     assert(q > 0)
     assert(task.scheduling_parameter != None)

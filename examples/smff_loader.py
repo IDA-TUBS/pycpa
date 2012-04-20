@@ -65,6 +65,4 @@ if __name__ == "__main__":
     options.parser.add_argument('--graph', '-g', action='store_true',
                     help='Graph the system, file will be saved to FILE.pdf. Where FILE is the input xml.')
 
-    options.init_pycpa()
-
-    smff_test(options.opts.file, options.opts.ofile, options.opts.graph, options.opts.verbose)
+    smff_test(options.get_opt('file'), options.get_opt('ofile'), options.get_opt('graph'), options.get_opt('verbose'))

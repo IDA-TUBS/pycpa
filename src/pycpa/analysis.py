@@ -50,10 +50,10 @@ def compute_wcrt(task, **kwargs):
     """
 
     if  "MAX_ITERATIONS" not in kwargs:
-        kwargs['MAX_ITERATIONS'] = options.opts.max_iterations
+        kwargs['MAX_ITERATIONS'] = options.get_opt('max_iterations')
 
     if  "MAX_WINDOW" not in kwargs:
-        kwargs['MAX_WINDOW'] = options.opts.max_window
+        kwargs['MAX_WINDOW'] = options.get_opt('max_window')
 
     MAX_ITERATIONS = kwargs['MAX_ITERATIONS']
 
@@ -145,7 +145,7 @@ def analyze_task(task, COMPUTE_BACKLOG=None):
     """
 
     if  "COMPUTE_BACKLOG" is None:
-        COMPUTE_BACKLOG = options.opts.backlog
+        COMPUTE_BACKLOG = options.get_opt('backlog')
 
     logger.debug("Analyzing " + task.name +
                   " input: " + str(task.in_event_model))
@@ -214,7 +214,7 @@ def _out_event_model_jitter(task, dmin=0):
     em = model.EventModel()
     resp_jitter = task.wcrt - task.bcrt
 
-    if options.opts.propagation == 'jitter':
+    if options.get_opt('propagation') == 'jitter':
         # ignore dmin if propagation is jitter only
         dmin = 0
 
@@ -420,7 +420,7 @@ def end_to_end_latency(path, n=1, task_overhead=(0, 0), path_overhead=(0, 0), re
     :rtype: tuple (best-case latency, worst-case latency)
     """
 
-    if options.opts.e2e_improved == True:
+    if options.get_opt('e2e_improved') == True:
         (lmin, lmax) = end_to_end_latency_improved(path, n, **kwargs)
     else:
         (lmin, lmax) = end_to_end_latency_classic(path, n, **kwargs)
@@ -539,9 +539,9 @@ def end_to_end_latency_improved(path, n=1):
     lmax = _event_exit_path(path, len(path.tasks) - 1, n - 1) - 0
 
     for t in path.tasks:
-       if isinstance(t, model.Task):
-           # sum up best-case response times        
-           lmin += t.bcrt
+        if isinstance(t, model.Task):
+            # sum up best-case response times        
+            lmin += t.bcrt
 
     # add the earliest possible release of event n
     # TODO: Can lmin be improved?
@@ -639,8 +639,8 @@ def _init_analysis_order(context):
         #print "got %d dependencies for task %s" % (len(all_dep_tasks[task]), task)
 
     #sort by name first (as secondary key in case the lengths are the same
-    all_tasks_by_name = sorted(context.dependentTask.keys(), key = lambda x: x.name)
-    context.analysisOrder = sorted(all_tasks_by_name, key = lambda x: len(all_dep_tasks[x]), reverse = True)
+    all_tasks_by_name = sorted(context.dependentTask.keys(), key=lambda x: x.name)
+    context.analysisOrder = sorted(all_tasks_by_name, key=lambda x: len(all_dep_tasks[x]), reverse=True)
 
 
 
@@ -649,8 +649,8 @@ def _init_analysis_order_simple(context):
      tasks as an indicator as to which task to analyze first
     """
     #sort by name first (as secondary key in case the lengths are the same
-    all_tasks_by_name = sorted(context.dependentTask.keys(), key = lambda x: x.name)
-    context.analysisOrder = sorted(all_tasks_by_name, key = lambda x: len(context.dependentTask[x]), reverse = True)
+    all_tasks_by_name = sorted(context.dependentTask.keys(), key=lambda x: x.name)
+    context.analysisOrder = sorted(all_tasks_by_name, key=lambda x: len(context.dependentTask[x]), reverse=True)
 
 
 def get_next_tasks(task):

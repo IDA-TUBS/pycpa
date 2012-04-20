@@ -40,7 +40,7 @@ class SimTask  (Process):
         It stops, when the resource is idle (end of busy window)
     """
     def __init__(self, task, sim):
-        Process.__init__(self, name = task.name, sim = sim)
+        Process.__init__(self, name=task.name, sim=sim)
         # link to the pycpa model
         self.task = task
 
@@ -62,7 +62,7 @@ class SimTask  (Process):
             return
 
         while True:
-            a = SimActivation(name = "Activation%s,%d" % (self.task.name, n,), sim = self.sim, task = self.task)
+            a = SimActivation(name="Activation%s,%d" % (self.task.name, n,), sim=self.sim, task=self.task)
             a.q = n
 
             self.activations.append(a)
@@ -85,7 +85,7 @@ class SimActivation (Process):
     """
 
     def __init__(self, name, sim, task):
-        Process.__init__(self, name = name, sim = sim)
+        Process.__init__(self, name=name, sim=sim)
 
         # number of the action
         self.q = 0
@@ -94,7 +94,7 @@ class SimActivation (Process):
         self.task = task
 
         # the signal used to wake up the activation event
-        self.signal_event = SimEvent(sim = sim)
+        self.signal_event = SimEvent(sim=sim)
 
         # workload left to consume
         self.workload = task.wcet
@@ -150,17 +150,17 @@ class SimActivation (Process):
 class SimSPP (Process):
     """ SPP Resource model
     """
-    def __init__(self, sim, name = "SPP", tasks = list()):
+    def __init__(self, sim, name="SPP", tasks=list()):
 
         assert sim != None
-        Process.__init__(self, name = name, sim = sim)
+        Process.__init__(self, name=name, sim=sim)
         self.tasks = tasks
         self.pending = list()
 
         # list of simtasks
         self.simtasks = list()
 
-        self.arrival_event = SimEvent('Arrival Event', sim = sim)
+        self.arrival_event = SimEvent('Arrival Event', sim=sim)
     def select(self):
         """ Select the next activation from the pending list
         """
@@ -225,10 +225,10 @@ class SimSPP (Process):
 class SimSPNP (Process):
     """ SPP Resource model
     """
-    def __init__(self, sim, name = "SPP", tasks = list()):
+    def __init__(self, sim, name="SPP", tasks=list()):
 
         assert sim != None
-        Process.__init__(self, name = name, sim = sim)
+        Process.__init__(self, name=name, sim=sim)
 
         # list of pending activations
         self.pending = list()
@@ -240,7 +240,7 @@ class SimSPNP (Process):
         self.simtasks = list()
 
         # signals a new activation
-        self.arrival_event = SimEvent('Arrival Event', sim = sim)
+        self.arrival_event = SimEvent('Arrival Event', sim=sim)
 
     def select(self):
         """ Select the next activation from the pending list
@@ -263,7 +263,7 @@ class SimSPNP (Process):
         """
         return len(self.pending) == 0 and len(self.blockers) == 0
 
-    def execute(self, resource, task, additional_blocker_activations = None):
+    def execute(self, resource, task, additional_blocker_activations=None):
         # get the blocker task
         blocker = spnp.blocker_task(task)
         self.lowprio_simblocker = None
@@ -276,7 +276,7 @@ class SimSPNP (Process):
 
         # if there is a blocker, create one activation and put it in the queue
         if blocker:
-            blocker_activation = SimActivation(name = "Blocker %s" % (self.lowprio_simblocker.name), sim = self.sim, task = blocker)
+            blocker_activation = SimActivation(name="Blocker %s" % (self.lowprio_simblocker.name), sim=self.sim, task=blocker)
             self.blockers.append(blocker_activation)
             self.lowprio_simblocker.activations.append(blocker_activation)
             self.sim.activate(blocker_activation, blocker_activation.execute(blocker, self))
@@ -320,29 +320,29 @@ class SimSPNP (Process):
 
 class ResourceModel(Simulation):
 
-    def __init__(self, resource, name = "Experiment"):
+    def __init__(self, resource, name="Experiment"):
         Simulation.__init__(self)
         self.name = name
         self.resource = resource
         self.scheduler = None
 
-    def runModel(self, task, scheduler, until = float('inf')):
+    def runModel(self, task, scheduler, until=float('inf')):
         ## Initialize Simulation instance
         self.initialize()
 
         self.scheduler = scheduler
 
         for t in self.resource.tasks:
-            simtask = SimTask(t, sim = self)
+            simtask = SimTask(t, sim=self)
             self.scheduler.simtasks.append(simtask)
 
         self.activate(self.scheduler , self.scheduler.execute(self.resource, task))
 
-        self.simulate(until = until)
+        self.simulate(until=until)
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level = logging.INFO)
+    logging.basicConfig(level=logging.INFO)
 
     s = model.System()
 
@@ -353,7 +353,7 @@ if __name__ == '__main__':
     t1.wcet = 1
     t1.bcet = 0
     t1.scheduling_parameter = 1
-    #t1.wcet_pdf = s_model.generate_task_pdf(t1, options.opts.mpmath)
+    #t1.wcet_pdf = s_model.generate_task_pdf(t1, options.get_opt('mpmath'))
     r1.bind_task(t1)
 
 
@@ -361,7 +361,7 @@ if __name__ == '__main__':
     t2.wcet = 2
     t2.bcet = 0
     t2.scheduling_parameter = 2
-    #t2.wcet_pdf = s_model.generate_task_pdf(t2, options.opts.mpmath)
+    #t2.wcet_pdf = s_model.generate_task_pdf(t2, options.get_opt('mpmath'))
     r1.bind_task(t2)
 
     t3 = model.Task("T3")
@@ -384,13 +384,13 @@ if __name__ == '__main__':
 
 
     model = ResourceModel(r1)
-    model.runModel(task = t2, scheduler = SimSPNP(name = "SPNP", sim = model))
+    model.runModel(task=t2, scheduler=SimSPNP(name="SPNP", sim=model))
 
     task = t2
 
     #plot
     hp_tasks = list()
-    for t in sorted(r1.tasks, key = str):
+    for t in sorted(r1.tasks, key=str):
         if t.scheduling_parameter <= task.scheduling_parameter:
             hp_tasks.append(t)
     print hp_tasks
