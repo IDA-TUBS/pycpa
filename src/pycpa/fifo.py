@@ -18,7 +18,17 @@ import analysis
 
 logger = logging.getLogger("fifo")
 
-def w_fifo(task, q, MAX_WINDOW = 10000):
+def fifo_multi_activation_stopping_condition(task, q, w):
+    """ Check if we have looked far enough
+        Returns True if stopping-condition is satisfied, False otherwise 
+    """
+
+    # if there are no new activations when the current busy period has been completed, we terminate
+    if task.in_event_model.delta_min(q + 1) > w:
+        return True
+    return False
+
+def w_fifo(task, q, MAX_WINDOW=10000):
     """ Return the maximum time required to process q activations
         simple fifo assumption: all other activations have been queued before mine
     """
