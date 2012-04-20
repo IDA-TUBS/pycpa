@@ -112,22 +112,24 @@ class SymtaLoader14:
         for cpu_node in cpu_nodes:
             resource = self._handle_cpu(cpu_node)
 
+    def _get_scheduler_function(self, scheduler_string):
+        if scheduler_string == "(IDA)spp" or  scheduler_string == "spp":
+            return spp.w_spp, spp.spp_multi_activation_stopping_condition
+        elif scheduler_string == "(IDA)roundrobin" or scheduler_string == "roundrobin":
+            return roundrobin.w_roundrobin, roundrobin.rr_multi_activation_stopping_condition
+        elif scheduler_string == "fifo": # not sure if symta actually has a fifo scheduler
+            return fifo.w_fifo, fifo.fifo_multi_activation_stopping_condition
+        elif scheduler_string == "(IDA)spnp" or scheduler_string == "spnp":
+            return spnp.w_spnp, spnp.spnp_multi_activation_stopping_condition
+        else:
+            raise InvalidSymtaXMLException("Scheduler %s is not compatible with pycpa" % scheduler_string)
 
     def _handle_cpu(self, cpu_node):
         resource_name = cpu_node.attributes['name'].nodeValue
-        resource = self.system.add_resource(resource_name)
-
         scheduler_string = cpu_node.attributes['scheduler'].nodeValue
-        if scheduler_string == "(IDA)spp" or  scheduler_string == "spp":
-            resource.w_function = spp.w_spp
-        elif scheduler_string == "(IDA)roundrobin" or scheduler_string == "roundrobin":
-            resource.w_function = roundrobin.w_roundrobin
-        elif scheduler_string == "fifo": # not sure if symta actually has a fifo scheduler
-            resource.w_function = fifo.w_fifo
-        elif scheduler_string == "(IDA)spp" or scheduler_string == "spnp":
-            resource.w_function = spnp.w_spnp
-        else:
-            raise InvalidSymtaXMLException("Scheduler %s is not compatible with pycpa" % scheduler_string)
+        w_func, stopping_condition = self._get_scheduler_function(scheduler_string)
+
+        resource = self.system.add_resource(resource_name, w_func, stopping_condition)
 
         speedup_node = cpu_node.getElementsByTagName("speedup")[0]
         speedup = self._handle_speedup(speedup_node)
@@ -191,7 +193,7 @@ class SymtaLoader14:
         wcet *= speedup
         #inport_list, outport_list = self._handle_ports(ports)
         logger.info("new task %s, tcore: [%f, %f] speedfactor %f" % (name, bcet, wcet, speedup))
-        task = model.Task(name = name, bcet = bcet, wcet = wcet, sched_param = None)
+        task = model.Task(name=name, bcet=bcet, wcet=wcet, sched_param=None)
         task.dom_node = task_node
         task.ports = ports # used later to connect the event streams
         self.tasks.add(task)
