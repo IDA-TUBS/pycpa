@@ -53,7 +53,7 @@ class EventModel (object):
         """
 
         if cache is None:
-            cache = not options.opts.nocaching
+            cache = not options.get_opt('nocaching')
 
         ## Cache to speedup busy window calculations
         self.delta_min_cache = dict()
@@ -97,7 +97,7 @@ class EventModel (object):
         """
         MAXX = 1000
         if n < 2: return 0
-        x = options.opts.epsilon
+        x = options.get_opt('epsilon')
         while eta_plus(x) < n:
             #print "eta_plus(",x,")=",self.eta_plus(x)
             x += 1
@@ -114,7 +114,7 @@ class EventModel (object):
         """
         MAXX = 1000
         if n < 2: return 0
-        x = options.opts.epsilon
+        x = options.get_opt('epsilon')
         while eta_min(x) < n:
             #print "eta_plus(",x,")=",self.eta_plus(x)
             x += 1
@@ -243,7 +243,6 @@ class EventModel (object):
         """
         if n < 2:
             return 0
-            # This would be the "nice way": return self.delta_plus(2) # TODO: Check
 
         ## Caching is activated
         if self.en_delta_caching == True:
@@ -575,7 +574,7 @@ class Resource:
         self.compute_wcrt = None
         self.multi_activation_stopping_condition = multi_activation_stopping_condition
 
-        method = options.opts.propagation
+        method = options.get_opt('propagation')
         if method == 'jitter_offset':
             self.out_event_model = analysis._out_event_model_jitter_offset
         elif method == 'busy_window':

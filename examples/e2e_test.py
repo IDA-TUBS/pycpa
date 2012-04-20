@@ -22,9 +22,6 @@ from pycpa import options
 
 
 def e2e_test():
-    # initialize pyCPA. (e.g. read command line switches and set up default options)
-    options.init_pycpa()
-
     # generate an new system
     s = model.System()
 

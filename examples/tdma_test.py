@@ -21,19 +21,17 @@ from pycpa import options
 
 def tdma_test():
 
-    options.init_pycpa()
-
     s = model.System()
     r1 = s.add_resource("R1", tdma.w_tdma, tdma.tdma_multi_activation_stopping_condition)
     r2 = s.add_resource("R2", tdma.w_tdma, tdma.tdma_multi_activation_stopping_condition)
 
     # scheduling_parameter denotes the slotsize
-    t11 = r1.bind_task(model.Task("T11", wcet = 10, bcet = 5, scheduling_parameter = 2))
-    t12 = r1.bind_task(model.Task("T12", wcet = 3, bcet = 1, scheduling_parameter = 2))
+    t11 = r1.bind_task(model.Task("T11", wcet=10, bcet=5, scheduling_parameter=2))
+    t12 = r1.bind_task(model.Task("T12", wcet=3, bcet=1, scheduling_parameter=2))
 
 
-    t21 = r2.bind_task(model.Task("T21", wcet = 2, bcet = 2, scheduling_parameter = 2))
-    t22 = r2.bind_task(model.Task("T22", wcet = 3, bcet = 3, scheduling_parameter = 2))
+    t21 = r2.bind_task(model.Task("T21", wcet=2, bcet=2, scheduling_parameter=2))
+    t22 = r2.bind_task(model.Task("T22", wcet=3, bcet=3, scheduling_parameter=2))
 
 
     t11.link_dependent_task(t21)
@@ -54,8 +52,8 @@ def tdma_test():
 
     print("Result:")
     print(s)
-    for r in sorted(s.resources, key = str):
-        for t in sorted(r.tasks, key = str):
+    for r in sorted(s.resources, key=str):
+        for t in sorted(r.tasks, key=str):
             print(str(t), " - ", t.wcrt)
 
 

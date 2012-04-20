@@ -21,9 +21,6 @@ from pycpa import options
 from pycpa import spp
 
 def junction_test():
-    # initialyze pycpa. (e.g. read command line switches and set up default options)
-    options.init_pycpa()
-
     # generate an new system
     s = model.System()
 
@@ -33,14 +30,14 @@ def junction_test():
     r2 = s.add_resource("R2", spp.w_spp, spp.spp_multi_activation_stopping_condition)
 
     # add a task
-    t11 = r1.bind_task(model.Task(name = "T11", wcet = 3, bcet = 1, scheduling_parameter = 1))
+    t11 = r1.bind_task(model.Task(name="T11", wcet=3, bcet=1, scheduling_parameter=1))
     # register input event model
-    t11.in_event_model = model.EventModel(P = 30, J = 15)
+    t11.in_event_model = model.EventModel(P=30, J=15)
 
     # add three more tasks, these will be triggered by other tasks
-    t12 = r1.bind_task(model.Task(name = "T12", wcet = 3, bcet = 2, scheduling_parameter = 2))
-    t21 = r2.bind_task(model.Task(name = "T21", wcet = 4, bcet = 2, scheduling_parameter = 1))
-    t22 = r2.bind_task(model.Task(name = "T22", wcet = 6, bcet = 4, scheduling_parameter = 2))
+    t12 = r1.bind_task(model.Task(name="T12", wcet=3, bcet=2, scheduling_parameter=2))
+    t21 = r2.bind_task(model.Task(name="T21", wcet=4, bcet=2, scheduling_parameter=1))
+    t22 = r2.bind_task(model.Task(name="T22", wcet=6, bcet=4, scheduling_parameter=2))
 
     # add a junction (this is an AND junction by default)
     j1 = s.add_junction()
@@ -64,9 +61,9 @@ def junction_test():
 
     # print the results
     print("Result:")
-    for r in sorted(s.resources, key = str):
+    for r in sorted(s.resources, key=str):
         print "load on resource %s: %0.2f" % (r.name, r.load())
-        for t in sorted(r.tasks, key = str):
+        for t in sorted(r.tasks, key=str):
             print "  task %s - wcrt: %d" % (t.name, t.wcrt)
 
 if __name__ == "__main__":
