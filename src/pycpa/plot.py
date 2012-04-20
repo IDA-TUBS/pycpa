@@ -67,11 +67,11 @@ def plot_event_model(model, num_events, file_format=None, separate_plots=True, f
     """
 
     eps = 1e-10 # epsilon
-    max_delta_t = model.delta_min(num_events + 1)
+    max_delta_t = model.delta_plus(num_events + 1)
 
     # create ranges which have one point at each step of eta
     steps_eta_plus = [model.delta_min(x) for x in range(num_events + 1)]
-    steps_eta_min = [model.delta_plus(x) for x in range(num_events + 1)]
+    steps_eta_min = [model.delta_plus(x) for x in range(num_events + 2)]
     steps_eta = sorted(set(steps_eta_min + steps_eta_plus))
 
     range_eta = range(max(steps_eta_min) + 1)
