@@ -34,24 +34,28 @@ def smff_test(file, outfile, plot, verbose):
         graph_file = string.replace(os.path.basename(file), ".xml", "") + ".pdf"
         graph.graph_system(s, schedParam=True, execTimes=True, filename=graph_file)
 
-    # analyze the system            
-    analysis.analyze_system(s)
+    try:
+        # analyze the system            
+        analysis.analyze_system(s)
 
-    # print some analysis results
+        # print some analysis results
 
-    print("Result:")
-    print(s)
-    for r in sorted(s.resources, key=str):
-        print "results for resource %s" % r.name
-        for t in sorted(r.tasks, key=str):
-            print("%s - %d " % (str(t.name) , t.wcrt))
+        print("Result:")
+        print(s)
+        for r in sorted(s.resources, key=str):
+            print "results for resource %s" % r.name
+            for t in sorted(r.tasks, key=str):
+                print("%s - %d " % (str(t.name) , t.wcrt))
 
-    if outfile is not None:
-        # backannotate the xml
-        loader.annotate_results()
+        if outfile is not None:
+            # backannotate the xml
+            loader.annotate_results()
 
-        # write it
-        loader.write(filename=outfile)
+            # write it
+            loader.write(filename=outfile)
+
+    except analysis.NotSchedulableException as (e):
+        print str(e)
 
 if __name__ == "__main__":
     # this is necessary because the file is also called from the regression test suite
