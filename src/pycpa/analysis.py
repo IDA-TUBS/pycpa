@@ -52,9 +52,6 @@ def compute_wcrt(task, **kwargs):
     if  "MAX_ITERATIONS" not in kwargs:
         kwargs['MAX_ITERATIONS'] = options.get_opt('max_iterations')
 
-    if  "MAX_WINDOW" not in kwargs:
-        kwargs['MAX_WINDOW'] = options.get_opt('max_window')
-
     MAX_ITERATIONS = kwargs['MAX_ITERATIONS']
 
     if task.resource.compute_wcrt is not None:
@@ -77,9 +74,14 @@ def compute_wcrt(task, **kwargs):
 
         current_response = w - task.in_event_model.delta_min(q)
         logger.debug("%s window(q=%f):%f, response: %f" % (task.name, q, w, current_response))
+
         if current_response > wcrt:
             wcrt = current_response
             q_max = q
+
+        if task.deadline < wcrt:
+            raise NotSchedulableException("deadline constraint for task %s violated, tasks (likely) not schedulable!" % task.name)
+
 
         # Check stopcondition
         if stop_condition(task, q, w) == True:

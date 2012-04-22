@@ -27,7 +27,7 @@ def rr_multi_activation_stopping_condition(task, q, w):
         return True
     return False
 
-def w_roundrobin(task, q, MAX_WINDOW=10000, **kwargs):
+def w_roundrobin(task, q, **kwargs):
     """ Return the maximum time required to process q activations
         (1 cycle WCET each) 
         under round-robin scheduling under presence of interfering tasks.
@@ -53,8 +53,5 @@ def w_roundrobin(task, q, MAX_WINDOW=10000, **kwargs):
         if w == w_new:
             break
         w = w_new
-
-        if w > MAX_WINDOW:
-            raise analysis.NotSchedulableException("MAX_WINDOW exceeded, likely not schedulable")
 
     return w

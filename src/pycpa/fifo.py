@@ -28,7 +28,7 @@ def fifo_multi_activation_stopping_condition(task, q, w):
         return True
     return False
 
-def w_fifo(task, q, MAX_WINDOW=10000):
+def w_fifo(task, q):
     """ Return the maximum time required to process q activations
         simple fifo assumption: all other activations have been queued before mine
     """
@@ -45,9 +45,6 @@ def w_fifo(task, q, MAX_WINDOW=10000):
         if w == w_new:
             break
         w = w_new
-
-        if w > MAX_WINDOW:
-            raise analysis.NotSchedulableException("MAX_WINDOW exceeded, likely not schedulable")
 
     assert(w >= q * task.wcet)
     return w

@@ -40,8 +40,6 @@ def w_spp(task, q, MAX_WINDOW=1000, **kwargs):
     w = q * task.wcet
 
     while True:
-        if w > MAX_WINDOW:
-            raise analysis.NotSchedulableException("MAX_WINDOW exceeded, likely not schedulable")
         #logging.debug("w: %d", w)
         #logging.debug("e: %d", q * task.wcet)
         s = 0
@@ -74,8 +72,6 @@ def w_spp_domination(task, q, MAX_WINDOW=1000):
     w = q * task.wcet
 
     while True:
-        if w > MAX_WINDOW:
-            raise analysis.NotSchedulableException("MAX_WINDOW exceeded, likely not schedulable")
         #logging.debug("w: %d", w)
         #logging.debug("e: %d", q * task.wcet)
         s = 0
@@ -107,8 +103,6 @@ def w_spp_roundrobin(task, q, MAX_WINDOW=1000):
 
     w = q * task.wcet
     while True:
-        if w > MAX_WINDOW:
-            raise analysis.NotSchedulableException("MAX_WINDOW exceeded, likely not schedulable")
         #logging.debug("w: %d", w)
         #logging.debug("e: %d", q * task.wcet)
         s = 0

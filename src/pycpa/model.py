@@ -436,7 +436,8 @@ class Task (object):
         ## Maximum worst-case backlog (derived from analysis)
         self.max_backlog = 0
 
-
+        ### Deadline of the task (constraints WCRT < D)
+        self.deadline = options.get_opt('max_wcrt')
 
         # compatability to the old call semantics (name, bcet, wcet, scheduling_parameter)
         if len(args) == 3:

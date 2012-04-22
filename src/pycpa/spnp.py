@@ -54,7 +54,7 @@ def spnp_multi_activation_stopping_condition(task, q, w):
         return True
     return False
 
-def w_spnp(task, q, MAX_WINDOW = 10000, **kwargs):
+def w_spnp(task, q, MAX_WINDOW=10000, **kwargs):
     """ Return the maximum time required to process q activations
         Priority stored in task.scheduling_parameter
         smaller priority number -> right of way
@@ -68,8 +68,6 @@ def w_spnp(task, q, MAX_WINDOW = 10000, **kwargs):
     w = (q - 1) * task.wcet + b
 
     while True:
-        if w > MAX_WINDOW:
-            raise analysis.NotSchedulableException("MAX_WINDOW exceeded, likely not schedulable")
         #logging.debug("w: %d", w)
         #logging.debug("e: %d", q * task.wcet)
         s = 0
