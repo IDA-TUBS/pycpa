@@ -18,7 +18,7 @@ It will setup an argument parser and set up default parameters.
 from __future__ import print_function
 
 MAX_ITERATIONS = 1000
-MAX_WINDOW = float('inf')
+MAX_WCRT = float('inf')
 OFFSET_OUTPUT_MODEL = False
 IMPROVED_OUTPUT_MODEL = True
 EPSILON = 1e-12
@@ -35,9 +35,9 @@ parser = argparse.ArgumentParser(description='Scheduling Analysis')
 parser.add_argument('--max_iterations', type=int,
                     default=MAX_ITERATIONS,
                     help='Maximum number of iterations in a local analysis (default=%d)' % (MAX_ITERATIONS))
-parser.add_argument('--max_window', type=int,
-                    default=MAX_WINDOW,
-                    help='Maximum busy window length in a local analysis (default=%f)' % (MAX_WINDOW))
+parser.add_argument('--max_wcrt', type=int,
+                    default=MAX_WCRT,
+                    help='Maximum response-time in a local analysis (default=%f)' % (MAX_WCRT))
 parser.add_argument('--backlog', action='store_true',
                     help='Compute the worst-case backlog.')
 parser.add_argument('--e2e_improved', action='store_true',
@@ -56,17 +56,16 @@ parser.add_argument('--verbose', '-v', action='store_true',
 welcome = "pyCPA a Compositional Performance Analysis Toolkit implemented in Python.\n\n" \
 + __license_text__
 
-opts_dict = dict()
-#opts = None
+_opts = None
 
 
 def get_opt(option):
     """ Returns the option specified by the parameter.
     If called for the first time, the parsing is done.
     """
-    global opts_dict
-    if len(opts_dict) == 0: _init_pycpa()
-    return opts_dict[option]
+    global _opts
+    if _opts is None: _init_pycpa()
+    return getattr(_opts, option)
 
 def pprintTable(out, table, column_sperator="", header_separator=":"):
     """Prints out a table of data, padded for alignment
@@ -101,12 +100,13 @@ def pprintTable(out, table, column_sperator="", header_separator=":"):
     return
 
 def _init_pycpa():
-    global opts_dict
-    opts = parser.parse_args()
+    global _opts
+    opts_dict = dict()
+    _opts = parser.parse_args()
 
     # set up the general logging object
 
-    if opts.verbose == True:
+    if _opts.verbose == True:
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.WARNING)
@@ -118,10 +118,10 @@ def _init_pycpa():
     #table of selected paramters
 
     table = list()
-    for attr in dir(opts):
+    for attr in dir(_opts):
         if not attr.startswith("_"):
-            row = ["%s" % attr, str(getattr(opts, attr))]
-            opts_dict[attr] = str(getattr(opts, attr))
+            row = ["%s" % attr, str(getattr(_opts, attr))]
+            opts_dict[attr] = str(getattr(_opts, attr))
             table.append(row)
     pprintTable(sys.stdout, table)
 
