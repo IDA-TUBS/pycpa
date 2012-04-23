@@ -310,7 +310,7 @@ class EventModel (object):
         self.deltaplus_func = lambda n: INFINITY
 
 
-    def load(self, accuracy=100):
+    def load(self, accuracy=10000):
         """ Returns the asymptotic load, i.e. the avg. number of events per time """
         #print "load = ", float(self.eta_plus(accuracy)),"/",accuracy
         #return float(self.eta_plus(accuracy)) / accuracy
