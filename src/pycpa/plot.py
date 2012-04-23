@@ -165,7 +165,8 @@ def aesthetic_paper_parameters(column_size=252):
 def plot_gantt(tasks, file_name=None, show=True, xlim=None,
                preemtion_bar_height=0.2,
                height=1, #height of the box during actual execution
-               hdist=1, #vertical distance between two execution bars 
+               hdist=1, #vertical distance between two execution bars
+               bar_linewidth=1, #linewidth of execution bars 
                min_dist_arrows=0.2, # minimum distance between arrows (e.g. in case actications overlap
                plot_event_arrival=True, # plot arrival arrows
                plot_activation_finishing=False, # plot finishing arrows
@@ -179,7 +180,7 @@ def plot_gantt(tasks, file_name=None, show=True, xlim=None,
                arrow_yoffset=0.1, # arrow vertical offset
                xticks_only_on_changes=False, # place tick only when events happen
                color_preemtion_bar='0.30',
-               color_execution_bar='yellow'):
+               color_execution_bar='lightblue'):
     """ Plot a gantt chart of a given task list.
         Execution time information is taken from the task attribute q_exec_windows which is written by the simulation framework
     """
@@ -229,7 +230,8 @@ def plot_gantt(tasks, file_name=None, show=True, xlim=None,
         ax.broken_barh(parts,
                        (ypos - height / 2. , height),
                        facecolors=color_execution_bar,
-                       alpha=1)
+                       alpha=1,
+                       linewidth=bar_linewidth)
 
         # draw preemtion times, activation and response time arrows
         xposshift = 0
@@ -329,7 +331,7 @@ def plot_gantt(tasks, file_name=None, show=True, xlim=None,
 
     ax.set_yticklabels([t.name for t in tasks]) # set tasknames
     ax.autoscale_view(tight=True, scalex=True, scaley=True) # autoscale first
-    ax.set_ylim(ypos + hdist + height / 2. , height) # set ylim manual
+    ax.set_ylim(ypos + height / 2. , height) # set ylim manual
     if xlim:
         ax.set_xlim(-arrow_head_width, xlim)
     ax.grid(True)

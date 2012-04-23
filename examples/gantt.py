@@ -10,19 +10,17 @@
 Description
 -----------
 
-Simple SPP example
+Simple Gantt example
 """
 
-import logging
-from matplotlib import pyplot
 
-
-from pycpa import *
 from pycpa import spp
-from pycpa import graph
-from pycpa import options
+from pycpa import model
+from pycpa import simulation
+from pycpa import analysis
+from pycpa import plot
 
-def simple_test():
+def gantt_test():
     # initialyze pycpa. (e.g. read command line switches and set up default options)
     # TODO: NOT NEEDED ANYMORE - Remove after fixing doc
 
@@ -45,9 +43,6 @@ def simple_test():
     # register a PJd event model
     t11.in_event_model = model.EventModel(P=30, J=60)
 
-    # plot the system graph to visualize the architecture
-    g = graph.graph_system(s, 'simple_graph.pdf')
-
     # perform the analysis
     print("Performing analysis")
     analysis.analyze_system(s)
@@ -59,7 +54,18 @@ def simple_test():
         for t in sorted(r.tasks, key=str):
             print("%s: wcrt=%d" % (t.name, t.wcrt))
 
+    simmodel = simulation.ResourceModel(r1)
+    simmodel.runModel(task=t12, scheduler=simulation.SimSPP(name="SPP", sim=simmodel))
+
+
+    #plot
+    hp_tasks = list()
+    for t in sorted(r1.tasks, key=str):
+        if t.scheduling_parameter <= t12.scheduling_parameter:
+            hp_tasks.append(t)
+
+    plot.plot_gantt(hp_tasks, height=2. / 3, bar_linewidth=2, min_dist_arrows=1, arrow_head_width=1, task=t12, file_name='gantt.pdf')
 
 if __name__ == "__main__":
-    simple_test()
+    gantt_test()
 
