@@ -403,7 +403,7 @@ class Task (object):
         self.resource = None
 
         ## Link the Path if the task takes part in chained communication
-        self.path = None
+        self.path = None # FIXME: A task can be part of more than one path! Is this used anywhere?
 
         ## Link to Mutex to which Task is mapped
         self.mutex = None
@@ -594,10 +594,7 @@ class Resource:
 
     def __repr__(self):
         """ Return string representation of Resource """
-        s = str(self.name) + ':['
-        for t in sorted(self.tasks, key=str):
-            s += str(t) + " "
-        s += ']'
+        s = str(self.name)
         return s
 
     def add_task(self, **kwargs):
