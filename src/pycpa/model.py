@@ -546,12 +546,17 @@ class Task (object):
         # if this task is activated by another task, we discard the event model
         if self.prev_task:
             self.in_event_model = None
+        else:
+            self.in_event_model.flush_cache()
 
         # discard busy windows
         self.busy_times = list()
 
         # discard the wcrt 
         self.wcrt = float("inf")
+
+        # discard the bcrt
+        self.bcrt = 0
 
         # reset max_backlog
         self.max_backlog = 0
