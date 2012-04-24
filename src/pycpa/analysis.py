@@ -813,11 +813,12 @@ def init_analysis(system, context, clean=False):
             uninizialized.append(t)
 
     for r in system.resources:
-        logger.info("load on %s: %f" % (r.name, r.load()))
-        if r.load() >= 1.0:
-            logger.warning("load on %s exceeds 1.0" % r.name)
-            logger.warning("tasks: %s" % ([(x.name, x.wcet, x.in_event_model.delta_min(11) / 10) for x in r.tasks]))
-            raise NotSchedulableException("load on %s exceeds 1.0" % r.name)
+        load = r.load()
+        logger.info("load on %s: %f" % (r.name, load))
+        if load >= 1.0:
+            logger.warning("load too high: load on %s is %f" % (r.name, load))
+            #logger.warning("tasks: %s" % ([(x.name, x.wcet, x.in_event_model.delta_min(11) / 10) for x in r.tasks]))
+            raise NotSchedulableException("load too high: load on %s exceeds 1.0 (load is %f)" % (r.name, load))
 
 
 def analyze_system(system, clean=False, onlyDependent=False):

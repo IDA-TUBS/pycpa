@@ -39,18 +39,30 @@ def blocker_task(task):
                 bt = ti
     return bt
 
+def spnp_busy_period(task):
+    """ Calculated the busy period of the current task
+    """
+    b = blocker(task)
+    w = task.wcet
+
+    while True:
+        w_new = 0
+        for ti in task.get_resource_interferers() | set(task):
+            if ti.scheduling_parameter <= task.scheduling_parameter:
+                w_new += ti.wcet * ti.in_event_model.eta_plus(w)
+
+        if w == w_new:
+            break
+
 def spnp_multi_activation_stopping_condition(task, q, w):
     """ Check if we have looked far enough
         compute the time the resource is busy processing q activations of task
         and activations of all higher priority tasks during that time
         Returns True if stopping-condition is satisfied, False otherwise 
     """
-    busy_period = q * task.wcet
-    for t in task.get_resource_interferers(): # FIXME: what about my own activations??
-        if t.scheduling_parameter <= task.scheduling_parameter:
-            busy_period += t.in_event_model.eta_plus(w) * t.wcet
+
     # if there are no new activations when the current busy period has been completed, we terminate
-    if q >= task.in_event_model.eta_plus(busy_period):
+    if task.in_event_model.delta_min(q + 1) >= spnp_busy_period(task):
         return True
     return False
 

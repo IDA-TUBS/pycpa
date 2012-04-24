@@ -21,7 +21,7 @@ def tdma_multi_activation_stopping_condition(task, q, w):
         compute the time the resource is busy processing q activations of task 
     """
     # if there are no new activations when the current busy period has been completed, we terminate
-    if task.in_event_model.delta_min(q + 1) > w:
+    if task.in_event_model.delta_min(q + 1) >= w:
         return True
     return False
 
