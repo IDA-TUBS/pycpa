@@ -81,7 +81,7 @@ def compute_wcrt(task, task_results, **kwargs):
         task_results[task].busy_times.append(w)
 
         current_response = w - task.in_event_model.delta_min(q)
-        logger.debug("%s window(q=%f):%f, response: %f" % (task.name, q, w, current_response))
+        #logger.debug("%s window(q=%f):%f, response: %f" % (task.name, q, w, current_response))
 
         if current_response > wcrt:
             wcrt = current_response
@@ -102,7 +102,7 @@ def compute_wcrt(task, task_results, **kwargs):
             raise NotSchedulableException("MAX_ITERATIONS for %s reached, tasks (likely) not schedulable!" % task.name)
             #return  float("inf")  #-1
     task_results[task].q_wcrt = q_wcrt
-    logger.debug(task.name + " busy times: " + str(task_results[task].busy_times))
+    #logger.debug(task.name + " busy times: " + str(task_results[task].busy_times))
     return wcrt
 
 
@@ -509,7 +509,7 @@ def _event_exit_path(path, i, n):
     (cf. Lemma 2 in [Schliecker2009recursive]_)
     """
 
-    logger.debug("calculating exit for task %d, n=%d" % (i, n))
+    #logger.debug("calculating exit for task %d, n=%d" % (i, n))
 
     if i == -1:
         # Task -1 is the input event model of task 0,
@@ -522,13 +522,13 @@ def _event_exit_path(path, i, n):
         for k in range(k_max + 1):
             e_k = _event_exit_path(path, i - 1, n - k) + path.tasks[i].busy_time(k + 1)
 
-            logger.debug("busy time for t%d (%d):%d" % (i, k + 1, path.tasks[i].busy_time(k + 1)))
+            #logger.debug("busy time for t%d (%d):%d" % (i, k + 1, path.tasks[i].busy_time(k + 1)))
             #print("e_k:",e_k)
             if e_k > e:
-                logger.debug("task %d, n=%d k=%d, new e=%d" % (i, n, k, e_k))
+                #logger.debug("task %d, n=%d k=%d, new e=%d" % (i, n, k, e_k))
                 e = e_k
 
-    logger.debug("exit for task %d, n=%d is %d" % (i, n, e))
+    #logger.debug("exit for task %d, n=%d is %d" % (i, n, e))
     return e
 
 
