@@ -37,4 +37,4 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__all__ = ["model", "analysis", "options"]
+__all__ = ["model", "analysis", "path_analysis", "options"]

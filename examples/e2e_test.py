@@ -17,6 +17,7 @@ Simple end to end analysis
 
 from pycpa import model
 from pycpa import analysis
+from pycpa import path_analysis
 from pycpa import roundrobin
 from pycpa import options
 
@@ -48,7 +49,7 @@ def e2e_test():
 
     # calculate the latency for the first 10 events
     for n in range(1, 11):
-        best_case_latency, worst_case_latency = analysis.end_to_end_latency(s1, task_results, n)
+        best_case_latency, worst_case_latency = path_analysis.end_to_end_latency(s1, task_results, n)
         print("stream S1 e2e latency. best case: %d, worst case: %d" % (best_case_latency, worst_case_latency))
 
 
