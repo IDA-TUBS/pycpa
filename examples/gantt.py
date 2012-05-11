@@ -19,6 +19,7 @@ from pycpa import model
 from pycpa import simulation
 from pycpa import analysis
 from pycpa import plot
+from pycpa import options
 
 def gantt_test():
     # initialyze pycpa. (e.g. read command line switches and set up default options)
@@ -64,7 +65,7 @@ def gantt_test():
         if t.scheduling_parameter <= t12.scheduling_parameter:
             hp_tasks.append(t)
 
-    plot.plot_gantt(hp_tasks, height=2. / 3, bar_linewidth=2, min_dist_arrows=1, arrow_head_width=1, task=t12, file_name='gantt.pdf')
+    plot.plot_gantt(hp_tasks, height=2. / 3, bar_linewidth=2, min_dist_arrows=1, arrow_head_width=1, task=t12, show=options.get_opt('show'), file_name='gantt.pdf')
 
 if __name__ == "__main__":
     gantt_test()
