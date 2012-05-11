@@ -149,13 +149,13 @@ def compute_max_backlog(task, output_delay=0):
             return float("inf")
 
 
-def analyze_task(task, task_results, COMPUTE_BACKLOG=None):
+def analyze_task(task, task_results, compute_backlog=None):
     """ Analyze Task BUT DONT propagate event model.
     This is the "local analysis step", see Section 7.1.4 in [Richter2005]_.
     """
 
-    if  "COMPUTE_BACKLOG" is None:
-        COMPUTE_BACKLOG = options.get_opt('backlog')
+    if  "compute_backlog" is None:
+        compute_backlog = options.get_opt('backlog')
 
     for t in task.resource.tasks:
         assert(t.in_event_model is not None)
@@ -167,7 +167,7 @@ def analyze_task(task, task_results, COMPUTE_BACKLOG=None):
 
     task_results[task].wcrt = new_wcrt
 
-    if COMPUTE_BACKLOG:
+    if compute_backlog:
         task_results[task].max_backlog = compute_max_backlog(task)
     else:
         task_results[task].max_backlog = float("inf")
@@ -644,7 +644,7 @@ def _dijkstra(source):
 
 
 
-def analyze_system(system, clean=False, onlyDependent=False):
+def analyze_system(system, clean=False, only_dependent_tasks=False):
     """ Analyze all tasks until we find a fixed point
 
         system -- the system to analyze
@@ -680,7 +680,7 @@ def analyze_system(system, clean=False, onlyDependent=False):
 
             analysis_state.dirtyTasks.remove(t)
 
-            if onlyDependent and len(analysis_state.dependentTask[t]) == 0:
+            if only_dependent_tasks and len(analysis_state.dependentTask[t]) == 0:
                 continue  # skip analysis of tasks w/o dependents
 
             old_jitter = task_results[t].wcrt - task_results[t].bcrt

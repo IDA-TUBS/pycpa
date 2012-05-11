@@ -34,9 +34,9 @@ def get_junction_name(j):
 
 
 def graph_system(s, filename=None, layout='dot',
-                 emptyResources=False, shortTasks=False,
-                 execTimes=False,
-                 schedParam=False,
+                 empty_resources=False, short_tasks=False,
+                 exec_times=False,
+                 sched_param=False,
                  rankdir='LR'):
     """
     Return a graph of the system
@@ -45,10 +45,10 @@ def graph_system(s, filename=None, layout='dot',
     :type s: model.System
     :param filename:  if not None, the graph is plotted to this file        
     :param layout: graphviz layout algorithm (default l'dot' works best with hierarchical graphs)
-    :param emptyResources:  Plot resources that have no tasks assigned
-    :param shortTasks: Label tasks using "T_nn" instead of their potentially long name
-    :param execTimes: Show execution times for each tasks
-    :param schedParam: Show scheduling parameter for each task
+    :param empty_resources:  Plot resources that have no tasks assigned
+    :param short_tasks: Label tasks using "T_nn" instead of their potentially long name
+    :param exec_times: Show execution times for each tasks
+    :param sched_param: Show scheduling parameter for each task
     :param rankdir: Layout option for graphviz
     :rtype: None 
     """
@@ -64,7 +64,7 @@ def graph_system(s, filename=None, layout='dot',
     elen = 10
 
     for r in s.resources:
-        if len(r.tasks) == 0 and not emptyResources:
+        if len(r.tasks) == 0 and not empty_resources:
             continue # dont plot resources without tasks
 
         if g.has_node(r.name):
@@ -74,14 +74,14 @@ def graph_system(s, filename=None, layout='dot',
         for t in r.tasks:
             if g.has_node(t.name):
                 print "graph_system warning: duplicate task", t.name
-            if shortTasks:
+            if short_tasks:
                 lab = "T_" + str(task_num)
                 task_num += 1
             else:
                 lab = t.name
-            if execTimes:
+            if exec_times:
                 lab += '(%g,%g)' % (t.bcet, t.wcet)
-            if schedParam:
+            if sched_param:
                 lab += ' param: %s' % (str(t.scheduling_parameter))
             g.add_node(t.name, label=str(lab))
             res_tasks.append(t.name)

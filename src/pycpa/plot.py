@@ -49,7 +49,7 @@ def plot_eta(eta, plot_range, label=None, color=None):
     pyplot.xlabel("$\Delta t$")
 
 
-def plot_event_model(model, num_events, file_format=None, separate_plots=True, file_prefix='', ticksAtSteps=False):
+def plot_event_model(model, num_events, file_format=None, separate_plots=True, file_prefix='', ticks_at_steps=False):
     """ Plot the Task's eta and delta_min functions.
     Intervals in eta are shown half-open, as defined in [Richter2005]_.
     
@@ -63,6 +63,8 @@ def plot_event_model(model, num_events, file_format=None, separate_plots=True, f
     :type separate_plots: bool
     :param file_prefix: prefix of file name of plots
     :type file_prefix: string 
+    :param ticks_at_steps:  If True, draw the x-axis ticks at steps of the functions. Otherwise, let matplotlib decide where to draw ticks. 
+    :type ticks_at_steps: bool
     :rtype: None
     """
 
@@ -100,7 +102,7 @@ def plot_event_model(model, num_events, file_format=None, separate_plots=True, f
 
     pyplot.xlim(xmin=0, xmax=max_delta_t)
     pyplot.ylim(ymin=0, ymax=num_events + .5)
-    if ticksAtSteps:
+    if ticks_at_steps:
         pyplot.xticks(steps_eta)
     pyplot.title("$\eta(\Delta t)$")
     pyplot.xlabel("$\Delta t$")

@@ -662,8 +662,6 @@ class Path:
 
 
 
-
-
 class System:
     """ The System is the top-level entity of the system model.
     It contains resources, junctions, tasks and paths.
