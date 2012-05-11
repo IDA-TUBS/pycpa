@@ -706,4 +706,39 @@ class System:
         #NOTE: call to "link_dependent_tasks()" on each task of the path now inside Path
         return path
 
+    def print_subgraphs(self):
+        """ enumerate all subgraphs of the application graph.
+        if a subgraph is not well-formed (e.g. a source is missing), this algorithm may
+        not work correctly (it will eventually produce to many subgraphs)"""
+        subgraphs = list()
+        unreachable = set()
+
+        for resource in self.resources:
+            unreachable |= set(resource.tasks)
+
+        while len(unreachable) > 0:
+            # pick one random start task (in case the app graph is not well-formed)
+            root_task = iter(unreachable).next()
+            # but prefer a task with a source attached
+            for t in unreachable:
+                if t.in_event_model is not None:
+                    root_task = t
+                    break
+
+            reachable = analysis._breadth_first_search(root_task)
+            subgraphs.append(reachable)
+            unreachable = unreachable - reachable
+
+        logger.info("Application graph consists of %d disjoint subgraphs:" % len(subgraphs))
+
+        idx = 0
+        for subgraph in subgraphs:
+            logger.info("Subgraph %d" % idx)
+            idx += 1
+            for task in subgraph:
+                logger.info("\t%s" % task)
+
+        return subgraphs
+
+
 
