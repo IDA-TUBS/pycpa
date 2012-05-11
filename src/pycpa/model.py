@@ -482,6 +482,11 @@ class Task (object):
         self.mutex = m
         m.tasks.add(self)
 
+    def unbind_mutex(self):
+        if self.mutex and self in self.mutex.tasks:
+            self.mutex.tasks.remove(self)
+        self.mutex = None
+
     def link_dependent_task(self, t):
         self.next_tasks.add(t)
         if isinstance(t, Task):
