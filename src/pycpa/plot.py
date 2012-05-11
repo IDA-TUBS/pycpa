@@ -162,7 +162,7 @@ def aesthetic_paper_parameters(column_size=252):
     print params
     return params
 
-def plot_gantt(tasks, file_name=None, show=True, xlim=None,
+def plot_gantt(tasks, task_results, file_name=None, show=True, xlim=None,
                preemtion_bar_height=0.2,
                height=1, #height of the box during actual execution
                hdist=1, #vertical distance between two execution bars
@@ -302,15 +302,15 @@ def plot_gantt(tasks, file_name=None, show=True, xlim=None,
                      verticalalignment='bottom')
 
             if task and task == t:
-                wcrt_start = t.in_event_model.delta_min(t.q_max)
-                wcrt_end = t.wcrt + wcrt_start
+                wcrt_start = t.in_event_model.delta_min(task_results[t].q_wcrt)
+                wcrt_end = task_results[t].wcrt + wcrt_start
                 annotation_ypos = ypos - height / 2. - wcrt_voffset
                 wcrt_arrow = patches.FancyArrowPatch((wcrt_start, annotation_ypos),
                                                      (wcrt_end, annotation_ypos),
                                                       arrowstyle="<->", mutation_scale=20.)
                 ax.add_patch(wcrt_arrow)
 
-                ax.text(wcrt_start + t.wcrt / 2., annotation_ypos, 'WCRT=%f' % (t.wcrt),
+                ax.text(wcrt_start + task_results[t].wcrt / 2., annotation_ypos, 'WCRT=%f' % (task_results[t].wcrt),
                         horizontalalignment='center',
                         verticalalignment='center',
                         backgroundcolor='white')

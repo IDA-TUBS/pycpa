@@ -26,11 +26,10 @@ path = os.path.dirname(os.path.realpath(__file__))
 
 loader = symload.SymtaLoader14()
 s = loader.parse(path + "/symta14_test.xml")
-analysis.analyze_system(s)
+results = analysis.analyze_system(s)
 
 print("Result:")
-print(s)
 for r in sorted(s.resources, key=str):
     print "results for resource %s" % r.name
     for t in sorted(r.tasks, key=str):
-        print(str(t), " - ", t.wcrt)
+        print(str(t), " - ", results[t].wcrt)

@@ -18,6 +18,7 @@ gantt charts.
 try:
     from SimPy.Simulation import *
 except ImportError:
+    Simulation = None # get rid of "compile-time" errors
     print "Sorry, you don't have the SimPy module installed."
     print "Please install or reconfigure SimPy"
     print "and try again."

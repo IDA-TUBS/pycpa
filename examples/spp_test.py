@@ -55,14 +55,13 @@ def spp_test():
 
     # perform the analysis
     print("Performing analysis")
-    analysis.analyze_system(s)
+    task_results = analysis.analyze_system(s)
 
     # print the worst case response times (WCRTs)
     print("Result:")
-    print(s)
     for r in sorted(s.resources, key=str):
         for t in sorted(r.tasks, key=str):
-            print("%s: wcrt=%d" % (t.name, t.wcrt))
+            print("%s: wcrt=%d" % (t.name, task_results[t].wcrt))
 
 
 if __name__ == "__main__":

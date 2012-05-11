@@ -46,14 +46,14 @@ def gantt_test():
 
     # perform the analysis
     print("Performing analysis")
-    analysis.analyze_system(s)
+    results = analysis.analyze_system(s)
 
     # print the worst case response times (WCRTs)
     print("Result:")
     print(s)
     for r in sorted(s.resources, key=str):
         for t in sorted(r.tasks, key=str):
-            print("%s: wcrt=%d" % (t.name, t.wcrt))
+            print("%s: wcrt=%d" % (t.name, results[t].wcrt))
 
     simmodel = simulation.ResourceModel(r1)
     simmodel.runModel(task=t12, scheduler=simulation.SimSPP(name="SPP", sim=simmodel))
@@ -65,7 +65,7 @@ def gantt_test():
         if t.scheduling_parameter <= t12.scheduling_parameter:
             hp_tasks.append(t)
 
-    plot.plot_gantt(hp_tasks, height=2. / 3, bar_linewidth=2, min_dist_arrows=1, arrow_head_width=1, task=t12, show=options.get_opt('show'), file_name='gantt.pdf')
+    plot.plot_gantt(hp_tasks, results, height=2. / 3, bar_linewidth=2, min_dist_arrows=1, arrow_head_width=1, task=t12, show=options.get_opt('show'), file_name='gantt.pdf')
 
 if __name__ == "__main__":
     gantt_test()

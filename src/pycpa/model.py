@@ -424,18 +424,6 @@ class Task (object):
         ## Event model activating the Task
         self.in_event_model = None
 
-        ## Worst-case response time (derived from analysis)
-        self.wcrt = 0
-
-        ## Best-case response time (derived from analysis)
-        self.bcrt = 0
-
-        ## Computed busy times (derived from analysis)
-        self.busy_times = list()
-
-        ## Maximum worst-case backlog (derived from analysis)
-        self.max_backlog = 0
-
         ### Deadline of the task (constraints WCRT < D)
         self.deadline = options.get_opt('max_wcrt')
 
@@ -475,11 +463,6 @@ class Task (object):
         _warn_float(value, "BCET")
 
         self._bcet = value
-        self.bcrt = self.bcet # conservative assumption BCRT = BCET
-
-        # sanatize wcrt so that wcrt is always greater equal than bcrt
-        if self.wcrt < self.bcrt:
-            self.wcrt = self.bcrt
 
 
     def bind_resource(self, r):
@@ -549,17 +532,6 @@ class Task (object):
         else:
             self.in_event_model.flush_cache()
 
-        # discard busy windows
-        self.busy_times = list()
-
-        # discard the wcrt 
-        self.wcrt = float("inf")
-
-        # discard the bcrt
-        self.bcrt = 0
-
-        # reset max_backlog
-        self.max_backlog = 0
 
 
 
@@ -712,13 +684,13 @@ class System:
 
     def __repr__(self):
         """ Return a string representation of the System """
-        s = 'paths:\n'
+        s = 'paths:'
         for h in sorted(self.paths, key=str):
-            s += str(h) + "\n"
-        s += 'resources:'
+            s += str(h) + ", "
+        s += '\nresources:'
         for r in sorted(self.resources, key=str):
             #s += str(k)+":"+str(r)+", "
-            s += str(r) + "\n "
+            s += str(r) + ", "
 
         return s
 

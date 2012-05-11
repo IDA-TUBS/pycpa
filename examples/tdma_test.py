@@ -45,16 +45,15 @@ def tdma_test():
 
     g = graph.graph_system(s, 'tdma_graph.pdf')
 
-
     print(s)
+
     print("Performing analysis")
-    analysis.analyze_system(s)
+    results = analysis.analyze_system(s)
 
     print("Result:")
-    print(s)
     for r in sorted(s.resources, key=str):
         for t in sorted(r.tasks, key=str):
-            print(str(t), " - ", t.wcrt)
+            print(str(t), " - ", results[t].wcrt)
 
 
 if __name__ == "__main__":

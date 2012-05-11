@@ -56,7 +56,7 @@ def junction_test():
 
     # analyze the system
     print("Performing analysis")
-    analysis.analyze_system(s)
+    results = analysis.analyze_system(s)
 
 
     # print the results
@@ -64,7 +64,7 @@ def junction_test():
     for r in sorted(s.resources, key=str):
         print "load on resource %s: %0.2f" % (r.name, r.load())
         for t in sorted(r.tasks, key=str):
-            print "  task %s - wcrt: %d" % (t.name, t.wcrt)
+            print "  task %s - wcrt: %d" % (t.name, results[t].wcrt)
 
 if __name__ == "__main__":
     junction_test()

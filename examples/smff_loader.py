@@ -36,16 +36,15 @@ def smff_test(file, outfile, plot, verbose):
 
     try:
         # analyze the system            
-        analysis.analyze_system(s)
+        results = analysis.analyze_system(s)
 
         # print some analysis results
 
         print("Result:")
-        print(s)
         for r in sorted(s.resources, key=str):
             print "results for resource %s" % r.name
             for t in sorted(r.tasks, key=str):
-                print("%s - %d " % (str(t.name) , t.wcrt))
+                print("%s - %d " % (str(t.name) , results[t].wcrt))
 
         if outfile is not None:
             # backannotate the xml
