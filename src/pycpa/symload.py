@@ -129,7 +129,7 @@ class SymtaLoader14:
         scheduler_string = cpu_node.attributes['scheduler'].nodeValue
         w_func, stopping_condition = self._get_scheduler_function(scheduler_string)
 
-        resource = self.system.add_resource(resource_name, w_func, stopping_condition)
+        resource = self.system.bind_resource(model.Resource(resource_name, w_func, stopping_condition))
 
         speedup_node = cpu_node.getElementsByTagName("speedup")[0]
         speedup = self._handle_speedup(speedup_node)

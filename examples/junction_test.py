@@ -26,8 +26,8 @@ def junction_test():
 
     # add two resources to the system
     # register two schedulers
-    r1 = s.add_resource("R1", spp.w_spp, spp.spp_multi_activation_stopping_condition)
-    r2 = s.add_resource("R2", spp.w_spp, spp.spp_multi_activation_stopping_condition)
+    r1 = s.bind_resource(model.Resource("R1", spp.w_spp, spp.spp_multi_activation_stopping_condition))
+    r2 = s.bind_resource(model.Resource("R2", spp.w_spp, spp.spp_multi_activation_stopping_condition))
 
     # add a task
     t11 = r1.bind_task(model.Task(name="T11", wcet=3, bcet=1, scheduling_parameter=1))
@@ -40,7 +40,7 @@ def junction_test():
     t22 = r2.bind_task(model.Task(name="T22", wcet=6, bcet=4, scheduling_parameter=2))
 
     # add a junction (this is an AND junction by default)
-    j1 = s.add_junction()
+    j1 = s.bind_junction(model.Junction())
 
     # define the precedence contraints, e.g. t21 AND t22 activate j1, j1 then activates t12
     t11.link_dependent_task(t21)

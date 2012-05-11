@@ -159,7 +159,7 @@ class SMFFLoader:
             raise InvalidSMFFXMLException("Scheduler not recognized", scheduler_node)
 
         # add a resource to pycpa
-        resource_model = self.system.add_resource(short_name, w_func, stopping)
+        resource_model = self.system.bind_resource(model.Resource(short_name, w_func, stopping))
         resource_model.xml_node = resource_node
         resource_model.smff_id = resource_id
 
@@ -182,7 +182,7 @@ class SMFFLoader:
             raise InvalidSMFFXMLException("Scheduler not recognized", scheduler_node)
 
         # add a resource to pycpa
-        resource_model = self.system.add_resource(short_name, w_func, stopping)
+        resource_model = self.system.bind_resource(model.Resource(short_name, w_func, stopping))
         resource_model.xml_node = comm_resource_node
         resource_model.smff_id = resource_id
 

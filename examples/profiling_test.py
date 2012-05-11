@@ -37,8 +37,8 @@ def profiling_test():
 
     # add two resources (CPUs) to the system
     # and register the static priority preemptive scheduler
-    r1 = s.add_resource("R1", spp.w_spp, spp.spp_multi_activation_stopping_condition)
-    r2 = s.add_resource("R2", spp.w_spp, spp.spp_multi_activation_stopping_condition)
+    r1 = s.bind_resource(model.Resource("R1", spp.w_spp, spp.spp_multi_activation_stopping_condition))
+    r2 = s.bind_resource(model.Resource("R2", spp.w_spp, spp.spp_multi_activation_stopping_condition))
 
     # create and bind tasks to r1
     t11 = r1.bind_task(model.Task("T11", wcet=10, bcet=5, scheduling_parameter=1))

@@ -27,7 +27,7 @@ def e2e_test():
 
     # add a resource to the system
     # register round robin scheduler
-    r1 = s.add_resource("R1", roundrobin.w_roundrobin, roundrobin.rr_multi_activation_stopping_condition)
+    r1 = s.bind_resource(model.Resource("R1", roundrobin.w_roundrobin, roundrobin.rr_multi_activation_stopping_condition))
 
     # map two tasks to 
     t11 = r1.bind_task(model.Task("T11", wcet=1, bcet=1))
@@ -40,7 +40,7 @@ def e2e_test():
     t11.in_event_model = model.EventModel(P=4, J=3)
 
     # register a task chain as a stream
-    s1 = s.add_path("S1", [t11, t12])
+    s1 = s.bind_path(model.Path("S1", [t11, t12]))
 
     # perform a system analysis
     print("analyzing")

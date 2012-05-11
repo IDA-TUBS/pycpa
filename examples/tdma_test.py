@@ -22,8 +22,8 @@ from pycpa import options
 def tdma_test():
 
     s = model.System()
-    r1 = s.add_resource("R1", tdma.w_tdma, tdma.tdma_multi_activation_stopping_condition)
-    r2 = s.add_resource("R2", tdma.w_tdma, tdma.tdma_multi_activation_stopping_condition)
+    r1 = s.bind_resource(model.Resource("R1", tdma.w_tdma, tdma.tdma_multi_activation_stopping_condition))
+    r2 = s.bind_resource(model.Resource("R2", tdma.w_tdma, tdma.tdma_multi_activation_stopping_condition))
 
     # scheduling_parameter denotes the slotsize
     t11 = r1.bind_task(model.Task("T11", wcet=10, bcet=5, scheduling_parameter=2))

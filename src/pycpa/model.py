@@ -569,13 +569,6 @@ class Resource:
         s = str(self.name)
         return s
 
-    def add_task(self, **kwargs):
-        """ DEPRECATED create and add a task """
-        warnings.warn("add_task is deprecated", DeprecationWarning)
-        t = Task(**kwargs)
-        t.bind_resource(self)
-        return t
-
     def load(self, accuracy=10000):
         """ returns the asymptotic load """
         l = 0
@@ -694,26 +687,23 @@ class System:
 
         return s
 
-    def add_junction(self, name="J", junc_type="and"):
-        """ Creates and registers a junction object in the System.
+    def bind_junction(self, j):
+        """ Registers a junction object in the System.
             Logically, the junction neither belongs to a system nor to a resource,
             for sake of convenience we associate junctions with the system.
         """
-        j = Junction(name, junc_type)
         self.junctions.add(j)
         return j
 
-    def add_resource(self, rid, w_func=None, multi_activation_stop_condition=None):
-        """ Create and add a Resource to the System """
-        r = Resource(rid, w_func, multi_activation_stop_condition)
+    def bind_resource(self, r):
+        """ Add a Resource to the System """
         self.resources.add(r)
         return r
 
-    def add_path(self, name, tasks=None):
-        """ Create and add a Path to the System """
-        s = Path(name, tasks)
-        self.paths.add(s)
+    def bind_path(self, path):
+        """ Add a Path to the System """
+        self.paths.add(path)
         #NOTE: call to "link_dependent_tasks()" on each task of the path now inside Path
-        return s
+        return path
 
 

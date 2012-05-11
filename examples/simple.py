@@ -30,8 +30,8 @@ def simple_test():
     s = model.System()
 
     # instantiate a resource
-    r1 = s.add_resource("R1", spp.w_spp,
-                        spp.spp_multi_activation_stopping_condition)
+    r1 = s.bind_resource(model.Resource("R1", spp.w_spp,
+                        spp.spp_multi_activation_stopping_condition))
 
     # create and bind tasks to r1
     t11 = r1.bind_task(model.Task("T11", wcet=5, bcet=5,

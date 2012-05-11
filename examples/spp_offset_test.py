@@ -27,32 +27,32 @@ def offset_test():
 
     s = model.System()
 
-    cpu1 = s.add_resource("CPU1", spp_offset.w_spp_offset, spp_offset.spp_offset_multi_activation_stopping_condition)
-    cpu2 = s.add_resource("CPU2", spp_offset.w_spp_offset, spp_offset.spp_offset_multi_activation_stopping_condition)
-    bus = s.add_resource("BUS", spp_offset.w_spp_offset)
+    cpu1 = s.bind_resource(model.Resource("CPU1", spp_offset.w_spp_offset, spp_offset.spp_offset_multi_activation_stopping_condition))
+    cpu2 = s.bind_resource(model.Resource("CPU2", spp_offset.w_spp_offset, spp_offset.spp_offset_multi_activation_stopping_condition))
+    bus = s.bind_resource(model.Resource("BUS", spp_offset.w_spp_offset))
 
-    t11 = cpu1.add_task(name="T11", wcet=4, bcet=4)
+    t11 = cpu1.bind_task(model.Task(name="T11", wcet=4, bcet=4))
     t11.scheduling_parameter = 1
 
-    t21 = cpu1.add_task(name="T21", wcet=20, bcet=20)
+    t21 = cpu1.add_task(model.Task(name="T21", wcet=20, bcet=20))
     t21.scheduling_parameter = 3
 
-    t22 = bus.add_task(name="T22", wcet=25, bcet=25)
+    t22 = bus.add_task(model.Task(name="T22", wcet=25, bcet=25))
     t22.scheduling_parameter = 1
 
-    t23 = cpu2.add_task(name="T23", wcet=15, bcet=15)
+    t23 = cpu2.add_task(model.Task(name="T23", wcet=15, bcet=15))
     t23.scheduling_parameter = 2
 
-    t24 = bus.add_task(name="T24", wcet=34, bcet=34)
+    t24 = bus.add_task(model.Task(name="T24", wcet=34, bcet=34))
     t24.scheduling_parameter = 1
 
-    t25 = cpu1.add_task(name="T25", wcet=30, bcet=30)
+    t25 = cpu1.add_task(model.Task(name="T25", wcet=30, bcet=30))
     t25.scheduling_parameter = 3
 
-    t31 = cpu2.add_task(name="T31", wcet=5, bcet=5)
+    t31 = cpu2.add_task(model.Task(name="T31", wcet=5, bcet=5))
     t31.scheduling_parameter = 1
 
-    t51 = cpu2.add_task(name="T51", wcet=100, bcet=100)
+    t51 = cpu2.add_task(model.Task(name="T51", wcet=100, bcet=100))
     t51.scheduling_parameter = 3
 
     t11.in_event_model = model.EventModel()
@@ -67,7 +67,7 @@ def offset_test():
     t51.in_event_model = model.EventModel()
     t51.in_event_model.set_PJd(200, 0, 0)
 
-    s1 = s.add_path("S1", (t21, t22, t23, t24, t25))
+    s1 = s.bind_path(model.Path("S1", (t21, t22, t23, t24, t25)))
 
     for r in s.resources:
         for t in r.tasks:

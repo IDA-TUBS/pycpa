@@ -26,8 +26,8 @@ from pycpa import options
 def rr_test():
 
     s = model.System()
-    r1 = s.add_resource("R1", roundrobin.w_roundrobin, roundrobin.rr_multi_activation_stopping_condition)
-    r2 = s.add_resource("R2", roundrobin.w_roundrobin, roundrobin.rr_multi_activation_stopping_condition)
+    r1 = s.bind_resource(model.Resource("R1", roundrobin.w_roundrobin, roundrobin.rr_multi_activation_stopping_condition))
+    r2 = s.bind_resource(model.Resource("R2", roundrobin.w_roundrobin, roundrobin.rr_multi_activation_stopping_condition))
 
     # create and bind tasks
     # the scheduling_parameter denotes the slot size
