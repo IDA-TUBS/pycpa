@@ -473,16 +473,18 @@ class Task (object):
             assert t.resource == r
 
     def unbind_resource(self):
+        """ Remove a task from its resource """
         if self.resource and self in self.resource.tasks:
             self.resource.tasks.remove(self)
         self.resource = None
 
     def bind_mutex(self, m):
-        """ Bind a Task t to a Resource/Mutex r """
+        """ Bind a Task t to a Mutex r """
         self.mutex = m
         m.tasks.add(self)
 
     def unbind_mutex(self):
+        """ Remove a task fromk its mutex """
         if self.mutex and self in self.mutex.tasks:
             self.mutex.tasks.remove(self)
         self.mutex = None
