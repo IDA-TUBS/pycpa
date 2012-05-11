@@ -552,12 +552,13 @@ def end_to_end_latency_improved(path, n=1):
     return lmin, lmax
 
 
-class AnalysisContext(object):
+class GlobalAnalysisState(object):
     """ Everything that is persistent during one analysis run is stored here.
     At the moment this is only the list of dirty tasks.
     Half the anlysis context is stored in the Task class itself!
     """
-    def __init__(self, name="global default"):
+    def __init__(self, system, name="global default"):
+        """ Initialize the analysis """
         ## Set of tasks requiring another local analysis due to updated input events
         self.dirtyTasks = set()
         ## Dictionary storing the set of all tasks that are immediately dependent on each task
@@ -567,6 +568,57 @@ class AnalysisContext(object):
         self.analysisOrder = []
         ## set of junctions used during depdency detection in order to avoid infinite recursions
         self.mark_junctions = set()
+
+
+        self._mark_all_dirty(system)
+
+        self._init_dependent_tasks(system)
+
+        # analyze tasks with most dependencies first
+
+        # TODO: Improve this:
+        #  dependentTasks only contains immediate dependencies, which may have their own dependencies again.
+        #  This should be respected in the analysis order, but NOT in the dependentTask,
+        #  because that would mark too many tasks dirty after each analysis (which is safe but not efficient).
+        self._init_analysis_order()
+
+
+        uninizialized = deque(self.dirtyTasks)
+        while len(uninizialized) > 0:
+            # if there in no task with an valid event event model, then the app-graph is
+            # underspecified.
+            appgraph_well_formed = False
+            for t in uninizialized:
+                if t.in_event_model is not None:
+                    appgraph_well_formed = True
+                    break
+
+            if appgraph_well_formed == False:
+                raise NotSchedulableException("Appgraph not well-formed. Dangling tasks: %s" % uninizialized)
+
+            t = uninizialized.popleft()
+            if t.in_event_model is not None:
+                _propagate(t)
+            else:
+                uninizialized.append(t)
+
+        for r in system.resources:
+            load = r.load()
+            logger.info("load on %s: %f" % (r.name, load))
+            if load >= 1.0:
+                logger.warning("load too high: load on %s is %f" % (r.name, load))
+                #logger.warning("tasks: %s" % ([(x.name, x.wcet, x.in_event_model.delta_min(11) / 10) for x in r.tasks]))
+                raise NotSchedulableException("load too high: load on %s exceeds 1.0 (load is %f)" % (r.name, load))
+
+
+
+    def clean_analysis_state(self):
+        """ Clean the analysis state """
+        for t in self.dirtyTasks:
+            t.clean()
+
+
+
 
     def get_dependent_tasks(self, task):
         """ Return all tasks which immediately depend on task.
@@ -579,80 +631,80 @@ class AnalysisContext(object):
             t.clean()
 
 
-def _mark_all_dirty(system, context):
-    """ initialize analysis """
-    #mark all tasks dirty
-    for r in system.resources:
-        for t in r.tasks:
-            context.dirtyTasks.add(t)
-            context.dependentTask[t] = set()
+    def _mark_all_dirty(self, system):
+        """ initialize analysis """
+        #mark all tasks dirty
+        for r in system.resources:
+            for t in r.tasks:
+                self.dirtyTasks.add(t)
+                self.dependentTask[t] = set()
 
 
-def _mark_dirty(task, context):
-    """ add task and its dependencies to the dirty set """
-    if isinstance(task, model.Task):  # skip junctions
-        context.dirtyTasks.add(task)
-        for t in task.get_resource_interferers():  # also mark all tasks on the same resource
-            context.dirtyTasks.add(t)
-        for t in task.get_mutex_interferers():  # also mark all tasks on the same shared resource
-            context.dirtyTasks.add(t)
+    def _mark_dirty(self, task):
+        """ add task and its dependencies to the dirty set """
+        if isinstance(task, model.Task):  # skip junctions
+            self.dirtyTasks.add(task)
+            for t in task.get_resource_interferers():  # also mark all tasks on the same resource
+                self.dirtyTasks.add(t)
+            for t in task.get_mutex_interferers():  # also mark all tasks on the same shared resource
+                self.dirtyTasks.add(t)
 
-    for t in task.next_tasks:
-        _mark_dirty(t, context)  # recursively mark all dependent tasks dirty
-
-
-def _mark_dependents_dirty(task, context):
-    """ add all dependencies of task to the dirty set """
-    context.dirtyTasks |= context.dependentTask[task]
+        for t in task.next_tasks:
+            self._mark_dirty(t, self)  # recursively mark all dependent tasks dirty
 
 
-def _init_dependent_tasks(system, context):
-    """ Initialize context.dependentTask """
-
-    # First find out which tasks need to be reanalyzed if the input of a specific task changes
-    inputDependentTask = {}
-    for r in system.resources:
-        for task in r.tasks:
-            inputDependentTask[task] = set()
-            # all tasks on the same shared resource
-            inputDependentTask[task] |= set(task.get_mutex_interferers())
-            for t in task.next_tasks:
-                if isinstance(t, model.Task): # skip junctions
-
-                    # all directly dependent task
-                    inputDependentTask[task].add(t)
-
-                    # all tasks on the same resource as directly dependent tasks (only for tasks, not junctions)    
-                    inputDependentTask[task] |= set(t.get_resource_interferers())
-
-    context.dependentTask = inputDependentTask
+    def _mark_dependents_dirty(self, task):
+        """ add all dependencies of task to the dirty set """
+        self.dirtyTasks |= self.dependentTask[task]
 
 
-def _init_analysis_order(context):
-    """ Init the ananlysis order, using the number of all potentially tasks that require re-analysis 
-     as an indicator as to which task to analyze first
-    """
+    def _init_dependent_tasks(self, system):
+        """ Initialize dependentTask """
 
-    all_dep_tasks = {}
+        # First find out which tasks need to be reanalyzed if the input of a specific task changes
+        inputDependentTask = {}
+        for r in system.resources:
+            for task in r.tasks:
+                inputDependentTask[task] = set()
+                # all tasks on the same shared resource
+                inputDependentTask[task] |= set(task.get_mutex_interferers())
+                for t in task.next_tasks:
+                    if isinstance(t, model.Task): # skip junctions
 
-    #print "building dependencies for %d tasks" % (len(context.dirtyTasks))
-    for task in context.dirtyTasks: # go through all tasks
-        all_dep_tasks[task] = _breadth_first_search(task, None, context.get_dependent_tasks)
-        #print "got %d dependencies for task %s" % (len(all_dep_tasks[task]), task)
+                        # all directly dependent task
+                        inputDependentTask[task].add(t)
 
-    #sort by name first (as secondary key in case the lengths are the same
-    all_tasks_by_name = sorted(context.dependentTask.keys(), key=lambda x: x.name)
-    context.analysisOrder = sorted(all_tasks_by_name, key=lambda x: len(all_dep_tasks[x]), reverse=True)
+                        # all tasks on the same resource as directly dependent tasks (only for tasks, not junctions)    
+                        inputDependentTask[task] |= set(t.get_resource_interferers())
 
+        self.dependentTask = inputDependentTask
 
 
-def _init_analysis_order_simple(context):
-    """ Init the analysis order using only the number of immediately dependent
-     tasks as an indicator as to which task to analyze first
-    """
-    #sort by name first (as secondary key in case the lengths are the same
-    all_tasks_by_name = sorted(context.dependentTask.keys(), key=lambda x: x.name)
-    context.analysisOrder = sorted(all_tasks_by_name, key=lambda x: len(context.dependentTask[x]), reverse=True)
+    def _init_analysis_order(self):
+        """ Init the ananlysis order, using the number of all potentially tasks that require re-analysis 
+         as an indicator as to which task to analyze first
+        """
+
+        all_dep_tasks = {}
+
+        #print "building dependencies for %d tasks" % (len(context.dirtyTasks))
+        for task in self.dirtyTasks: # go through all tasks
+            all_dep_tasks[task] = _breadth_first_search(task, None, self.get_dependent_tasks)
+            #print "got %d dependencies for task %s" % (len(all_dep_tasks[task]), task)
+
+        #sort by name first (as secondary key in case the lengths are the same
+        all_tasks_by_name = sorted(self.dependentTask.keys(), key=lambda x: x.name)
+        self.analysisOrder = sorted(all_tasks_by_name, key=lambda x: len(all_dep_tasks[x]), reverse=True)
+
+
+
+    def _init_analysis_order_simple(self):
+        """ Init the analysis order using only the number of immediately dependent
+         tasks as an indicator as to which task to analyze first
+        """
+        #sort by name first (as secondary key in case the lengths are the same
+        all_tasks_by_name = sorted(self.dependentTask.keys(), key=lambda x: x.name)
+        self.analysisOrder = sorted(all_tasks_by_name, key=lambda x: len(self.dependentTask[x]), reverse=True)
 
 
 def get_next_tasks(task):
@@ -767,58 +819,6 @@ def print_subgraphs(system):
     return subgraphs
 
 
-def init_analysis(system, context, clean=False):
-    """ Initialize the analysis """
-
-    _mark_all_dirty(system, context)
-
-    _init_dependent_tasks(system, context)
-
-    # analyze tasks with most dependencies first
-
-    # TODO: Improve this:
-    #  dependentTasks only contains immediate dependencies, which may have their own dependencies again.
-    #  This should be respected in the analysis order, but NOT in the dependentTask,
-    #  because that would mark too many tasks dirty after each analysis (which is safe but not efficient).
-    _init_analysis_order(context)
-
-
-#    print "analysis order:"
-#    for x in context.analysisOrder:
-#        print x.name, len(context.dependentTask[x])
-#        for dt in context.dependentTask[x]:
-#            print "  ", dt.name
-
-    if clean:
-        for t in context.dirtyTasks:
-            t.clean()
-
-    uninizialized = deque(context.dirtyTasks)
-    while len(uninizialized) > 0:
-        # if there in no task with an valid event event model, then the app-graph is
-        # underspecified.
-        appgraph_well_formed = False
-        for t in uninizialized:
-            if t.in_event_model is not None:
-                appgraph_well_formed = True
-                break
-
-        if appgraph_well_formed == False:
-            raise NotSchedulableException("Appgraph not well-formed. Dangling tasks: %s" % uninizialized)
-
-        t = uninizialized.popleft()
-        if t.in_event_model is not None:
-            _propagate(t)
-        else:
-            uninizialized.append(t)
-
-    for r in system.resources:
-        load = r.load()
-        logger.info("load on %s: %f" % (r.name, load))
-        if load >= 1.0:
-            logger.warning("load too high: load on %s is %f" % (r.name, load))
-            #logger.warning("tasks: %s" % ([(x.name, x.wcet, x.in_event_model.delta_min(11) / 10) for x in r.tasks]))
-            raise NotSchedulableException("load too high: load on %s exceeds 1.0 (load is %f)" % (r.name, load))
 
 
 def analyze_system(system, clean=False, onlyDependent=False):
@@ -830,27 +830,25 @@ def analyze_system(system, clean=False, onlyDependent=False):
         This based on the procedure described in Section 7.2 in [Richter2005]_.
     """
 
-    context = AnalysisContext()
-
-    init_analysis(system, context, clean)
+    analysis_state = GlobalAnalysisState(system)
 
     iteration = 0
-    logger.debug("analysisOrder: %s" % (context.analysisOrder))
-    while len(context.dirtyTasks) > 0:
+    logger.debug("analysisOrder: %s" % (analysis_state.analysisOrder))
+    while len(analysis_state.dirtyTasks) > 0:
         logger.info("Analyzing, %d tasks left" %
-                            (len(context.dirtyTasks)))
+                            (len(analysis_state.dirtyTasks)))
 
-        for t in context.analysisOrder:
-            if t not in context.dirtyTasks:
+        for t in analysis_state.analysisOrder:
+            if t not in analysis_state.dirtyTasks:
                 continue
             start = time.clock()
 
-            #print len(context.dirtyTasks), "analyzing", t.name, len(t.get_resource_interferers()), "interferers", len(context.dependentTask[t]), "dependent"
+            #print len(analysis_state.dirtyTasks), "analyzing", t.name, len(t.get_resource_interferers()), "interferers", len(analysis_state.dependentTask[t]), "dependent"
             #print "interferers:", [x.name for x in t.get_resource_interferers()]
 
-            context.dirtyTasks.remove(t)
+            analysis_state.dirtyTasks.remove(t)
 
-            if onlyDependent and len(context.dependentTask[t]) == 0:
+            if onlyDependent and len(analysis_state.dependentTask[t]) == 0:
                 continue  # skip analysis of tasks w/o dependents
 
             old_jitter = t.wcrt - t.bcrt
@@ -870,13 +868,13 @@ def analyze_system(system, clean=False, onlyDependent=False):
                 # so mark them and all other tasks on their resource for another analysis
 
                 logger.debug("Propagating output of %s to %d dependent tasks. busy_times=%s" %
-                            (t.name, len(context.dependentTask[t]), t.busy_times))
-                #print "dependents of %s: %s" % (t.name, context.dependentTask[t])
+                            (t.name, len(analysis_state.dependentTask[t]), t.busy_times))
+                #print "dependents of %s: %s" % (t.name, analysis_state.dependentTask[t])
 
                 _propagate(t)
 
-                _mark_dependents_dirty(t, context)  # mark all dependencies dirty
-                #_mark_all_dirty(system, context) # this is always conservative
+                analysis_state._mark_dependents_dirty(t)  # mark all dependencies dirty
+                #_mark_all_dirty(system, analysis_state) # this is always conservative
                 break  # break the for loop to restart iteration
             else:
                 #print "Jitter: %g->%g" % (old_jitter, new_jitter)
@@ -885,7 +883,7 @@ def analyze_system(system, clean=False, onlyDependent=False):
                 pass
 
             elapsed = (time.clock() - start)
-            logger.debug("iteration: %d, time: %.1f task: %s wcrt: %f dirty: %d" % (iteration, elapsed, t.name, t.wcrt, len(context.dirtyTasks)))
+            logger.debug("iteration: %d, time: %.1f task: %s wcrt: %f dirty: %d" % (iteration, elapsed, t.name, t.wcrt, len(analysis_state.dirtyTasks)))
             iteration += 1
 
     #print "Global iteration done after %d iterations" % (round)
