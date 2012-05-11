@@ -42,12 +42,10 @@ def rr_test():
     t11.in_event_model = model.EventModel(c=2, T=15)
     t22.in_event_model = model.EventModel(c=3, T=17)
 
-    print(s)
     print("Performing analysis")
     analysis.analyze_system(s)
 
     print("Result:")
-    print(s)
     for r in sorted(s.resources, key=str):
         for t in sorted(r.tasks, key=str):
             print(t, " - ", t.wcrt)
