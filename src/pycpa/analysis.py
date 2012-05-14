@@ -746,6 +746,7 @@ def analyze_system(system, clean=False, only_dependent_tasks=False):
     for r in system.resources:
         for t in r.tasks:
             task_results[t] = TaskResult()
+            t.analysis_results = task_results[t]
 
     analysis_state = GlobalAnalysisState(system, task_results)
 
@@ -760,9 +761,6 @@ def analyze_system(system, clean=False, only_dependent_tasks=False):
             if t not in analysis_state.dirtyTasks:
                 continue
             start = time.clock()
-
-            #print len(analysis_state.dirtyTasks), "analyzing", t.name, len(t.get_resource_interferers()), "interferers", len(analysis_state.dependentTask[t]), "dependent"
-            #print "interferers:", [x.name for x in t.get_resource_interferers()]
 
             analysis_state.dirtyTasks.remove(t)
 

@@ -28,7 +28,7 @@ def e2e_test():
 
     # add a resource to the system
     # register round robin scheduler
-    r1 = s.bind_resource(model.Resource("R1", roundrobin.w_roundrobin, roundrobin.rr_multi_activation_stopping_condition))
+    r1 = s.bind_resource(model.Resource("R1", roundrobin.RoundRobinScheduler()))
 
     # map two tasks to 
     t11 = r1.bind_task(model.Task("T11", wcet=1, bcet=1))

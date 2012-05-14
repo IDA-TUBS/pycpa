@@ -32,4 +32,4 @@ print("Result:")
 for r in sorted(s.resources, key=str):
     print "results for resource %s" % r.name
     for t in sorted(r.tasks, key=str):
-        print(str(t), " - ", results[t].wcrt)
+        print str(t), "-", results[t].wcrt

@@ -23,7 +23,6 @@ except ImportError:
     exit(1)
 
 import model
-import fifo
 import spp
 import spnp
 import roundrobin
@@ -114,22 +113,20 @@ class SymtaLoader14:
 
     def _get_scheduler_function(self, scheduler_string):
         if scheduler_string == "(IDA)spp" or  scheduler_string == "spp":
-            return spp.w_spp, spp.spp_multi_activation_stopping_condition
+            return spp.SPPScheduler()
         elif scheduler_string == "(IDA)roundrobin" or scheduler_string == "roundrobin":
-            return roundrobin.w_roundrobin, roundrobin.rr_multi_activation_stopping_condition
-        elif scheduler_string == "fifo": # not sure if symta actually has a fifo scheduler
-            return fifo.w_fifo, fifo.fifo_multi_activation_stopping_condition
+            return roundrobin.RoundRobinScheduler()
         elif scheduler_string == "(IDA)spnp" or scheduler_string == "spnp":
-            return spnp.w_spnp, spnp.spnp_multi_activation_stopping_condition
+            return spnp.SPNPScheduler()
         else:
             raise InvalidSymtaXMLException("Scheduler %s is not compatible with pycpa" % scheduler_string)
 
     def _handle_cpu(self, cpu_node):
         resource_name = cpu_node.attributes['name'].nodeValue
         scheduler_string = cpu_node.attributes['scheduler'].nodeValue
-        w_func, stopping_condition = self._get_scheduler_function(scheduler_string)
+        scheduler = self._get_scheduler_function(scheduler_string)
 
-        resource = self.system.bind_resource(model.Resource(resource_name, w_func, stopping_condition))
+        resource = self.system.bind_resource(model.Resource(resource_name, scheduler))
 
         speedup_node = cpu_node.getElementsByTagName("speedup")[0]
         speedup = self._handle_speedup(speedup_node)
@@ -211,6 +208,7 @@ class SymtaLoader14:
 
     def _handle_time_value(self, timeNode):
         # loss of precison due to hard coded devision
+        # TODO: switch to integers
         assert timeNode.nodeName == "timevalue"
         numerator = float(timeNode.attributes["numerator"].nodeValue)
         denominator = float(timeNode.attributes["denominator"].nodeValue)
@@ -250,8 +248,8 @@ class SymtaLoader14:
     def _handle_propagation_container(self, propagationContainerNode):
 
         #just grab the event model
-        print propagationContainerNode.nodeName
-        print propagationContainerNode.nodeValue
+        #print propagationContainerNode.nodeName
+        #print propagationContainerNode.nodeValue
         propagationElement = propagationContainerNode.getElementsByTagName("PropagationElements")[0]
         event_model_propagation_element = propagationElement.getElementsByTagName("EventModelPropagationElement")[0]
         myEventModel = event_model_propagation_element.getElementsByTagName("myEventModel")[0]

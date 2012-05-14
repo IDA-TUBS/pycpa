@@ -18,10 +18,8 @@ import xml.dom.minidom
 import options
 
 import model
-import fifo
 import spp
 import spnp
-import roundrobin
 
 import logging
 
@@ -32,9 +30,9 @@ def _calc_in_out_jitter(task_model):
     source_task = task_model
     while source_task.prev_task is not None:
         source_task = source_task.prev_task
-        in_jitter += source_task.wcrt - source_task.bcrt
+        in_jitter += source_task.analysis_results.wcrt - source_task.analysis_results.bcrt
     in_jitter += source_task.in_event_model.J
-    out_jitter = in_jitter + task_model.wcrt - task_model.bcrt
+    out_jitter = in_jitter + task_model.analysis_results.wcrt - task_model.analysis_results.bcrt
     return in_jitter, out_jitter
 
 
@@ -125,13 +123,13 @@ class SMFFLoader:
         for comm_resource_node in platform_node.getElementsByTagName("CommResource"):
             self._handle_comm_resource(comm_resource_node)
 
-    def _window_stopping_from_scheduler_string(self, scheduler):
+    def _scheduler_from_string(self, scheduler):
         """ parse the scheduling string and return a window function
         """
         if scheduler == "SPPScheduler":
-            return spp.w_spp, spp.spp_multi_activation_stopping_condition
+            return spp.SPPScheduler()
         if scheduler == "SPNPScheduler":
-            return spnp.w_spnp, spnp.spnp_multi_activation_stopping_condition
+            return spnp.SPNPScheduler()
 
         return None
 
@@ -153,13 +151,13 @@ class SMFFLoader:
         scheduler_node = resource_node.getElementsByTagName("Scheduler")[0]
         scheduler_string = scheduler_node.attributes["name"].nodeValue
 
-        w_func, stopping = self._window_stopping_from_scheduler_string(scheduler_string)
+        scheduler = self._scheduler_from_string(scheduler_string)
 
-        if w_func == None:
+        if scheduler == None:
             raise InvalidSMFFXMLException("Scheduler not recognized", scheduler_node)
 
         # add a resource to pycpa
-        resource_model = self.system.bind_resource(model.Resource(short_name, w_func, stopping))
+        resource_model = self.system.bind_resource(model.Resource(short_name, scheduler))
         resource_model.xml_node = resource_node
         resource_model.smff_id = resource_id
 
@@ -176,13 +174,13 @@ class SMFFLoader:
         scheduler_node = comm_resource_node.getElementsByTagName("Scheduler")[0]
         scheduler_string = scheduler_node.attributes["name"].nodeValue
 
-        w_func, stopping = self._window_stopping_from_scheduler_string(scheduler_string)
+        scheduler = self._scheduler_from_string(scheduler_string)
 
-        if w_func == None:
+        if scheduler == None:
             raise InvalidSMFFXMLException("Scheduler not recognized", scheduler_node)
 
         # add a resource to pycpa
-        resource_model = self.system.bind_resource(model.Resource(short_name, w_func, stopping))
+        resource_model = self.system.bind_resource(model.Resource(short_name, scheduler))
         resource_model.xml_node = comm_resource_node
         resource_model.smff_id = resource_id
 
@@ -191,7 +189,7 @@ class SMFFLoader:
 
     def _handle_applications(self, applications_node):
         for application_node in applications_node.getElementsByTagName("Application"):
-           self._handle_application(application_node)
+            self._handle_application(application_node)
 
         # check mapping sanity
         for resource_model in self.system.resources:
@@ -378,14 +376,14 @@ class SMFFLoader:
 
         in_dmin = 0
         if task_model.prev_task is not None:
-            in_dmin = task_model.prev_task.bcrt
+            in_dmin = task_model.prev_task.analysis_results.bcrt
 
-        out_dmin = task_model.bcrt
+        out_dmin = task_model.analysis_results.bcrt
 
         task_result_node.setAttribute("name", str(task_model.name))
         task_result_node.setAttribute("id", str(task_model.smff_id))
-        task_result_node.setAttribute("wcrt", str(task_model.wcrt))
-        task_result_node.setAttribute("bcrt", str(task_model.bcrt))
+        task_result_node.setAttribute("wcrt", str(task_model.analysis_results.wcrt))
+        task_result_node.setAttribute("bcrt", str(task_model.analysis_results.bcrt))
         task_result_node.setAttribute("input_dmin", str(in_dmin))
         task_result_node.setAttribute("output_dmin", str(out_dmin))
         task_result_node.setAttribute("input_jitter", str(in_jitter))
@@ -460,7 +458,7 @@ class SMFFLoader:
         analysis_node = self.xml_root.createElement("Analysis")
         self.xml_root.childNodes[-1].appendChild(analysis_node)
 
-        for option, attr in options.opts_dict.items():
+        for option, attr in options._opts_dict.items():
             analysis_node.setAttribute(option, attr)
 
         self._annotate_resources(analysis_node)

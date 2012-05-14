@@ -26,8 +26,8 @@ def junction_test():
 
     # add two resources to the system
     # register two schedulers
-    r1 = s.bind_resource(model.Resource("R1", spp.w_spp, spp.spp_multi_activation_stopping_condition))
-    r2 = s.bind_resource(model.Resource("R2", spp.w_spp, spp.spp_multi_activation_stopping_condition))
+    r1 = s.bind_resource(model.Resource("R1", spp.SPPScheduler()))
+    r2 = s.bind_resource(model.Resource("R2", spp.SPPScheduler()))
 
     # add a task
     t11 = r1.bind_task(model.Task(name="T11", wcet=3, bcet=1, scheduling_parameter=1))

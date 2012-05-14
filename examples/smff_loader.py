@@ -59,11 +59,11 @@ def smff_test(file, outfile, plot, verbose):
 if __name__ == "__main__":
     # this is necessary because the file is also called from the regression test suite
     default_file = os.path.dirname(os.path.realpath(__file__)) + "/smff_system.xml"
-    #default_outfile = os.path.dirname(os.path.realpath(__file__)) + "/smff_system_annotated.xml"
+    default_outfile = os.path.dirname(os.path.realpath(__file__)) + "/smff_system_annotated.xml"
 
     options.parser.add_argument('--file', '-f', type=str, default=default_file,
                     help='File to load.')
-    options.parser.add_argument('--ofile', '-of', type=str, default=None,
+    options.parser.add_argument('--ofile', '-of', type=str, default=default_outfile,
                     help='annotated output xml')
     options.parser.add_argument('--graph', '-g', action='store_true',
                     help='Graph the system, file will be saved to FILE.pdf. Where FILE is the input xml.')

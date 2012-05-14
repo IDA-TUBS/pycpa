@@ -55,6 +55,7 @@ welcome = "pyCPA a Compositional Performance Analysis Toolkit implemented in Pyt
 + __license_text__
 
 _opts = None
+_opts_dict = None
 
 
 def get_opt(option):
@@ -106,8 +107,8 @@ def pprintTable(out, table, column_sperator="", header_separator=":"):
     return
 
 def _init_pycpa():
-    global _opts
-    opts_dict = dict()
+    global _opts, _opts_dict
+    _opts_dict = dict()
     _opts = parser.parse_args()
 
     # set up the general logging object
@@ -127,7 +128,7 @@ def _init_pycpa():
     for attr in dir(_opts):
         if not attr.startswith("_"):
             row = ["%s" % attr, str(getattr(_opts, attr))]
-            opts_dict[attr] = str(getattr(_opts, attr))
+            _opts_dict[attr] = str(getattr(_opts, attr))
             table.append(row)
     pprintTable(sys.stdout, table)
 

@@ -427,6 +427,8 @@ class Task (object):
         ### Deadline of the task (constraints WCRT < D)
         self.deadline = options.get_opt('max_wcrt')
 
+        self.analysis_results = None
+
         # compatability to the old call semantics (name, bcet, wcet, scheduling_parameter)
         if len(args) == 3:
             self.bcet = args[0]
@@ -562,7 +564,6 @@ class Resource:
         l = 0
         for t in self.tasks:
             l += t.in_event_model.load(accuracy) * float(t.wcet)
-            print(t, l)
             assert l < float("inf")
             assert l >= 0.
         return l
