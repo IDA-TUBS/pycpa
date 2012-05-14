@@ -515,12 +515,6 @@ class Task (object):
         interfering_tasks.remove(self)
         return interfering_tasks
 
-    def busy_time(self, n, **kwargs):
-        """ Returns the maximum multiple-event busy time
-        for n events    
-        """
-        return self.resource.w_function(self, n, **kwargs)
-
 
     def invalidate_event_model_cache(self):
         if self.in_event_model is not None: self.in_event_model.flush_cache()
@@ -545,7 +539,7 @@ class Task (object):
 class Resource:
     """ A Resource provides service to tasks. """
 
-    def __init__(self, name=None, w_function=None, multi_activation_stopping_condition=None):
+    def __init__(self, name=None, scheduler=None):
         """ CTOR """
 
         ## Set of tasks mapped to this Resource
@@ -555,20 +549,7 @@ class Resource:
         self.name = name
 
         ## Analysis function
-        self.w_function = w_function
-        self.compute_wcrt = None
-        self.multi_activation_stopping_condition = multi_activation_stopping_condition
-
-        method = options.get_opt('propagation')
-        if method == 'jitter_offset':
-            self.out_event_model = analysis._out_event_model_jitter_offset
-        elif method == 'busy_window':
-            self.out_event_model = analysis._out_event_model_busy_window
-        elif  method == 'jitter_dmin' or method == 'jitter':
-            self.out_event_model = analysis._out_event_model_jitter
-        else:
-            raise NotImplementedError
-
+        self.scheduler = scheduler
 
 
     def __repr__(self):

@@ -38,139 +38,185 @@ class TaskResult:
     """ This class stores all analysis results for a single task """
     def __init__(self):
         self.bcrt = 0
-        self.wcrt = 0
+        self.wcrt = float('inf')
         self.busy_times = list()
-        self.backlog = 0
+        self.backlog = float('inf')
         self.q_wcrt = 0
 
 
-def compute_wcrt(task, task_results, **kwargs):
-    """ Compute the worst-case response time of Task
-    For this, we construct busy windows for q=1, 2, ... task activations (see [Lehoczky1990]_)
-    and iterate until a stop condition (e.g. resource idle again).
-    The response time is then the maximum time difference between
-    the arrival and the completion of q events.
-    See also Equations 2.3, 2.4, 2.5 in [Richter2005]_.
-    Should not be called directly (use System.analyze() instead)
-    Uses task.resource.w_function -- a function in the form f(task, q)
-    that computes the busy-window of q activations of task
-    (depending on the scheduler used).
-    """
+class Scheduler:
+    """ This class encapsulates all scheduler-specific analysis functionality """
 
-    if  "MAX_ITERATIONS" not in kwargs:
-        kwargs['MAX_ITERATIONS'] = options.get_opt('max_iterations')
+    def b_plus(self, task, q):
+        """ Maximum Busy-Time for q activations of a task.
+        
+        This must be defined per scheduler, 
+        as there is no reasonable default implementation.
+        
+        :param task: the analyzed task
+        :type task: model.Task
+        :param q: the number of activations
+        :type q: integer
+        :rtype: integer (max. busy-time for q activations) 
+        """
+        pass
 
-    MAX_ITERATIONS = kwargs['MAX_ITERATIONS']
+    def b_min(self, task, q):
+        """ Minimum Busy-Time for q activations of a task.
+        
+        This default implementation should be conservative for all schedulers
+        but can be overridden for improving the results with scheduler knowledge.
+        
+        :param task: the analyzed task
+        :type task: model.Task
+        :param q: the number of activations
+        :type q: integer
+        :rtype: integer (max. busy-time for q activations) 
+        """
 
-    if task.resource.compute_wcrt is not None:
-        return task.resource.compute_wcrt(task,
-                                          MAX_ITERATIONS=MAX_ITERATIONS)
+        return q * task.bcet
 
-    assert task.resource.multi_activation_stopping_condition is not None
+    def stopping_condition(self, task, q, w):
+        """ Return true if a sufficient number of activations q have been evaluated
+        for a task during the busy-time w.
+        
+        This must be defined per scheduler, 
+        as there is no reasonable default implementation.
+        
+        :param task: the analyzed task
+        :type task: model.Task
+        :param q: the number of activations
+        :type q: integer        
+        :param w: the current busy-time
+        :type w: integer
+        :rtype: integer (max. busy-time for q activations) 
+        """
+        pass
 
-    stop_condition = task.resource.multi_activation_stopping_condition
+    def compute_wcrt(self, task, task_results):
+        """ Compute the worst-case response time of Task
+        
+        This default implementation works only for certain scheduler
+        and must be overridden otherwise.
+        
+        :param task: the analyzed task
+        :type task: model.Task
+        :param task_results: dictionary which stores analysis results
+        :type task_results: dict (analysis.TaskResult)
+        :rtype: integer (worst-case response time) 
+        
+        For this, we construct busy windows for q=1, 2, ... task activations (see [Lehoczky1990]_)
+        and iterate until a stop condition (e.g. resource idle again).
+        The response time is then the maximum time difference between
+        the arrival and the completion of q events.
+        See also Equations 2.3, 2.4, 2.5 in [Richter2005]_.
+        Should not be called directly (use System.analyze() instead).        
+        """
 
-    # This could possibly be improved by using the previously computed
-    #  WCRT and q as a starting point. Is this conservative?
-    q = 1
-    q_wcrt = 1  # q for which the max wcrt was computed
-    wcrt = task.bcet
-    task_results[task].busy_times = [0]  # busy time of 0 activations
-    while True:
-        w = task.busy_time(q, **kwargs)
-        task_results[task].busy_times.append(w)
+        max_iterations = options.get_opt('max_iterations')
 
-        current_response = w - task.in_event_model.delta_min(q)
-        #logger.debug("%s window(q=%f):%f, response: %f" % (task.name, q, w, current_response))
+        # This could possibly be improved by using the previously computed
+        #  WCRT and q as a starting point. Is this conservative?
+        q = 1
+        q_wcrt = 1  # q for which the max wcrt was computed
+        wcrt = task.bcet
+        task_results[task].busy_times = [0]  # busy time of 0 activations
+        while True:
+            w = self.b_plus(task, q)
+            task_results[task].busy_times.append(w)
 
-        if current_response > wcrt:
-            wcrt = current_response
-            q_wcrt = q
+            current_response = w - task.in_event_model.delta_min(q)
+            #logger.debug("%s window(q=%f):%f, response: %f" % (task.name, q, w, current_response))
 
-        if task.deadline < wcrt:
-            raise NotSchedulableException("deadline constraint for task %s violated, tasks (likely) not schedulable!" % task.name)
+            if current_response > wcrt:
+                wcrt = current_response
+                q_wcrt = q
 
-
-        # Check stopcondition
-        if stop_condition(task, q, w) == True:
-            break
-
-        q += 1
-        if q == MAX_ITERATIONS:
-            logger.error("MAX_ITERATIONS reached, tasks (likely) not schedulable!")
-            #raise NameError("MAX_ITERATIONS reached, tasks (likely) not schedulable!")
-            raise NotSchedulableException("MAX_ITERATIONS for %s reached, tasks (likely) not schedulable!" % task.name)
-            #return  float("inf")  #-1
-    task_results[task].q_wcrt = q_wcrt
-    #logger.debug(task.name + " busy times: " + str(task_results[task].busy_times))
-    return wcrt
-
-
-def compute_service(task, t):
-    """ Computes the worst-case service a Task receives within
-    an interval of t, i.e. how many activations are at least
-    computed within t.
-
-    Call System.analyze() first if service depends on other resources
-    to make sure all event models are up-to-date!
-    This service is higher than the maximum arrival curve
-    (requested service) of the task if the task is schedulable.
-    """
-    if t <= 0:
-        return 0
-    # infinite service if two events require zero time to process
-    if task.resource.w_function(task, 2) <= 0:
-        return float("inf")
-
-    # TODO: apply binary search
-    n = 1
-    while task.resource.w_function(task, n) <= t:
-        n += 1
-    return n - 1
+            if task.deadline < wcrt: # TODO: this should go in central "constraint checking" function
+                raise NotSchedulableException("deadline constraint for task %s violated, tasks (likely) not schedulable!" % task.name)
 
 
-def compute_max_backlog(task, output_delay=0):
-    """ Compute the maximum backlog of Task t.
-        This is the maximum number of outstanding activations.
-    """
-    t = 1
-    TMAX = 300
-    max_blog = 0
-    while True:
-        blog = task.in_event_model.eta_plus(t) - compute_service(task, t - output_delay)
-        if blog > max_blog:
-            max_blog = blog
-        if blog <= 0:
-            #print "T=",t
-            return max_blog
-        t += 1
+            # Check stopcondition
+            if self.stopping_condition(task, q, w) == True:
+                break
 
-        if t > TMAX:
+            q += 1
+            if q == max_iterations:
+                logger.error("max_iterations reached, tasks (likely) not schedulable!")
+                #raise NameError("max_iterations reached, tasks (likely) not schedulable!")
+                raise NotSchedulableException("max_iterations for %s reached, tasks (likely) not schedulable!" % task.name)
+                #return  float("inf")  #-1
+        task_results[task].q_wcrt = q_wcrt
+        task_results[task].wcrt = wcrt
+        #logger.debug(task.name + " busy times: " + str(task_results[task].busy_times))
+        return wcrt
+
+
+    def compute_bcrt(self, task, task_results):
+        """ Return the best-case response time for q activations of a task.
+        Convenience function which calls the minimum busy-time.
+        The bcrt is also stored in task_results.
+        
+        """
+        bcrt = self.b_min(task, 1)
+        task_results[task].bcrt = bcrt
+        return bcrt
+
+    def compute_service(self, task, t):
+        """ Computes the worst-case service a Task receives within
+        an interval of t, i.e. how many activations are at least
+        computed within t.
+    
+        Call System.analyze() first if service depends on other resources
+        to make sure all event models are up-to-date!
+        This service is higher than the maximum arrival curve
+        (requested service) of the task if the task is schedulable.
+        """
+        if t <= 0:
+            return 0
+        # infinite service if two events require zero time to process
+        if task.resource.w_function(task, 2) <= 0:
             return float("inf")
 
+        # TODO: apply binary search
+        n = 1
+        while task.resource.w_function(task, n) <= t:
+            n += 1
+        return n - 1
 
-def analyze_task(task, task_results, compute_backlog=None):
+
+    def compute_max_backlog(self, task, output_delay=0):
+        """ Compute the maximum backlog of Task t.
+            This is the maximum number of outstanding activations.
+        """
+        t = 1
+        TMAX = 300
+        max_blog = 0
+        while True:
+            blog = task.in_event_model.eta_plus(t) - self.compute_service(task, t - output_delay)
+            if blog > max_blog:
+                max_blog = blog
+            if blog <= 0:
+                #print "T=",t
+                return max_blog
+            t += 1
+
+            if t > TMAX:
+                return float("inf")
+
+
+def analyze_task(task, task_results):
     """ Analyze Task BUT DONT propagate event model.
     This is the "local analysis step", see Section 7.1.4 in [Richter2005]_.
     """
-
-    if  "compute_backlog" is None:
-        compute_backlog = options.get_opt('backlog')
 
     for t in task.resource.tasks:
         assert(t.in_event_model is not None)
 
     assert(task.bcet <= task.wcet)
-    task_results[task].bcrt = task.bcet  # conservative assumption BCRT = BCET
+    task.resource.scheduler.compute_bcrt(task, task_results)
+    task.resource.scheduler.compute_wcrt(task, task_results)
 
-    new_wcrt = compute_wcrt(task, task_results)
-
-    task_results[task].wcrt = new_wcrt
-
-    if compute_backlog:
-        task_results[task].max_backlog = compute_max_backlog(task)
-    else:
-        task_results[task].max_backlog = float("inf")
 
     #logger.debug("%s: bcrt=%g, wcrt=%g" % (task.name, task_results[task].bcrt, task_results[task].wcrt))
     assert(task_results[task].bcrt <= task_results[task].wcrt)
@@ -187,7 +233,18 @@ def out_event_model(task, task_results, dmin=0):
     if dmin < task_results[task].bcrt:
         # dmin is at least the best-case response time
         dmin = task_results[task].bcrt
-    return task.resource.out_event_model(task, task_results, dmin)
+
+    method = options.get_opt('propagation')
+    if method == 'jitter_offset':
+        _out_event_model = _out_event_model_jitter_offset
+    elif method == 'busy_window':
+        _out_event_model = _out_event_model_busy_window
+    elif  method == 'jitter_dmin' or method == 'jitter':
+        _out_event_model = _out_event_model_jitter
+    else:
+        raise NotImplementedError
+
+    return _out_event_model(task, task_results, dmin)
 
 
 def _out_event_model_jitter_offset(task, task_results, dmin=0):

@@ -38,8 +38,6 @@ parser.add_argument('--max_iterations', type=int,
 parser.add_argument('--max_wcrt', type=int,
                     default=MAX_WCRT,
                     help='Maximum response-time in a local analysis (default=%f)' % (MAX_WCRT))
-parser.add_argument('--backlog', action='store_true',
-                    help='Compute the worst-case backlog.')
 parser.add_argument('--e2e_improved', action='store_true',
                     help='enable improved end to end analysis (experimental)')
 parser.add_argument('--nocaching', action='store_true',
