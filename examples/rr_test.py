@@ -21,13 +21,13 @@ from pycpa import model
 from pycpa import analysis
 from pycpa import roundrobin
 from pycpa import options
-
+from pycpa import graph
 
 def rr_test():
 
     s = model.System()
-    r1 = s.bind_resource(model.Resource("R1", roundrobin.w_roundrobin, roundrobin.rr_multi_activation_stopping_condition))
-    r2 = s.bind_resource(model.Resource("R2", roundrobin.w_roundrobin, roundrobin.rr_multi_activation_stopping_condition))
+    r1 = s.bind_resource(model.Resource("R1", roundrobin.RoundRobinScheduler()))
+    r2 = s.bind_resource(model.Resource("R2", roundrobin.RoundRobinScheduler()))
 
     # create and bind tasks
     # the scheduling_parameter denotes the slot size
@@ -39,8 +39,8 @@ def rr_test():
     t11.link_dependent_task(t21)
     t22.link_dependent_task(t12)
 
-    t11.in_event_model = model.EventModel(c=2, T=15)
-    t22.in_event_model = model.EventModel(c=3, T=17)
+    t11.in_event_model = model.EventModel(c=1, T=5)
+    t22.in_event_model = model.EventModel(c=5, T=17)
 
     print("Performing analysis")
     results = analysis.analyze_system(s)
@@ -49,6 +49,8 @@ def rr_test():
     for r in sorted(s.resources, key=str):
         for t in sorted(r.tasks, key=str):
             print(t, " - ", results[t].wcrt)
+
+    graph.graph_system(s, show=options.get_opt('show'))
 
 if __name__ == "__main__":
     rr_test()

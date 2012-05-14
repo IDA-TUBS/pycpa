@@ -22,8 +22,8 @@ from pycpa import options
 def tdma_test():
 
     s = model.System()
-    r1 = s.bind_resource(model.Resource("R1", tdma.w_tdma, tdma.tdma_multi_activation_stopping_condition))
-    r2 = s.bind_resource(model.Resource("R2", tdma.w_tdma, tdma.tdma_multi_activation_stopping_condition))
+    r1 = s.bind_resource(model.Resource("R1", tdma.TDMAScheduler()))
+    r2 = s.bind_resource(model.Resource("R2", tdma.TDMAScheduler()))
 
     # scheduling_parameter denotes the slotsize
     t11 = r1.bind_task(model.Task("T11", wcet=10, bcet=5, scheduling_parameter=2))
@@ -45,15 +45,13 @@ def tdma_test():
 
     g = graph.graph_system(s, 'tdma_graph.pdf')
 
-    print(s)
-
     print("Performing analysis")
     results = analysis.analyze_system(s)
 
     print("Result:")
     for r in sorted(s.resources, key=str):
         for t in sorted(r.tasks, key=str):
-            print(str(t), " - ", results[t].wcrt)
+            print str(t), " - ", results[t].wcrt
 
 
 if __name__ == "__main__":

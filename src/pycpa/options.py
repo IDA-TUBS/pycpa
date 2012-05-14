@@ -65,6 +65,14 @@ def get_opt(option):
     if _opts is None: _init_pycpa()
     return getattr(_opts, option)
 
+def set_opt(option, value):
+    """ Sets the option specified by the parameter to value.
+    If called for the first time, the parsing is done.
+    """
+    global _opts
+    if _opts is None: _init_pycpa()
+    setattr(_opts, option, value)
+
 def pprintTable(out, table, column_sperator="", header_separator=":"):
     """Prints out a table of data, padded for alignment
     @param out: Output stream (file-like object)

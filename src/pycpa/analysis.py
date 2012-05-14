@@ -37,8 +37,9 @@ class NotSchedulableException(Exception):
 class TaskResult:
     """ This class stores all analysis results for a single task """
     def __init__(self):
+        # initialize both wcrt and bcrt with zero to make response time jitter zero initially
+        self.wcrt = 0
         self.bcrt = 0
-        self.wcrt = float('inf')
         self.busy_times = list()
         self.backlog = float('inf')
         self.q_wcrt = 0
@@ -50,8 +51,13 @@ class Scheduler:
     def b_plus(self, task, q):
         """ Maximum Busy-Time for q activations of a task.
         
-        This must be defined per scheduler, 
-        as there is no reasonable default implementation.
+        This default implementation assumes that all other tasks
+        disturb the task under consideration,
+        which is the behavior of a "random priority preemptive" scheduler
+        or a "least-remaining-load-last" scheduler.
+        This is a conservative bound for all work-conserving schedulers.
+        ATTENTION: This default implementation should be overridden 
+        for any scheduler.
         
         :param task: the analyzed task
         :type task: model.Task
@@ -59,7 +65,20 @@ class Scheduler:
         :type q: integer
         :rtype: integer (max. busy-time for q activations) 
         """
-        pass
+
+        w = q * task.wcet
+
+        while True:
+            s = 0
+            for ti in task.get_resource_interferers():
+                s += ti.wcet * ti.in_event_model.eta_plus(w)
+            w_new = q * task.wcet + s
+            if w == w_new:
+                break
+            w = w_new
+
+        return w
+
 
     def b_min(self, task, q):
         """ Minimum Busy-Time for q activations of a task.
@@ -76,12 +95,15 @@ class Scheduler:
 
         return q * task.bcet
 
+
     def stopping_condition(self, task, q, w):
         """ Return true if a sufficient number of activations q have been evaluated
         for a task during the busy-time w.
         
-        This must be defined per scheduler, 
-        as there is no reasonable default implementation.
+        This default implementation continues analysis as long as
+        there are new activations of the task within its current busy window.
+        ATTENTION: This default implementation works only for certain schedulers (e.g. SPP)
+        and must be overridden otherwise.          
         
         :param task: the analyzed task
         :type task: model.Task
@@ -91,12 +113,16 @@ class Scheduler:
         :type w: integer
         :rtype: integer (max. busy-time for q activations) 
         """
-        pass
+
+        if task.in_event_model.delta_min(q + 1) >= w:
+            return True
+        return False
+
 
     def compute_wcrt(self, task, task_results):
         """ Compute the worst-case response time of Task
         
-        This default implementation works only for certain scheduler
+        ATTENTION: This default implementation works only for certain schedulers
         and must be overridden otherwise.
         
         :param task: the analyzed task
@@ -251,6 +277,7 @@ def _out_event_model_jitter_offset(task, task_results, dmin=0):
     """ Derive an output event model including offset from response time jitter
     and in_event_model (used as reference).
     """
+
     em = copy.copy(task.in_event_model)
     resp_jitter = task_results[task].wcrt - task_results[task].bcrt
 
@@ -258,7 +285,7 @@ def _out_event_model_jitter_offset(task, task_results, dmin=0):
     em.phi += task.bcet
     em.deltamin_func = lambda n: max(task.in_event_model.delta_min(n) - resp_jitter, (n - 1) * dmin)
 
-    # TODO: deltaplus
+    em.deltaplus_func = lambda n: task.in_event_model.delta_plus(n) + resp_jitter
 
     em.__description__ = task.in_event_model.__description__ + "+J=" + str(resp_jitter) + ",O=" + str(em.phi)
     return em
@@ -391,7 +418,9 @@ def _propagate(task, task_results):
     _invalidate_event_model_caches(task)
     for t in task.next_tasks:
         # logger.debug("propagating to " + str(t))
+
         if isinstance(t, model.Task):
+            #print("propagating to " + str(t) + "l=", out_event_model(task, task_results).load())
             t.in_event_model = out_event_model(task, task_results)
         elif isinstance(t, model.Junction):
             _propagate_junction(t, task_results)

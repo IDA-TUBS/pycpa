@@ -562,7 +562,9 @@ class Resource:
         l = 0
         for t in self.tasks:
             l += t.in_event_model.load(accuracy) * float(t.wcet)
-            assert l < float("inf") and l >= 0.
+            print(t, l)
+            assert l < float("inf")
+            assert l >= 0.
         return l
 
     def bind_task(self, t):

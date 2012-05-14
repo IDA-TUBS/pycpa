@@ -19,13 +19,16 @@ import analysis
 
 
 class SPPScheduler(analysis.Scheduler):
+    """ Static-Priority-Preemptive Scheduler
+    
+    Priority is stored in task.scheduling_parameter,
+    smaller priority number -> right of way
+    
+    Policy for equal priority is FCFS (i.e. max. interference).
+    """
+
     def b_plus(self, task, q):
-        """ Return the maximum time required to process q activations
-            Priority stored in task.scheduling_parameter
-            smaller priority number -> right of way
-            Policy for equal priority is FCFS (i.e. max. interference).
-            This corresponds to Theorem 1 in [Lehoczky1990]_ or Equation 2.3 in [Richter2005]_.
-        """
+        """ This corresponds to Theorem 1 in [Lehoczky1990]_ or Equation 2.3 in [Richter2005]_. """
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 
@@ -52,25 +55,15 @@ class SPPScheduler(analysis.Scheduler):
         assert(w >= q * task.wcet)
         return w
 
-    def stopping_condition(self, task, q, w):
-        """ Check if we have looked far enough
-            Returns True if stopping-condition is satisfied, False otherwise 
-        """
 
-        # if there are no new activations when the current busy period has been completed, we terminate
-        if task.in_event_model.delta_min(q + 1) >= w:
-            return True
-        return False
 
 
 class SPPSchedulerDomination(SPPScheduler):
+    """ SPP scheduler with total domination policy for equal priorities
+     (i.e. no interference from other tasks)
+    """
 
     def b_plus(self, task, q):
-        """ Return the maximum time required to process q activations
-            Priority stored in task.scheduling_parameter
-            smaller priority number -> right of way
-            Policy for equal priority is total dominiation (i.e. no interference from other tasks)
-        """
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 
@@ -99,13 +92,10 @@ class SPPSchedulerDomination(SPPScheduler):
 
 
 class SPPSchedulerRoundRobin(SPPScheduler):
+    """ SPP scheduler with non-preemptive round-robin policy for equal priorities
+    """
 
     def b_plus(self, task, q):
-        """ Return the maximum time required to process q activations
-            Priority stored in task.scheduling_parameter
-            smaller priority number -> right of way
-            Policy for equal priority is non-preemptive Round-Robin (i.e. without slot times) 
-        """
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 
