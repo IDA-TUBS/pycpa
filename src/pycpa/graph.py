@@ -37,7 +37,8 @@ def graph_system(s, filename=None, layout='dot',
                  empty_resources=False, short_tasks=False,
                  exec_times=False,
                  sched_param=False,
-                 rankdir='LR'):
+                 rankdir='LR',
+                 show=False):
     """
     Return a graph of the system
     
@@ -50,6 +51,8 @@ def graph_system(s, filename=None, layout='dot',
     :param exec_times: Show execution times for each tasks
     :param sched_param: Show scheduling parameter for each task
     :param rankdir: Layout option for graphviz
+    :param show: Show plot
+    :type show: boolean
     :rtype: None 
     """
 
@@ -119,6 +122,12 @@ def graph_system(s, filename=None, layout='dot',
 
     if filename is not None:
         g.draw(filename)
+
+    if show:
+        try:
+            g.draw(format='xlib')
+        except IOError:
+            pass
 
     return g
 
