@@ -63,7 +63,7 @@ def get_opt(option):
     If called for the first time, the parsing is done.
     """
     global _opts
-    if _opts is None: _init_pycpa()
+    if _opts is None: init_pycpa()
     return getattr(_opts, option)
 
 def set_opt(option, value):
@@ -71,7 +71,7 @@ def set_opt(option, value):
     If called for the first time, the parsing is done.
     """
     global _opts
-    if _opts is None: _init_pycpa()
+    if _opts is None: init_pycpa()
     setattr(_opts, option, value)
 
 def pprintTable(out, table, column_sperator="", header_separator=":"):
@@ -106,7 +106,14 @@ def pprintTable(out, table, column_sperator="", header_separator=":"):
 
     return
 
-def _init_pycpa():
+def init_pycpa():
+    """ Initialize pyCPA.
+    This function parses the options and prints them for reference.
+    It is called once automatically from get_opt() or set_opt()
+    during the beginning of the analysis.
+    It can also be called directly to control when initialization happens
+    in order to modify options afterwards.
+    """
     global _opts, _opts_dict
     _opts_dict = dict()
     _opts = parser.parse_args()

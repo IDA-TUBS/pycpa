@@ -36,7 +36,23 @@ class NotSchedulableException(Exception):
 
 class TaskResult:
     """ This class stores all analysis results for a single task """
+
+    #: Worst-case response time
+    wcrt = 0
+    #: Best-case response time
+    bcrt = 0  # initialize both wcrt and bcrt with zero to make response time jitter zero initially
+    #: List of busy-times
+    busy_times = list()
+    #: Worst-case activation backlog
+    backlog = float('inf')
+    #: Number of activations q for which the worst-case response-time was found 
+    q_wcrt = 0
+
     def __init__(self):
+        self.clean()
+
+    def clean(self):
+        """ Clean up """
         # initialize both wcrt and bcrt with zero to make response time jitter zero initially
         self.wcrt = 0
         self.bcrt = 0
@@ -56,8 +72,9 @@ class Scheduler:
         which is the behavior of a "random priority preemptive" scheduler
         or a "least-remaining-load-last" scheduler.
         This is a conservative bound for all work-conserving schedulers.
-        ATTENTION: This default implementation should be overridden 
-        for any scheduler.
+        
+        .. warning::        
+            This default implementation should be overridden for any scheduler.
         
         :param task: the analyzed task
         :type task: model.Task
@@ -102,8 +119,10 @@ class Scheduler:
         
         This default implementation continues analysis as long as
         there are new activations of the task within its current busy window.
-        ATTENTION: This default implementation works only for certain schedulers (e.g. SPP)
-        and must be overridden otherwise.          
+        
+        .. warning::
+            This default implementation works only for certain schedulers (e.g. SPP)
+            and must be overridden otherwise.          
         
         :param task: the analyzed task
         :type task: model.Task
@@ -121,9 +140,10 @@ class Scheduler:
 
     def compute_wcrt(self, task, task_results):
         """ Compute the worst-case response time of Task
-        
-        ATTENTION: This default implementation works only for certain schedulers
-        and must be overridden otherwise.
+         
+        .. warning::
+            This default implementation works only for certain schedulers
+            and must be overridden otherwise.
         
         :param task: the analyzed task
         :type task: model.Task

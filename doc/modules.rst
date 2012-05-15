@@ -10,8 +10,9 @@ pyCPA core modules
 .. toctree::
    :maxdepth: 1
 
-   modules/analysis
    modules/model
+   modules/analysis
+   modules/path_analysis   
    modules/options
 
 Schedulers (busy window functions)
@@ -19,7 +20,6 @@ Schedulers (busy window functions)
 .. toctree::
    :maxdepth: 1
 
-   modules/fifo
    modules/spnp
    modules/spp
    modules/roundrobin

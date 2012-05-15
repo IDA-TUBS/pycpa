@@ -23,9 +23,6 @@ from pycpa import graph
 from pycpa import options
 
 def spp_test():
-    # initialyze pycpa. (e.g. read command line switches and set up default options)
-    # TODO: NOT NEEDED ANYMORE - Remove after fixing doc
-
     # generate an new system
     s = model.System()
 

@@ -145,8 +145,8 @@ class EventModel (object):
         """ Eta-plus Function
             Return the maximum number of events in a time window w.
             Derived from Equation 3.5 from [Schliecker2011]_,
-             but assuming half-open intervals for w
-             as defined in [Richter2005]_.            
+            but assuming half-open intervals for w
+            as defined in [Richter2005]_.            
         """
         # the window for 0 activations is 0
         if w == 0: return 0
@@ -183,7 +183,7 @@ class EventModel (object):
         """ Eta-minus Function
             Return the minimum number of events in a time window w.
             Derived from Equation 3.6 from [Schliecker2011]_,
-             but different, as Eq. 3.6 is wrong.
+            but different, as Eq. 3.6 is wrong.
         """
         MAX_EVENTS = 10000
         n = 2
@@ -200,7 +200,7 @@ class EventModel (object):
     def delta_min(self, n):
         """ Delta-minus Function
             Return the minimum time interval between the first and the last event 
-             of any series of n events.
+            of any series of n events.
             This is actually a wrapper to allow caching of delta functions.
         """
         if n < 2: return 0
@@ -238,7 +238,7 @@ class EventModel (object):
     def delta_plus(self, n):
         """ Delta-plus Function
             Return the maximum time interval between the first and the last event 
-             of any series of n events.            
+            of any series of n events.            
             This is actually a wrapper to allow caching of delta functions.
         """
         if n < 2:
@@ -492,6 +492,9 @@ class Task (object):
         self.mutex = None
 
     def link_dependent_task(self, t):
+        """ Link a dependent task t to the task 
+        The dependent task t is activated by the completion of the task.
+        """
         self.next_tasks.add(t)
         if isinstance(t, Task):
             t.prev_task = self
@@ -534,6 +537,9 @@ class Task (object):
             self.in_event_model = None
         else:
             self.in_event_model.flush_cache()
+
+        if self.analysis_results is not None:
+            self.analysis_results.clean()
 
 
 

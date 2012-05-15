@@ -26,7 +26,7 @@ Contents:
    bibliography
 
 What does pyCPA do?
-----------------
+-------------------
 Given, you have a (distributed) real-time system and you want to know about
 worst-case (end-to-end) timing behavior, then you can use pyCPA to obtain these bounds.
 You provide your architecture in the form of resources such as busses and 
