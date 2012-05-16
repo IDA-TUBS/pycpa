@@ -1,7 +1,7 @@
 Installation
 ============
 
-Before you can install pyCPA, you must set up a Python installation (>=2.6, <3.0).
+Before you can install pyCPA, you must set up Python first (>=2.6, <3.0).
 
 Linux
 -----
@@ -25,7 +25,7 @@ Please consider the Python(x,y) manual on how to do so. In case packages are
 not available (pygraphviz has to be compiled by hand) you still can use pyCPA.
 E.g. if  pygraphviz is not installed, the analysis works but you can't graph your system.
 
-Installing pyCPA
+Setting up pyCPA
 ----------------
 Download and extract the latest pyCPA release from `google code <http://code.google.com/p/pycpa/>`_.
 Alternatively and currently recommended, you can also clone the mercurial repository.
