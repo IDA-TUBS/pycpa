@@ -71,3 +71,4 @@ To test pyCPA you may want to run the examples which are provided with the distr
      $ python /path/to/pycpa/examples/spp-test.py
 
 Or, if you decided to use Eclipse just run spp-test.py as a Python application from Eclipse.
+If you want to know what this examples does and how it works checkout the :doc:`spp_example`.
