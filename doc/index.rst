@@ -20,6 +20,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   started
    examples
    cmd_options
    modules
