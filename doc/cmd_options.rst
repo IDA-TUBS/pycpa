@@ -1,8 +1,8 @@
 Command line switches
 =====================
 
-These are the default cmd switches, available in each pyCPA application.
-The example pyCPA applications and you own application will potentially add some more options.
+These are the default command line switches, available in every pyCPA application.
+The example pyCPA applications and your own application potentially add some more options.
 
 .. cmdoption:: --max_iterations <int>
 

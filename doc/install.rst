@@ -1,5 +1,5 @@
-Getting Started
-===============
+Installation
+============
 
 Before you can install pyCPA, you must set up a Python installation (>=2.6, <3.0).
 
