@@ -1,11 +1,11 @@
 Installation
 ============
 
-Before you can install pyCPA, you must set up Python first.
+Before you can install pyCPA, you must set up Python first (>=2.6, <3.0).
 
 Linux
 -----
-Install Python (>=2.6, <3.0) and the required prerequisites.
+Install Python and the required prerequisites.
 If you use Ubuntu/Debian this can be done using the following commands:
 
 .. code-block:: bash

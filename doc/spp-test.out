@@ -20,12 +20,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-invoked via: /home/paxer/workspace/pycpa_public/examples/spp-test.py
+invoked via: ../examples/spp_test.py
 
-backlog        :       False 
 e2e_improved   :       False 
 max_iterations :        1000 
-max_window     :         inf 
+max_wcrt       :         inf 
 nocaching      :       False 
 propagation    : busy_window 
 show           :       False 
@@ -35,11 +34,7 @@ verbose        :       False
 
 Performing analysis
 Result:
-streams:
-resources:R1:[T11[P=30 J=5] T12[P=15 J=6] ]
- R2:[T21[P=30 J=5++] T22[P=15 J=6++] ]
- 
 T11: wcrt=10
 T12: wcrt=13
 T21: wcrt=2
-T22: wcrt=21
+T22: wcrt=19
