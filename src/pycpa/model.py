@@ -121,25 +121,6 @@ class EventModel (object):
             if x > MAXX: return -1
         return  int(math.floor(x))
 
-    def eta_plus_old(self, w):
-        """ Eta-plus Function
-            Return the maximum number of activations in a time window w.
-            Deprecated, as it uses a slow linear search.
-            See EventModel.eta_plus.
-        """
-        # if the window does not include 2 activations, assume that one has occured
-        if self.delta_min(2) > w: return 1
-        # if delta_min is constant zero, eta_plus is always infinity
-        if self.delta_min(INFINITY) == 0: return INFINITY
-        n = 2
-
-        while self.delta_min(n) < w:
-            n += 1
-
-        n -= 1
-        #assert self.delta_min(n) <= w
-        #assert self.delta_min(n + 1) > w
-        return n
 
     def eta_plus(self, w):
         """ Eta-plus Function
@@ -175,8 +156,42 @@ class EventModel (object):
         assert self.delta_min(hi) < w
         assert self.delta_min(hi + 1) >= w
 
-        #Double check with linear search (slow)
-        #assert self.eta_plus_old(w) == hi
+        return hi
+
+    def eta_plus_closed(self, w):
+        """ Eta-plus Function
+            Return the maximum number of events in a time window w.
+            Derived from Equation 3.5 from [Schliecker2011]_,
+            but assuming CLOSED intervals for w
+            as defined in [Richter2005]_.      
+        """
+        # the window for 0 activations is 0
+        if w <= 0: return 0
+        # if the window does not include 2 activations, assume that one has occured        
+        if self.delta_min(2) > w: return 1
+        # if delta_min is constant zero, eta_plus is always infinity
+        if self.delta_min(INFINITY) == 0: return INFINITY
+        hi = 10
+        lo = 2
+
+        # search an upper bound
+        while self.delta_min(hi) <= w:
+            lo = hi
+            hi *= 10
+
+        # apply binary search
+        while lo < hi:
+            mid = (lo + hi) // 2
+            midval = self.delta_min(mid)
+            if midval <= w:
+                lo = mid + 1
+            else:
+                hi = mid
+        hi -= 1
+
+        assert self.delta_min(hi) <= w
+        assert self.delta_min(hi + 1) > w
+
         return hi
 
     def eta_min(self, w):
@@ -195,6 +210,22 @@ class EventModel (object):
 
         return n - 2
 
+
+
+    def eta_min_closed(self, w):
+        """ Eta-minus Function
+            Return the minimum number of events in a time window w.
+            Using CLOSED intevals
+        """
+        MAX_EVENTS = 10000
+        n = 2
+        while self.delta_plus(n) < w:
+            if(n > MAX_EVENTS):
+                logger.error("w=%f" % w + " n=%d" % n + "deltaplus(n)=%d" % self.delta_plus(n))
+                return n
+            n += 1
+
+        return n - 2
 
 
     def delta_min(self, n):
