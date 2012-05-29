@@ -138,7 +138,7 @@ class Scheduler:
         return False
 
 
-    def compute_wcrt(self, task, task_results):
+    def compute_wcrt(self, task, task_results, check_violations=True):
         """ Compute the worst-case response time of Task
          
         .. warning::
@@ -178,7 +178,7 @@ class Scheduler:
                 wcrt = current_response
                 q_wcrt = q
 
-            if task.deadline < wcrt: # TODO: this should go in central "constraint checking" function
+            if options.get_opt('check_violations') and task.deadline < wcrt: # TODO: this should go in central "constraint checking" function
                 raise NotSchedulableException("deadline constraint for task %s violated, tasks (likely) not schedulable!" % task.name)
 
 

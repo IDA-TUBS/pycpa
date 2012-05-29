@@ -42,6 +42,8 @@ parser.add_argument('--e2e_improved', action='store_true',
                     help='enable improved end to end analysis (experimental)')
 parser.add_argument('--nocaching', action='store_true',
                     help='disable event-model caching')
+parser.add_argument('--check_violations', action='store_true',
+                    help='check for constraint violations during analysis')
 parser.add_argument('--show', action='store_true',
                     help='Show plots (interactive).')
 parser.add_argument('--propagation', type=str, default='busy_window',

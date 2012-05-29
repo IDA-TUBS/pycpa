@@ -24,6 +24,7 @@ Schedulers (busy window functions)
    modules/spp
    modules/roundrobin
    modules/tdma
+   modules/edf   
 
 Plotting related Modules
 --------------------------------

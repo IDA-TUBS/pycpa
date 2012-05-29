@@ -149,7 +149,7 @@ class EventModel (object):
             as defined in [Richter2005]_.            
         """
         # the window for 0 activations is 0
-        if w == 0: return 0
+        if w <= 0: return 0
         # if the window does not include 2 activations, assume that one has occured        
         if self.delta_min(2) > w: return 1
         # if delta_min is constant zero, eta_plus is always infinity
