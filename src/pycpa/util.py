@@ -30,7 +30,7 @@ def calculate_base_time(frequencies):
     return lcm
 
 def cycles_to_time(value, freq, base_time, rounding="ceil"):
-    """ Converts the local time (value) to a global time with conservative rounding
+    """ Converts the cycle/bittimes to an absolute time in base_time
     """
     scaler = fractions.Fraction (base_time, freq)
     value = fractions.Fraction(value)
@@ -42,6 +42,8 @@ def cycles_to_time(value, freq, base_time, rounding="ceil"):
         raise NotImplementedError("roudning %s not supported" % rounding)
 
 def time_to_time(value, base_in, base_out, rounding="ceil"):
+    """ Convert an absolute time given in base_in to another absolute time given in base_out 
+    """
     scaler = fractions.Fraction (base_out) / fractions.Fraction (base_in)
     if rounding == "ceil":
         return int(fractions.math.ceil(value * scaler))
@@ -51,7 +53,7 @@ def time_to_time(value, base_in, base_out, rounding="ceil"):
         raise NotImplementedError("roudning %s not supported" % rounding)
 
 def time_to_cycles(value, freq, base_time, rounding="ceil"):
-    """ Converts the local time (value) to a global time with conservative rounding
+    """ Converts an absolute time given in the base_time domain into cycles
     """
     scaler = fractions.Fraction (base_time, freq)
     value = fractions.Fraction(value)
