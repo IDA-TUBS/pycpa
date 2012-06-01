@@ -67,13 +67,15 @@ class SPNPScheduler(analysis.Scheduler):
         w = task.wcet + b
 
         while True:
-            w_new = 0
-            for ti in task.get_resource_interferers() | set(task):
+            w_new = b
+            for ti in task.get_resource_interferers() | set([task]):
                 if ti.scheduling_parameter <= task.scheduling_parameter:
                     w_new += ti.wcet * ti.in_event_model.eta_plus(w)
 
             if w == w_new:
                 break
+
+            w = w_new
 
     def stopping_condition(self, task, q, w):
         """ Check if we have looked far enough
