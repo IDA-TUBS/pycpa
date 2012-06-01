@@ -64,6 +64,9 @@ class TaskResult:
 class Scheduler:
     """ This class encapsulates all scheduler-specific analysis functionality """
 
+    def __init__(self):
+        pass
+
     def b_plus(self, task, q):
         """ Maximum Busy-Time for q activations of a task.
         
