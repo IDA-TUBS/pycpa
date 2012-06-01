@@ -13,6 +13,55 @@ Description
 Various utility functions
 """
 
+import fractions
+import analysis
+
+# base times
+ps = 1000000000000
+ns = 1000000000
+us = 1000000
+ms = 1000
+s = 1
+
+def calculate_base_time(frequencies):
+    lcm = LCM(frequencies)
+    if lcm > ps:
+        analysis.logger.error("high base-time value! consider using ps instead")
+    return lcm
+
+def cycles_to_time(value, freq, base_time, rounding="ceil"):
+    """ Converts the local time (value) to a global time with conservative rounding
+    """
+    scaler = fractions.Fraction (base_time, freq)
+    value = fractions.Fraction(value)
+    if rounding == "ceil":
+        return int(fractions.math.ceil(value * scaler))
+    elif rounding == "floor":
+        return int(fractions.math.floor(value * scaler))
+    else:
+        raise NotImplementedError("roudning %s not supported" % rounding)
+
+def time_to_time(value, base_in, base_out, rounding="ceil"):
+    scaler = fractions.Fraction (base_out) / fractions.Fraction (base_in)
+    if rounding == "ceil":
+        return int(fractions.math.ceil(value * scaler))
+    elif rounding == "floor":
+        return int(fractions.math.floor(value * scaler))
+    else:
+        raise NotImplementedError("roudning %s not supported" % rounding)
+
+def time_to_cycles(value, freq, base_time, rounding="ceil"):
+    """ Converts the local time (value) to a global time with conservative rounding
+    """
+    scaler = fractions.Fraction (base_time, freq)
+    value = fractions.Fraction(value)
+    if rounding == "ceil":
+        return int(fractions.math.ceil(value / scaler))
+    elif rounding == "floor":
+        return int(fractions.math.floor(value / scaler))
+    else:
+        raise NotImplementedError("roudning %s not supported" % rounding)
+
 
 def gcd(a, b):
     """Return greatest common divisor using Euclid's Algorithm."""

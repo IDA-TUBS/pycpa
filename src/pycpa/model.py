@@ -341,7 +341,7 @@ class EventModel (object):
         self.deltaplus_func = lambda n: INFINITY
 
 
-    def load(self, accuracy=10000):
+    def load(self, accuracy=1000):
         """ Returns the asymptotic load, i.e. the avg. number of events per time """
         #print "load = ", float(self.eta_plus(accuracy)),"/",accuracy
         #return float(self.eta_plus(accuracy)) / accuracy
@@ -575,10 +575,10 @@ class Task (object):
 
 
 
-class Resource:
+class Resource (object):
     """ A Resource provides service to tasks. """
 
-    def __init__(self, name=None, scheduler=None):
+    def __init__(self, name=None, scheduler=None, **kwargs):
         """ CTOR """
 
         ## Set of tasks mapped to this Resource
@@ -590,6 +590,9 @@ class Resource:
         ## Analysis function
         self.scheduler = scheduler
 
+        # After all mandatory attributes have been initialized above, load those set in kwargs
+        for key in kwargs:
+            setattr(self, key, kwargs[key])
 
     def __repr__(self):
         """ Return string representation of Resource """
