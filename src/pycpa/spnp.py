@@ -39,6 +39,12 @@ def blocker(task):
 #                bt = ti
 #    return bt
 
+high_wins_equal_fifo = lambda a, b : a <= b
+low_wins_equal_fifo = lambda a, b : a >= b
+high_wins_equal_domination = lambda a, b : a < b
+low_wins_equal_domination = lambda a, b : a > b
+
+
 class SPNPScheduler(analysis.Scheduler):
     """ Static-Priority-Non-Preemptive Scheduler
         
@@ -48,23 +54,30 @@ class SPNPScheduler(analysis.Scheduler):
     Policy for equal priority is FCFS (i.e. max. interference).
     """
 
+    def __init__(self, priority_cmp=high_wins_equal_fifo):
+        analysis.Scheduler.__init__(self)
+
+        ## priority ordering
+        self.priority_cmp = priority_cmp
 
     def spnp_busy_period(self, task):
         """ Calculated the busy period of the current task
         """
         b = blocker(task)
-        w = task.wcet
+        w = task.wcet + b
 
         while True:
-            w_new = 0
-            for ti in task.get_resource_interferers() | set(task):
+            w_new = b
+            for ti in task.get_resource_interferers() | set([task]):
                 if ti.scheduling_parameter <= task.scheduling_parameter:
                     w_new += ti.wcet * ti.in_event_model.eta_plus(w)
 
             if w == w_new:
                 break
 
-    def spnp_multi_activation_stopping_condition(self, task, q, w):
+            w = w_new
+
+    def stopping_condition(self, task, q, w):
         """ Check if we have looked far enough
             compute the time the resource is busy processing q activations of task
             and activations of all higher priority tasks during that time
@@ -95,7 +108,7 @@ class SPNPScheduler(analysis.Scheduler):
             for ti in task.get_resource_interferers():
                 assert(ti.scheduling_parameter != None)
                 assert(ti.resource == task.resource)
-                if ti.scheduling_parameter <= task.scheduling_parameter: # equal priority also interferes (FCFS)
+                if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter): # equal priority also interferes (FCFS)
                     s += ti.wcet * ti.in_event_model.eta_plus(w)
                     #logging.debug("e: %s %d x %d", ti.name, ti.wcet, ti.in_event_model.eta_plus(w))
 
