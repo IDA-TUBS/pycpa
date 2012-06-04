@@ -77,6 +77,8 @@ class SPNPScheduler(analysis.Scheduler):
 
             w = w_new
 
+        return w
+
     def stopping_condition(self, task, q, w):
         """ Check if we have looked far enough
             compute the time the resource is busy processing q activations of task
