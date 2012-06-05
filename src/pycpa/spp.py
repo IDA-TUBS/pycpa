@@ -38,7 +38,7 @@ class SPPScheduler(analysis.Scheduler):
         ## priority ordering
         self.priority_cmp = priority_cmp
 
-    def b_plus(self, task, q):
+    def b_plus(self, task, q, details=False):
         """ This corresponds to Theorem 1 in [Lehoczky1990]_ or Equation 2.3 in [Richter2005]_. """
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
@@ -60,11 +60,20 @@ class SPPScheduler(analysis.Scheduler):
             w_new = q * task.wcet + s
             #print ("w_new: ", w_new)
             if w == w_new:
-                break
+                assert(w >= q * task.wcet)
+                if details:
+                    d = dict()
+                    d['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
+                    for ti in task.get_resource_interferers():
+                        if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):
+                            d[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w)) + '*'\
+                                + str(ti.wcet) + '=' + str(ti.wcet * ti.in_event_model.eta_plus(w))
+                    return d
+                else:
+                    return w
+
             w = w_new
 
-        assert(w >= q * task.wcet)
-        return w
 
 class SPPSchedulerRoundRobin(SPPScheduler):
     """ SPP scheduler with non-preemptive round-robin policy for equal priorities

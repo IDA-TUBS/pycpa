@@ -59,6 +59,7 @@ def spp_test():
     for r in sorted(s.resources, key=str):
         for t in sorted(r.tasks, key=str):
             print("%s: wcrt=%d" % (t.name, task_results[t].wcrt))
+            print("    b_wcrt=%s" % (task_results[t].b_wcrt_str()))
 
 
 if __name__ == "__main__":

@@ -144,7 +144,7 @@ class EDFPScheduler(analysis.Scheduler):
         return w
 
 
-    def b_plus(self, task, q):
+    def b_plus(self, task, q, details=False):
         """ time required to process q subsequent activations of task
          
         :param task: the analyzed task
@@ -169,7 +169,11 @@ class EDFPScheduler(analysis.Scheduler):
                 a = ac
 
         #print "  -----> w_max:", w, "ac:", a
-        return w
+        if details:
+            # TODO: implement details==True
+            return dict()
+        else:
+            return w
 
 
     def stopping_condition(self, task, q, w):

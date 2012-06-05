@@ -49,6 +49,7 @@ def rr_test():
     for r in sorted(s.resources, key=str):
         for t in sorted(r.tasks, key=str):
             print(t, " - ", results[t].wcrt)
+            print("    b_wcrt=%s" % (results[t].b_wcrt_str()))
 
     graph.graph_system(s, show=options.get_opt('show'))
 

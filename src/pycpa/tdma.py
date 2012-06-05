@@ -21,7 +21,7 @@ class TDMAScheduler(analysis.Scheduler):
         task.scheduling_parameter is the slot size of the respective task
     """
 
-    def b_plus(self, task, q):
+    def b_plus(self, task, q, details=False):
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 
@@ -32,4 +32,15 @@ class TDMAScheduler(analysis.Scheduler):
         w = q * task.wcet + math.ceil(float(q * task.wcet) / task.scheduling_parameter) * (t_tdma - task.scheduling_parameter)
 
         assert(w >= q * task.wcet)
-        return w
+
+        if details:
+            d = dict()
+            d['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
+            for tj in task.get_resource_interferers():
+                d["%s.TDMASlot" % (tj)] = str(tj.scheduling_parameter)
+            d['I_TDMA'] = '%d*%d=%d' % (math.ceil(float(q * task.wcet) / task.scheduling_parameter),
+                                      t_tdma - task.scheduling_parameter,
+                                      math.ceil(float(q * task.wcet) / task.scheduling_parameter) * (t_tdma - task.scheduling_parameter))
+            return d
+        else:
+            return w

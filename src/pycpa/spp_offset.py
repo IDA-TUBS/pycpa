@@ -132,7 +132,7 @@ class SPPOffsetScheduler(analysis.Scheduler):
 
 
 
-    def b_plus(self, task, q):
+    def b_plus(self, task, q, details=False):
         """ Return the maximum time required to process q activations
             smaller priority number -> right of way
         """
@@ -153,4 +153,8 @@ class SPPOffsetScheduler(analysis.Scheduler):
             w = max(w, self.w_spp_candidate(tasks_in_transaction, task, candidate, q - 1))
         logger.debug("window for %s is %f", task.name, w)
         assert(w >= q * task.wcet)
-        return w
+        if details:
+            # TODO: Implement details
+            return dict()
+        else:
+            return w

@@ -47,6 +47,8 @@ class TaskResult:
     backlog = float('inf')
     #: Number of activations q for which the worst-case response-time was found 
     q_wcrt = 0
+    #: dict containing details on the busy-window of the worst-case response time
+    b_wcrt = dict()
 
     def __init__(self):
         self.clean()
@@ -60,6 +62,13 @@ class TaskResult:
         self.backlog = float('inf')
         self.q_wcrt = 0
 
+    def b_wcrt_str(self):
+        """ Returns a string with the components of b_wcrt sorted alphabetically """
+        s = ''
+        for k in sorted(self.b_wcrt.keys()):
+            s += k + ':' + self.b_wcrt[k] + ', '
+        return s[:-2]
+
 
 class Scheduler:
     """ This class encapsulates all scheduler-specific analysis functionality """
@@ -67,7 +76,8 @@ class Scheduler:
     def __init__(self):
         pass
 
-    def b_plus(self, task, q):
+
+    def b_plus(self, task, q, details=False):
         """ Maximum Busy-Time for q activations of a task.
         
         This default implementation assumes that all other tasks
@@ -83,7 +93,9 @@ class Scheduler:
         :type task: model.Task
         :param q: the number of activations
         :type q: integer
-        :rtype: integer (max. busy-time for q activations) 
+        :param details: return a dict of details on the busy window (instead of busy time) 
+        :type q: boolean
+        :rtype: integer (max. busy-time for q activations) or dict if details==True (details on busy-window) 
         """
 
         w = q * task.wcet
@@ -94,10 +106,17 @@ class Scheduler:
                 s += ti.wcet * ti.in_event_model.eta_plus(w)
             w_new = q * task.wcet + s
             if w == w_new:
-                break
+                if details:
+                    d = dict()
+                    d['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
+                    for ti in task.get_resource_interferers():
+                        d[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w)) + '*'\
+                            + str(ti.wcet) + '=' + str(ti.wcet * ti.in_event_model.eta_plus(w))
+                    return d
+                else:
+                    return w
             w = w_new
 
-        return w
 
 
     def b_min(self, task, q):
@@ -170,6 +189,7 @@ class Scheduler:
         q_wcrt = 1  # q for which the max wcrt was computed
         wcrt = task.bcet
         task_results[task].busy_times = [0]  # busy time of 0 activations
+        b_wcrt = self.b_plus(task, 1, details=True)
         while True:
             w = self.b_plus(task, q)
             task_results[task].busy_times.append(w)
@@ -180,6 +200,7 @@ class Scheduler:
             if current_response > wcrt:
                 wcrt = current_response
                 q_wcrt = q
+                b_wcrt = self.b_plus(task, q, details=True)
 
             if options.get_opt('check_violations') and task.deadline < wcrt: # TODO: this should go in central "constraint checking" function
                 raise NotSchedulableException("deadline constraint for task %s violated, tasks (likely) not schedulable!" % task.name)
@@ -197,6 +218,7 @@ class Scheduler:
                 #return  float("inf")  #-1
         task_results[task].q_wcrt = q_wcrt
         task_results[task].wcrt = wcrt
+        task_results[task].b_wcrt = b_wcrt
         #logger.debug(task.name + " busy times: " + str(task_results[task].busy_times))
         return wcrt
 

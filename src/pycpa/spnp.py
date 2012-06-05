@@ -92,7 +92,7 @@ class SPNPScheduler(analysis.Scheduler):
         return False
 
 
-    def b_plus(self, task, q):
+    def b_plus(self, task, q, details=False):
         """ Return the maximum time required to process q activations
         """
         assert(task.scheduling_parameter != None)
@@ -117,9 +117,21 @@ class SPNPScheduler(analysis.Scheduler):
             w_new = (q - 1) * task.wcet + b + s
             #print ("w_new: ", w_new)
             if w == w_new:
+
+                if details:
+                    d = dict()
+                    d['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
+                    d['blocker'] = str(b)
+                    for ti in task.get_resource_interferers():
+                        if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):
+                            d[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w)) + '*'\
+                                + str(ti.wcet) + '=' + str(ti.wcet * ti.in_event_model.eta_plus(w))
+                    return d
+                else:
+                    w += task.wcet
+                    assert(w >= q * task.wcet)
+                    return w
                 break
             w = w_new
 
-        w += task.wcet
-        assert(w >= q * task.wcet)
-        return w
+
