@@ -66,7 +66,7 @@ class TaskResult:
         """ Returns a string with the components of b_wcrt sorted alphabetically """
         s = ''
         for k in sorted(self.b_wcrt.keys()):
-            s += k + ':' + self.b_wcrt[k] + ', '
+            s += k + ':' + str(self.b_wcrt[k]) + ', '
         return s[:-2]
 
 
@@ -187,7 +187,7 @@ class Scheduler:
         #  WCRT and q as a starting point. Is this conservative?
         q = 1
         q_wcrt = 1  # q for which the max wcrt was computed
-        wcrt = task.bcet
+        wcrt = task.wcet
         task_results[task].busy_times = [0]  # busy time of 0 activations
         b_wcrt = self.b_plus(task, 1, details=True)
         while True:
@@ -195,7 +195,7 @@ class Scheduler:
             task_results[task].busy_times.append(w)
 
             current_response = w - task.in_event_model.delta_min(q)
-            #logger.debug("%s window(q=%f):%f, response: %f" % (task.name, q, w, current_response))
+            #logger.debug("%s window(q=%f):%d, response: %d" % (task.name, q, w, current_response))
 
             if current_response > wcrt:
                 wcrt = current_response
