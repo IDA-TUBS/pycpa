@@ -21,9 +21,6 @@ import logging
 
 logger = logging.getLogger("pycpa")
 
-#HACK: our eta_plus is based on half-open intervals. closed intervals are simulated as eta(w + EPSILON)
-EPSILON = 1e-6
-
 
 # priority orderings
 prio_high_wins_equal_fifo = lambda a, b : a <= b
@@ -129,7 +126,7 @@ class EDFPScheduler(analysis.Scheduler):
         deadline_task = activation_time + task.deadline
 
         # all activations which have a deadline before tasks's deadline (and thus have a higher priority)
-        n_before_deadline = ti.in_event_model.eta_plus(deadline_task - ti.deadline + EPSILON)
+        n_before_deadline = ti.in_event_model.eta_plus_closed(deadline_task - ti.deadline)
         #print "ti: ", ti.name, "n_ti", n_ti, "n_before_deadline", n_before_deadline, "w_deadline", deadline_task - ti.deadline + EPSILON
         eta = min(n_ti, n_before_deadline)
         return max(0, eta)
