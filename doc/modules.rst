@@ -20,11 +20,7 @@ Schedulers (busy window functions)
 .. toctree::
    :maxdepth: 1
 
-   modules/spnp
-   modules/spp
-   modules/roundrobin
-   modules/tdma
-   modules/edf   
+   modules/schedulers 
 
 Plotting related Modules
 --------------------------------
