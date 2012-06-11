@@ -27,6 +27,7 @@ import warnings
 import options
 
 import analysis
+import path_analysis
 
 INFINITY = float('inf')
 
@@ -38,6 +39,125 @@ logger = logging.getLogger("pycpa")
 def _warn_float(value, reason=""):
     if type(value) == float:
         warnings.warn("You are using floats, this may yield non-pessimistic results (" + reason + ")", UserWarning)
+
+class ConstraintsManager(object):
+    """ This class manages all system-wide constraints such as deadlines, buffersizes and more.
+    """
+
+    def __init__(self):
+        ## local task deadlines
+        self.wcrt_constraints = dict()
+
+        ## latency contraints
+        self.path_constraints = dict()
+
+        ## buffer size constraints
+        self.backlog_constraints = dict()
+
+        ## resource load constraints
+        self.load_constraints = dict()
+
+    def check_violations(self, task_results, wcrt=True, path=True, backlog=True, load=True):
+        """ Check all if all constraints are satisfied. Returns True if there are constraint violations.
+        :param task_results: dictionary which stores analysis results
+        :type task_results: dict (analysis.TaskResult)
+        :param wcrt: if True, check wcrt
+        :param path: if True, check path latencies
+        :param backlog: if True, check buffersized
+        :param load: if True, check loads
+        :rtype: boolean 
+        """
+        violations = False
+        if wcrt == True:
+            deadline_violations = self._check_wcrt_constraints(task_results)
+            for v in deadline_violations:
+                logger.error("Deadline violated for task %s, wcrt=%d, deadline=%d" % (v.name, task_results[v].wcrt, self.wcrt_constraints[v]))
+            violations = violations or (len(deadline_violations) > 0)
+
+        if path == True:
+            latency_violations = self._check_path_constraints(task_results)
+            for v, latency in latency_violations:
+                deadline, n = self.path_constraints[v]
+                logger.error("Path latency constraint violated for path %s, latency=%d, deadline=%d, n=%d" % (v, latency, deadline, n))
+            violations = violations or (len(latency_violations) > 0)
+
+        if backlog == True:
+            backlog_violations = self._check_backlog_constrains(task_results)
+            for v in backlog_violations:
+                logger.error("Backlog constraint violated for task %s, latency=%f, deadline=%d" % (v.name, task_results[v].backlog, self.backlog_constraints[v]))
+            violations = violations or (len(backlog_violations) > 0)
+
+        if load == True:
+            load_violations = self._check_load_constrains(task_results)
+            for v in load_violations:
+                logger.error("Load constraint violated for resource %s, actual load=%f, threshold=%f" % (v.name, v.load(), self.load_constraints[v]))
+            violations = violations or (len(load_violations) > 0)
+
+        return violations
+
+    def _check_wcrt_constraints(self, task_results):
+        """ Check all wcrt constraints and return a list of violating tasks
+        """
+        violations = list()
+        for task, deadline in self.wcrt_constraints.items():
+            if task_results[task].wcrt > deadline:
+                violations.append(task)
+        return violations
+
+    def _check_path_constraints(self, task_results):
+        """ Check all path constraints and return a list of violations.
+        Each entry is a tuple of the form (path, latency)
+        """
+        violations = list()
+        for path, (deadline, n) in self.path_constraints.items():
+            bcl, wcl = path_analysis.end_to_end_latency(path, task_results, n)
+            if  wcl > deadline:
+                violations.append((path, wcl))
+        return violations
+
+    def _check_backlog_constrains(self, task_results):
+        """ Check all backlog constraints and return a list of tasks that violate their constraint.
+        """
+        violations = list()
+        for task, size in self.backlog_constraints.items():
+            task_results[task].backlog = task.resource.scheduler.compute_max_backlog(task)
+            if task_results[task].backlog > size:
+                violations.append(task)
+        return violations
+
+    def _check_load_constrains(self, task_results):
+        """ Check all load constraints and return a list of resources which violate their constraint
+        """
+        violations = list()
+        for resource, load in self.load_constraints.items():
+            if resource.load() > load:
+                violations.append(resource)
+        return violations
+
+    def add_wcrt_constraint(self, task, deadline):
+        """ adds a local task deadline constraint
+        wcrt must be less or equal than deadline
+        """
+        self.wcrt_constraints[task] = deadline
+
+    def add_path_constraint(self, path, deadline, n=1):
+        """ adds a path latency constraint
+        latency for n events must be less or equal than deadline
+        """
+        self.path_constraints[path] = (deadline, n)
+
+    def add_backlog_constraint(self, task, size):
+        """ adds a buffer size constraint
+        backlog must be less or equal than size
+        """
+        self.backlog_constraints[task] = size
+
+    def add_load_constraint(self, resource, load):
+        """ adds a resource load constraint
+        actual load on the specified resource must be less or equal than load
+        """
+        self.load_constraints[resource] = load
+
 
 class EventModel (object):
     """ The event model describing the activation of tasks as described in [Jersak2005]_, [Richter2005]_, [Henia2005]_.
@@ -157,7 +277,7 @@ class EventModel (object):
         assert self.delta_min(hi + 1) >= w
 
         return hi
-
+    
     def eta_plus_closed(self, w):
         """ Eta-plus Function
             Return the maximum number of events in a time window w.
@@ -207,7 +327,6 @@ class EventModel (object):
             n += 1
 
         return n - 2
-
 
 
     def eta_min_closed(self, w):
@@ -452,9 +571,6 @@ class Task (object):
 
         ## Event model activating the Task
         self.in_event_model = None
-
-        ### Deadline of the task (constraints WCRT < D)
-        self.deadline = options.get_opt('max_wcrt')
 
         self.analysis_results = None
 
@@ -701,6 +817,8 @@ class System:
         ## Set of junctions
         self.junctions = set()
 
+        ## constraints bookkeeping
+        self.constraints = ConstraintsManager()
 
     def __repr__(self):
         """ Return a string representation of the System """

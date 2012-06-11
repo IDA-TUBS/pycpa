@@ -13,14 +13,10 @@ Description
 Simple EDF example, taken from Spuri1996
 """
 
-import logging
-from matplotlib import pyplot
-
-
-from pycpa import *
-from pycpa import edf
+from pycpa import model
+from pycpa import analysis
+from pycpa import schedulers
 from pycpa import graph
-from pycpa import options
 
 def edf_test():
     # generate an new system
@@ -28,7 +24,7 @@ def edf_test():
 
     # add two resources (CPUs) to the system
     # and register the static priority preemptive scheduler
-    r1 = s.bind_resource(model.Resource("R1", edf.EDFPScheduler()))
+    r1 = s.bind_resource(model.Resource("R1", schedulers.EDFPScheduler()))
     #r2 = s.bind_resource(model.Resource("R2", edf.EDFPScheduler()))
 
     # create and bind tasks to r1

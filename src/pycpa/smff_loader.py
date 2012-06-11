@@ -18,8 +18,7 @@ import xml.dom.minidom
 import options
 
 import model
-import spp
-import spnp
+import schedulers
 
 import logging
 
@@ -127,9 +126,9 @@ class SMFFLoader:
         """ parse the scheduling string and return a window function
         """
         if scheduler == "SPPScheduler":
-            return spp.SPPScheduler()
+            return schedulers.SPPScheduler()
         if scheduler == "SPNPScheduler":
-            return spnp.SPNPScheduler()
+            return schedulers.SPNPScheduler()
 
         return None
 

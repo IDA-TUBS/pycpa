@@ -13,11 +13,11 @@ Offset example
 The taskset resembles the experiment in Palencia,Harbour 2002.
 """
 
-from pycpa import *
-from pycpa import spp_offset
+from pycpa import model
+from pycpa import analysis
+from pycpa import schedulers
 from pycpa import options
 from pycpa import graph
-
 
 
 def offset_test():
@@ -29,9 +29,9 @@ def offset_test():
 
     s = model.System()
 
-    cpu1 = s.bind_resource(model.Resource("CPU1", spp_offset.SPPOffsetScheduler()))
-    cpu2 = s.bind_resource(model.Resource("CPU2", spp_offset.SPPOffsetScheduler()))
-    bus = s.bind_resource(model.Resource("BUS", spp_offset.SPPOffsetScheduler()))
+    cpu1 = s.bind_resource(model.Resource("CPU1", schedulers.SPPOffsetScheduler()))
+    cpu2 = s.bind_resource(model.Resource("CPU2", schedulers.SPPOffsetScheduler()))
+    bus = s.bind_resource(model.Resource("BUS", schedulers.SPPOffsetScheduler()))
 
     t11 = cpu1.bind_task(model.Task(name="T11", wcet=4, bcet=4))
     t11.scheduling_parameter = 1

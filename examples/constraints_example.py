@@ -1,5 +1,5 @@
 """
-| Copyright (C) 2011 Philip Axer
+| Copyright (C) 2010 Philip Axer
 | TU Braunschweig, Germany
 | All rights reserved. 
 | See LICENSE file for copyright and license details.
@@ -10,27 +10,14 @@
 Description
 -----------
 
-How to profile pycpa bottlenecks (e.g. effects of event model caching, etc)
+This example shows how to constraint a system
 """
 
-try:
-    import hotshot, hotshot.stats
-    from matplotlib import pyplot
-except ImportError:
-    print "Sorry, you don't have the matplotlib and hotshop module installed."
-    print "Please install or reconfigure the modules"
-    print "and try again."
-
-
-import logging
-
-
-from pycpa import analysis
 from pycpa import model
+from pycpa import analysis
 from pycpa import schedulers
 
-def profiling_test():
-
+def constraints_example():
     # generate an new system
     s = model.System()
 
@@ -55,17 +42,26 @@ def profiling_test():
     t11.in_event_model = model.EventModel(P=30, J=5)
     t12.in_event_model = model.EventModel(P=15, J=6)
 
-    filename = "profiling_example.prof"
-    prof = hotshot.Profile(filename)
-    prof.runcall(analysis.analyze_system, s)
-    prof.close()
+    p1 = model.Path("myPath", [t11, t21])
+    s.bind_path(p1)
 
-    stats = hotshot.stats.load(filename)
-    stats.strip_dirs()
-    stats.sort_stats('time', 'calls')
-    stats.print_stats(20)
+    #deliberately overconstrain the system
+    s.constraints.add_path_constraint(p1, 5, n=2)
+    s.constraints.add_wcrt_constraint(t11, 1)
+    s.constraints.add_load_constraint(r1, 0.5)
+    s.constraints.add_backlog_constraint(t11, 1)
 
-if __name__ == '__main__':
-    profiling_test()
+    # perform the analysis
+    print("Performing analysis")
+    task_results = analysis.analyze_system(s)
 
+    # print the worst case response times (WCRTs)
+    print("Result:")
+    for r in sorted(s.resources, key=str):
+        for t in sorted(r.tasks, key=str):
+            print("%s: wcrt=%d" % (t.name, task_results[t].wcrt))
+
+
+if __name__ == "__main__":
+    constraints_example()
 

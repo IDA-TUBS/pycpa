@@ -13,12 +13,8 @@ Description
 Plot an event model.
 """
 
-import logging
-
-
 from pycpa import model
 from pycpa import plot
-from pycpa import options
 
 P = 250
 J = 250#5

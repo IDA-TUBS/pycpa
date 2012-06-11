@@ -13,14 +13,10 @@ Description
 Simple SPP example
 """
 
-import logging
-from matplotlib import pyplot
-
-
-from pycpa import *
-from pycpa import spp
+from pycpa import model
+from pycpa import analysis
+from pycpa import schedulers
 from pycpa import graph
-from pycpa import options
 
 def spp_test():
     # generate an new system
@@ -28,8 +24,8 @@ def spp_test():
 
     # add two resources (CPUs) to the system
     # and register the static priority preemptive scheduler
-    r1 = s.bind_resource(model.Resource("R1", spp.SPPScheduler()))
-    r2 = s.bind_resource(model.Resource("R2", spp.SPPScheduler()))
+    r1 = s.bind_resource(model.Resource("R1", schedulers.SPPScheduler()))
+    r2 = s.bind_resource(model.Resource("R2", schedulers.SPPScheduler()))
 
     # create and bind tasks to r1
     t11 = r1.bind_task(model.Task("T11", wcet=10, bcet=5, scheduling_parameter=1))

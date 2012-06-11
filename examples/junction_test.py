@@ -13,12 +13,11 @@ Description
 Simple and-junction analysis
 """
 
-from pycpa import plot
+
 from pycpa import model
 from pycpa import analysis
 from pycpa import graph
-from pycpa import options
-from pycpa import spp
+from pycpa import schedulers
 
 def junction_test():
     # generate an new system
@@ -26,8 +25,8 @@ def junction_test():
 
     # add two resources to the system
     # register two schedulers
-    r1 = s.bind_resource(model.Resource("R1", spp.SPPScheduler()))
-    r2 = s.bind_resource(model.Resource("R2", spp.SPPScheduler()))
+    r1 = s.bind_resource(model.Resource("R1", schedulers.SPPScheduler()))
+    r2 = s.bind_resource(model.Resource("R2", schedulers.SPPScheduler()))
 
     # add a task
     t11 = r1.bind_task(model.Task(name="T11", wcet=3, bcet=1, scheduling_parameter=1))

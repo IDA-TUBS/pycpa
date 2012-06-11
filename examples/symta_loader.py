@@ -14,10 +14,9 @@ SymTA/S 1.4 Loader example
 """
 
 
-import logging
 from pycpa import analysis
 from pycpa import symload
-from pycpa import options
+
 
 import os
 

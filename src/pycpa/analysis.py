@@ -202,8 +202,8 @@ class Scheduler:
                 q_wcrt = q
                 b_wcrt = self.b_plus(task, q, details=True)
 
-            if options.get_opt('check_violations') and task.deadline < wcrt: # TODO: this should go in central "constraint checking" function
-                raise NotSchedulableException("deadline constraint for task %s violated, tasks (likely) not schedulable!" % task.name)
+            if options.get_opt('max_wcrt') < wcrt: # TODO: this should go in central "constraint checking" function
+                raise NotSchedulableException("max_wcrt > wcrt of %s, tasks (likely) not schedulable!" % task.name)
 
 
             # Check stopcondition
@@ -246,12 +246,12 @@ class Scheduler:
         if t <= 0:
             return 0
         # infinite service if two events require zero time to process
-        if task.resource.w_function(task, 2) <= 0:
+        if task.resource.scheduler.b_plus(task, 2) <= 0:
             return float("inf")
 
         # TODO: apply binary search
         n = 1
-        while task.resource.w_function(task, n) <= t:
+        while task.resource.scheduler.b_plus(task, n) <= t:
             n += 1
         return n - 1
 
@@ -795,7 +795,6 @@ def analyze_system(system, clean=False, only_dependent_tasks=False):
 
     analysis_state = GlobalAnalysisState(system, task_results)
 
-
     iteration = 0
     logger.debug("analysisOrder: %s" % (analysis_state.analysisOrder))
     while len(analysis_state.dirtyTasks) > 0:
@@ -848,7 +847,18 @@ def analyze_system(system, clean=False, only_dependent_tasks=False):
                          (iteration, elapsed, t.name, task_results[t].wcrt, len(analysis_state.dirtyTasks)))
             iteration += 1
 
+        ## check for constraint violations
+        if options.get_opt("check_violations"):
+            violations = system.constraints.check_violations(task_results)
+            if violations == True:
+                logger.error("Analysis stopped!")
+                break
+
     #print "Global iteration done after %d iterations" % (round)
+
+    ## also print the violations if on-the-fly checking was turned off
+    if not options.get_opt("check_violations"):
+        system.constraints.check_violations(task_results)
 
     return task_results
 

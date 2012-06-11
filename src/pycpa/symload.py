@@ -23,9 +23,7 @@ except ImportError:
     exit(1)
 
 import model
-import spp
-import spnp
-import roundrobin
+import schedulers
 
 import logging
 
@@ -113,11 +111,11 @@ class SymtaLoader14:
 
     def _get_scheduler_function(self, scheduler_string):
         if scheduler_string == "(IDA)spp" or  scheduler_string == "spp":
-            return spp.SPPScheduler()
+            return schedulers.SPPScheduler()
         elif scheduler_string == "(IDA)roundrobin" or scheduler_string == "roundrobin":
-            return roundrobin.RoundRobinScheduler()
+            return schedulers.RoundRobinScheduler()
         elif scheduler_string == "(IDA)spnp" or scheduler_string == "spnp":
-            return spnp.SPNPScheduler()
+            return schedulers.SPNPScheduler()
         else:
             raise InvalidSymtaXMLException("Scheduler %s is not compatible with pycpa" % scheduler_string)
 

@@ -19,15 +19,15 @@ from __future__ import print_function
 
 from pycpa import model
 from pycpa import analysis
-from pycpa import roundrobin
+from pycpa import schedulers
 from pycpa import options
 from pycpa import graph
 
 def rr_test():
 
     s = model.System()
-    r1 = s.bind_resource(model.Resource("R1", roundrobin.RoundRobinScheduler()))
-    r2 = s.bind_resource(model.Resource("R2", roundrobin.RoundRobinScheduler()))
+    r1 = s.bind_resource(model.Resource("R1", schedulers.RoundRobinScheduler()))
+    r2 = s.bind_resource(model.Resource("R2", schedulers.RoundRobinScheduler()))
 
     # create and bind tasks
     # the scheduling_parameter denotes the slot size
