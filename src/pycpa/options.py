@@ -28,6 +28,7 @@ INFINITY = float('inf')
 import argparse
 import logging
 import sys
+import logging
 
 from pycpa import __license_text__
 
@@ -121,12 +122,10 @@ def init_pycpa():
     _opts = parser.parse_args()
 
     # set up the general logging object
-
     if _opts.verbose == True:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
     else:
-        logging.basicConfig(level=logging.WARNING)
-
+        logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
 
     print (welcome)
     print ("invoked via: " + " ".join(sys.argv) + "\n")
