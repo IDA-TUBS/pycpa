@@ -13,8 +13,9 @@ Description
 TDMA analysis example
 """
 
-from pycpa import *
-from pycpa import tdma
+from pycpa import model
+from pycpa import analysis
+from pycpa import schedulers
 from pycpa import graph
 from pycpa import options
 
@@ -22,8 +23,8 @@ from pycpa import options
 def tdma_test():
 
     s = model.System()
-    r1 = s.bind_resource(model.Resource("R1", tdma.TDMAScheduler()))
-    r2 = s.bind_resource(model.Resource("R2", tdma.TDMAScheduler()))
+    r1 = s.bind_resource(model.Resource("R1", schedulers.TDMAScheduler()))
+    r2 = s.bind_resource(model.Resource("R2", schedulers.TDMAScheduler()))
 
     # scheduling_parameter denotes the slotsize
     t11 = r1.bind_task(model.Task("T11", wcet=10, bcet=5, scheduling_parameter=2))

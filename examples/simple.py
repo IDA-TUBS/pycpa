@@ -17,10 +17,10 @@ import logging
 from matplotlib import pyplot
 
 
-from pycpa import *
-from pycpa import spp
+from pycpa import model
+from pycpa import analysis
+from pycpa import schedulers
 from pycpa import graph
-from pycpa import options
 
 def simple_test():
     # initialyze pycpa. (e.g. read command line switches and set up default options)
@@ -30,7 +30,7 @@ def simple_test():
     s = model.System()
 
     # instantiate a resource
-    r1 = s.bind_resource(model.Resource("R1", spp.SPPScheduler()))
+    r1 = s.bind_resource(model.Resource("R1", schedulers.SPPScheduler()))
 
     # create and bind tasks to r1
     t11 = r1.bind_task(model.Task("T11", wcet=5, bcet=5,

@@ -16,10 +16,9 @@ Simple end to end analysis
 
 
 from pycpa import model
+from pycpa import schedulers
 from pycpa import analysis
 from pycpa import path_analysis
-from pycpa import roundrobin
-from pycpa import options
 
 
 def e2e_test():
@@ -28,7 +27,7 @@ def e2e_test():
 
     # add a resource to the system
     # register round robin scheduler
-    r1 = s.bind_resource(model.Resource("R1", roundrobin.RoundRobinScheduler()))
+    r1 = s.bind_resource(model.Resource("R1", schedulers.RoundRobinScheduler()))
 
     # map two tasks to 
     t11 = r1.bind_task(model.Task("T11", wcet=1, bcet=1))

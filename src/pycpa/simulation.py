@@ -25,11 +25,9 @@ except ImportError:
 
 
 import model
-import spnp
-import options
+import schedulers
 
 import logging
-import sys
 import plot
 
 logger = logging.getLogger("sim")
@@ -266,7 +264,7 @@ class SimSPNP (Process):
 
     def execute(self, resource, task, additional_blocker_activations=None):
         # get the blocker task
-        blocker = spnp.blocker_task(task)
+        blocker = resource.scheduler._blocker(task)
         self.lowprio_simblocker = None
 
         #find the SimTask Object of the blocker
@@ -340,64 +338,3 @@ class ResourceModel(Simulation):
         self.activate(self.scheduler , self.scheduler.execute(self.resource, task))
 
         self.simulate(until=until)
-
-if __name__ == '__main__':
-
-    logging.basicConfig(level=logging.INFO)
-
-    s = model.System()
-
-    # add spp as the fault-free scheduling policy
-    r1 = s.add_resource("R1", spnp.w_spnp)
-
-    t1 = model.Task("T1")
-    t1.wcet = 1
-    t1.bcet = 0
-    t1.scheduling_parameter = 1
-    #t1.wcet_pdf = s_model.generate_task_pdf(t1, options.get_opt('mpmath'))
-    r1.bind_task(t1)
-
-
-    t2 = model.Task("T2")
-    t2.wcet = 2
-    t2.bcet = 0
-    t2.scheduling_parameter = 2
-    #t2.wcet_pdf = s_model.generate_task_pdf(t2, options.get_opt('mpmath'))
-    r1.bind_task(t2)
-
-    t3 = model.Task("T3")
-    t3.wcet = 3
-    t3.bcet = 0
-    t3.scheduling_parameter = 3
-    #t3.wcet_pdf = s_model.generate_task_pdf(t3)
-    r1.bind_task(t3)
-
-
-    #Setting the event models
-    t1.in_event_model = model.EventModel()
-    t1.in_event_model.set_PJ(5, 3)
-
-    t2.in_event_model = model.EventModel()
-    t2.in_event_model.set_PJ(7, 12)
-
-    t3.in_event_model = model.EventModel()
-    t3.in_event_model.set_PJ(14, 10)
-
-
-    model = ResourceModel(r1)
-    model.runModel(task=t2, scheduler=SimSPNP(name="SPNP", sim=model))
-
-    task = t2
-
-    #plot
-    hp_tasks = list()
-    for t in sorted(r1.tasks, key=str):
-        if t.scheduling_parameter <= task.scheduling_parameter:
-            hp_tasks.append(t)
-    print hp_tasks
-    plot.plot_gantt(hp_tasks + [spnp.blocker_task(task)])
-
-
-    #for st in sorted(model.scheduler.tasks, key = str):
-    #    for a in st.activations:
-    #        print a.name, a.q, a.exec_windows
