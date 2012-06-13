@@ -21,12 +21,13 @@ import logging
 
 logger = logging.getLogger("pycpa")
 
+EPSIOLON = 1e-9
 
 # priority orderings
-prio_high_wins_equal_fifo = lambda a, b : a <= b
-prio_low_wins_equal_fifo = lambda a, b : a >= b
-prio_high_wins_equal_domination = lambda a, b : a < b
-prio_low_wins_equal_domination = lambda a, b : a > b
+prio_high_wins_equal_fifo = lambda a, b : a >= b
+prio_low_wins_equal_fifo = lambda a, b : a <= b
+prio_high_wins_equal_domination = lambda a, b : a > b
+prio_low_wins_equal_domination = lambda a, b : a < b
 
 
 class EDFPScheduler(analysis.Scheduler):
@@ -270,7 +271,7 @@ class SPNPScheduler(analysis.Scheduler):
         # find maximum lower priority blocker
         b = 0
         for ti in task.get_resource_interferers():
-            if not self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):
+            if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter) == False:
                 b = max(b, ti.wcet)
         return b
 
@@ -315,6 +316,10 @@ class SPNPScheduler(analysis.Scheduler):
         b = self.blocker(task)
 
         w = (q - 1) * task.wcet + b
+
+        # HACK! stuff won't work with eta(0)=0, thus we use eta(EPSILON)
+        if w == 0:
+            w = EPSIOLON
 
         while True:
             #logging.debug("w: %d", w)
