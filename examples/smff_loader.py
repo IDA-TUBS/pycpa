@@ -22,17 +22,17 @@ from pycpa import smff_loader
 from pycpa import graph
 from pycpa import options
 
-def smff_test(file, outfile, plot, verbose):
+def smff_test(filename, outfile, plot, verbose):
 
-    print "loading", file
+    print "loading", filename
     loader = smff_loader.SMFFLoader()
-    s = loader.parse(file)
+    s = loader.parse(filename)
 
 
     if plot == True:
         # graph the smff system
-        graph_file = string.replace(os.path.basename(file), ".xml", "") + ".pdf"
-        graph.graph_system(s, schedParam=True, execTimes=True, filename=graph_file)
+        graph_file = string.replace(os.path.basename(filename), ".xml", "") + ".pdf"
+        graph.graph_system(s, sched_param=True, exec_times=True, filename=graph_file)
 
     try:
         # analyze the system            
