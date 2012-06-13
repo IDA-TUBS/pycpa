@@ -270,7 +270,7 @@ class SPNPScheduler(analysis.Scheduler):
         # find maximum lower priority blocker
         b = 0
         for ti in task.get_resource_interferers():
-            if ti.scheduling_parameter > task.scheduling_parameter:
+            if not self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):
                 b = max(b, ti.wcet)
         return b
 
@@ -283,7 +283,7 @@ class SPNPScheduler(analysis.Scheduler):
         while True:
             w_new = b
             for ti in task.get_resource_interferers() | set([task]):
-                if ti.scheduling_parameter <= task.scheduling_parameter:
+                if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):
                     w_new += ti.wcet * ti.in_event_model.eta_plus(w)
 
             if w == w_new:
