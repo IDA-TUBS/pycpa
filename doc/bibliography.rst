@@ -11,4 +11,5 @@ Bibliography
 .. [Schliecker2009] Simon Schliecker and Mircea Negrean and Rolf Ernst, "Response Time Analysis in Multicore ECUs with Shared Resources", IEEE Transactions on Industrial Informatics, 2009
 .. [Diemer2010] Jonas Diemer and Rolf Ernst, "Back Suction: Service Guarantees for Latency-Sensitive On-Chip Networks", The 4th ACM/IEEE International Symposium on Networks-on-Chip, 2010
 .. [Schliecker2011] Simon Schliecker, "Performance Analysis of Multiprocessor Real-Time Systems with Shared Resources", Dissertation, Technische Universität Braunschweig, 2011, submitted 2010
-.. [Palencia2003] Palencia and Harbour, "Offset-based response time analysis of distributed systems scheduled under EDF", Proc. of 15th Euromicro Conference on Real-Time Systems, 2003 
+.. [Palencia2003] Palencia and Harbour, "Offset-based response time analysis of distributed systems scheduled under EDF", Proc. of 15th Euromicro Conference on Real-Time Systems, 2003
+.. [Bate1998] Iain John Bate, "Scheduling and Timing Analysis for Safety Critical Real-Time Systems", Phd Thesis, 1998
