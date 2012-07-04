@@ -21,15 +21,13 @@ import logging
 
 logger = logging.getLogger("pycpa")
 
-#HACK: our eta_plus is based on half-open intervals. closed intervals are simulated as eta(w + EPSILON)
-EPSILON = 1e-6
-
+EPSILON = 1e-9
 
 # priority orderings
-prio_high_wins_equal_fifo = lambda a, b : a <= b
-prio_low_wins_equal_fifo = lambda a, b : a >= b
-prio_high_wins_equal_domination = lambda a, b : a < b
-prio_low_wins_equal_domination = lambda a, b : a > b
+prio_high_wins_equal_fifo = lambda a, b : a >= b
+prio_low_wins_equal_fifo = lambda a, b : a <= b
+prio_high_wins_equal_domination = lambda a, b : a > b
+prio_low_wins_equal_domination = lambda a, b : a < b
 
 
 class EDFPScheduler(analysis.Scheduler):
@@ -129,7 +127,7 @@ class EDFPScheduler(analysis.Scheduler):
         deadline_task = activation_time + task.deadline
 
         # all activations which have a deadline before tasks's deadline (and thus have a higher priority)
-        n_before_deadline = ti.in_event_model.eta_plus(deadline_task - ti.deadline + EPSILON)
+        n_before_deadline = ti.in_event_model.eta_plus_closed(deadline_task - ti.deadline)
         #print "ti: ", ti.name, "n_ti", n_ti, "n_before_deadline", n_before_deadline, "w_deadline", deadline_task - ti.deadline + EPSILON
         eta = min(n_ti, n_before_deadline)
         return max(0, eta)
@@ -263,8 +261,19 @@ class SPNPScheduler(analysis.Scheduler):
     Policy for equal priority is FCFS (i.e. max. interference).
     """
 
-    def __init__(self, priority_cmp=prio_high_wins_equal_fifo):
+    def __init__(self, priority_cmp=prio_high_wins_equal_fifo, ctx_switch_overhead=0, cycle_time=EPSILON):
+        """        
+        :param priority_cmp: function to evaluate priority comparison of the form foo(a,b). if foo(a,b) == True, then "a" is more important than "b"
+        :param cycle_time: time granularity of the scheduler, see [Bate1998]_ E.q. 4.14
+        :param ctx_switch_overhead: context switching overhead (or interframe space for transmission lines)
+        """
         analysis.Scheduler.__init__(self)
+
+        ## time granularity of the scheduler
+        self.cycle_time = cycle_time
+
+        ## Context-switch overhead
+        self.ctx_switch_overhead = ctx_switch_overhead
 
         ## priority ordering
         self.priority_cmp = priority_cmp
@@ -273,21 +282,21 @@ class SPNPScheduler(analysis.Scheduler):
         # find maximum lower priority blocker
         b = 0
         for ti in task.get_resource_interferers():
-            if ti.scheduling_parameter > task.scheduling_parameter:
+            if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter) == False:
                 b = max(b, ti.wcet)
         return b
 
     def spnp_busy_period(self, task):
         """ Calculated the busy period of the current task
         """
-        b = self.blocker(task)
+        b = self._blocker(task)
         w = task.wcet + b
 
         while True:
             w_new = b
             for ti in task.get_resource_interferers() | set([task]):
-                if ti.scheduling_parameter <= task.scheduling_parameter:
-                    w_new += ti.wcet * ti.in_event_model.eta_plus(w)
+                if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter) or (ti == task):
+                    w_new += (ti.wcet + self.ctx_switch_overhead) * ti.in_event_model.eta_plus(w)
 
             if w == w_new:
                 break
@@ -315,9 +324,9 @@ class SPNPScheduler(analysis.Scheduler):
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 
-        b = self.blocker(task)
+        b = self._blocker(task)
 
-        w = (q - 1) * task.wcet + b
+        w = (q - 1) * (task.wcet + self.ctx_switch_overhead) + b
 
         while True:
             #logging.debug("w: %d", w)
@@ -328,7 +337,7 @@ class SPNPScheduler(analysis.Scheduler):
                 assert(ti.scheduling_parameter != None)
                 assert(ti.resource == task.resource)
                 if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter): # equal priority also interferes (FCFS)
-                    s += ti.wcet * ti.in_event_model.eta_plus(w)
+                    s += (ti.wcet + self.ctx_switch_overhead) * ti.in_event_model.eta_plus(w + self.cycle_time)
                     #logging.debug("e: %s %d x %d", ti.name, ti.wcet, ti.in_event_model.eta_plus(w))
 
             w_new = (q - 1) * task.wcet + b + s
@@ -341,8 +350,8 @@ class SPNPScheduler(analysis.Scheduler):
                     d['blocker'] = str(b)
                     for ti in task.get_resource_interferers():
                         if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):
-                            d[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w)) + '*'\
-                                + str(ti.wcet) + '=' + str(ti.wcet * ti.in_event_model.eta_plus(w))
+                            d[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w + self.cycle_time)) + '*'\
+                                + str(ti.wcet) + '=' + str((ti.wcet + self.ctx_switch_overhead) * ti.in_event_model.eta_plus(w + self.cycle_time))
                     return d
                 else:
                     w += task.wcet
