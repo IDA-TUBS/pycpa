@@ -84,7 +84,7 @@ class ConstraintsManager(object):
         if backlog == True:
             backlog_violations = self._check_backlog_constrains(task_results)
             for v in backlog_violations:
-                logger.error("Backlog constraint violated for task %s, latency=%f, deadline=%d" % (v.name, task_results[v].backlog, self._backlog_constraints[v]))
+                logger.error("Backlog constraint violated for task %s, backlog=%f, deadline=%d" % (v.name, task_results[v].backlog, self._backlog_constraints[v]))
             violations = violations or (len(backlog_violations) > 0)
 
         if load == True:
@@ -167,7 +167,7 @@ class EventModel (object):
     which represent the maximum/minimum number of events arriving within :math:`\Delta t`.
     """
 
-    def __init__(self, P=None, J=None, dmin=None, c=None, T=None, name='min', cache=None):
+    def __init__(self, P=None, J=None, dmin=None, c=None, T=None, phi=None, name='min', cache=None):
         """ CTOR 
         If called without parameters, a minimal event model (1 single activation) is created        
         """
@@ -192,7 +192,7 @@ class EventModel (object):
         self.__description__ = name
 
         ## Offset for context sensitive analysis
-        self.phi = 0
+        self.phi = phi
 
         ## Metadata for standard event models
         self.P = 0
