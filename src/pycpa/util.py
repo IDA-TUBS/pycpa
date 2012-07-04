@@ -1,11 +1,12 @@
 """
-| Copyright (C) 2011 Philip Axer
+| Copyright (C) 2011, 2012 Philip Axer
 | TU Braunschweig, Germany
 | All rights reserved. 
 | See LICENSE file for copyright and license details.
 
 :Authors:
          - Philip Axer
+         - Jonas Diemer
 
 Description
 -----------
@@ -16,12 +17,28 @@ Various utility functions
 import fractions
 import analysis
 
-# base times
+# time bases
 ps = 1000000000000
 ns = 1000000000
 us = 1000000
 ms = 1000
 s = 1
+
+def str_to_time_base(s):
+    """ Return the time base for the string """
+    conversion = {'s':s, 'ms':ms, 'us':us, 'ns':ns, 'ps':ps}
+    if s in conversion:
+        return conversion[s]
+    else:
+        raise AssertionError
+
+def time_base_to_str(t):
+    """ Return the time base for the string """
+    conversion = {s:'s', ms:'ms', us:'us', ns:'ns', ps:'ps'}
+    if t in conversion:
+        return conversion[t]
+    else:
+        raise AssertionError
 
 def calculate_base_time(frequencies):
     lcm = LCM(frequencies)
