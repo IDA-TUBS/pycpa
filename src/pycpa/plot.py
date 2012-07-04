@@ -139,9 +139,9 @@ def plot_event_model(model, num_events, file_format=None, separate_plots=True, f
 
     if file_format is not None:
         if separate_plots:
-            pyplot.savefig(file_prefix + "plot-delta_min." + file_format)
+            pyplot.savefig(file_prefix + "plot-delta_min." + file_format, bbox_inches='tight')
         else:
-            pyplot.savefig(file_prefix + "plot." + file_format)
+            pyplot.savefig(file_prefix + "plot." + file_format, bbox_inches='tight')
     else:
         pyplot.show()
 
