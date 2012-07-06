@@ -278,12 +278,17 @@ class EventModel (object):
 
         return hi
 
+
     def eta_plus_closed(self, w):
         """ Eta-plus Function
             Return the maximum number of events in a time window w.
             Derived from Equation 3.5 from [Schliecker2011]_,
             but assuming CLOSED intervals for w
-            as defined in [Richter2005]_.      
+            as defined in [Richter2005]_.
+            
+            This is technically identical to eta_plus(w + EPSILON),
+            but the use of epsilon has issues with float precision,
+            as w+EPSILON == w for large w and small Epsilon (e.g. 40000000+1e-9)
         """
         # if the window does not include 2 activations, assume that one has occured        
         if self.delta_min(2) > w: return 1
