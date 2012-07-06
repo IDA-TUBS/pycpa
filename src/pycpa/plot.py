@@ -304,6 +304,7 @@ def plot_gantt(tasks, task_results, file_name=None, show=True, xlim=None,
                      verticalalignment='bottom')
 
             if task and task == t:
+                print task_results[t].q_wcrt
                 wcrt_start = t.in_event_model.delta_min(task_results[t].q_wcrt)
                 wcrt_end = task_results[t].wcrt + wcrt_start
                 annotation_ypos = ypos - height / 2. - wcrt_voffset
@@ -312,7 +313,7 @@ def plot_gantt(tasks, task_results, file_name=None, show=True, xlim=None,
                                                       arrowstyle="<->", mutation_scale=20.)
                 ax.add_patch(wcrt_arrow)
 
-                ax.text(wcrt_start + task_results[t].wcrt / 2., annotation_ypos, 'WCRT=%f' % (task_results[t].wcrt),
+                ax.text(wcrt_start + task_results[t].wcrt / 2., annotation_ypos, 'WCRT=%.1f' % (task_results[t].wcrt),
                         horizontalalignment='center',
                         verticalalignment='center',
                         backgroundcolor='white')

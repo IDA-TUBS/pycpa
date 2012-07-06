@@ -340,7 +340,7 @@ class SPNPScheduler(analysis.Scheduler):
                     s += (ti.wcet + self.ctx_switch_overhead) * ti.in_event_model.eta_plus(w + self.cycle_time)
                     #logging.debug("e: %s %d x %d", ti.name, ti.wcet, ti.in_event_model.eta_plus(w))
 
-            w_new = (q - 1) * task.wcet + b + s
+            w_new = (q - 1) * (task.wcet + self.ctx_switch_overhead) + b + s
             #print ("w_new: ", w_new)
             if w == w_new:
 
@@ -507,7 +507,7 @@ class SPPScheduler(analysis.Scheduler):
     """
 
 
-    def __init__(self, priority_cmp=prio_high_wins_equal_fifo):
+    def __init__(self, priority_cmp=prio_low_wins_equal_fifo):
         analysis.Scheduler.__init__(self)
 
         ## priority ordering
