@@ -174,7 +174,8 @@ class EventModel (object):
     which represent the maximum/minimum number of events arriving within :math:`\Delta t`.
     """
 
-    def __init__(self, P=None, J=None, dmin=None, c=None, T=None, phi=None, name='min', cache=None):
+    def __init__(self, P=None, J=None, dmin=None, c=None, T=None, phi=0,
+            name='min', cache=None):
         """ CTOR
         If called without parameters, a minimal event model (1 single activation) is created
         """
