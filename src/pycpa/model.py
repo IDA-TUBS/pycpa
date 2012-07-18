@@ -42,11 +42,14 @@ def _warn_float(value, reason=""):
     """ Prints a warning with reason if value is float.
     """
     if type(value) == float:
-        warnings.warn("You are using floats, this may yield non-pessimistic results (" + reason + ")", UserWarning)
+        warnings.warn("You are using floats, "
+                "this may yield non-pessimistic results (" + reason + ")",
+                UserWarning)
 
 
 class ConstraintsManager(object):
-    """ This class manages all system-wide constraints such as deadlines, buffersizes and more.
+    """ This class manages all system-wide constraints such as deadlines,
+    buffersizes and more.
     """
 
     def __init__(self):
@@ -63,7 +66,8 @@ class ConstraintsManager(object):
         self._load_constraints = dict()
 
     def check_violations(self, task_results, wcrt=True, path=True, backlog=True, load=True):
-        """ Check all if all constraints are satisfied. Returns True if there are constraint violations.
+        """ Check all if all constraints are satisfied.
+        Returns True if there are constraint violations.
         :param task_results: dictionary which stores analysis results
         :type task_results: dict (analysis.TaskResult)
         :param wcrt: if True, check wcrt
@@ -76,8 +80,10 @@ class ConstraintsManager(object):
         if wcrt == True:
             deadline_violations = self._check_wcrt_constraints(task_results)
             for v in deadline_violations:
-                logger.error("Deadline violated for task %s, wcrt=%d, deadline=%d" %
-                             (v.name, task_results[v].wcrt, self._wcrt_constraints[v]))
+                logger.error("Deadline violated for task %s, "
+                        "wcrt=%d, deadline=%d" %
+                        (v.name, task_results[v].wcrt,
+                            self._wcrt_constraints[v]))
             violations = violations or (len(deadline_violations) > 0)
 
         if path == True:
@@ -435,7 +441,8 @@ class EventModel (object):
         return self.deltaplus_func(n)
 
     def set_PJd(self, P, J=0, dmin=0, early_arrival=False):
-        """ Sets the event model to a periodic activation with jitter and minimum distance.
+        """ Sets the event model to a periodic activation
+        with jitter and minimum distance.
         Equations 1 and 2 from [Schliecker2008]_.
         """
         _warn_float(P, "Period")
@@ -556,7 +563,7 @@ class Junction (object):
 
 
 class Task (object):
-    """ A Task is an entity which is mapped on a resource and consumes its service.
+    """ A Task is an entity which is mapped on a resource and consumes service.
     Tasks are activated by events, which are described by EventModel.
     Events are queued in FIFO order at the input of the task,
     see Section 3.6.1 in [Jersak2005]_ or Section 3.1 in [Henia2005]_.
