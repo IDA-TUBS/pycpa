@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2007-2012 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -11,10 +11,11 @@
 Description
 -----------
 
-This module contains classes for modeling systems for real-time scheduling analysis.
 It should be imported in scripts that do the analysis.
-We model systems composed of resources and tasks. Tasks are activated by events, modeled as event models.
-The general System Model is described in Section 3.6.1 in [Jersak2005]_ or Section 3.1 in [Henia2005]_.
+We model systems composed of resources and tasks.
+Tasks are activated by events, modeled as event models.
+The general System Model is described in Section 3.6.1 in [Jersak2005]_
+or Section 3.1 in [Henia2005]_.
 """
 
 from __future__ import print_function
@@ -36,9 +37,13 @@ CACHE_HIT = 0
 
 logger = logging.getLogger("pycpa")
 
+
 def _warn_float(value, reason=""):
+    """ Prints a warning with reason if value is float.
+    """
     if type(value) == float:
         warnings.warn("You are using floats, this may yield non-pessimistic results (" + reason + ")", UserWarning)
+
 
 class ConstraintsManager(object):
     """ This class manages all system-wide constraints such as deadlines, buffersizes and more.
@@ -65,13 +70,14 @@ class ConstraintsManager(object):
         :param path: if True, check path latencies
         :param backlog: if True, check buffersized
         :param load: if True, check loads
-        :rtype: boolean 
+        :rtype: boolean
         """
         violations = False
         if wcrt == True:
             deadline_violations = self._check_wcrt_constraints(task_results)
             for v in deadline_violations:
-                logger.error("Deadline violated for task %s, wcrt=%d, deadline=%d" % (v.name, task_results[v].wcrt, self._wcrt_constraints[v]))
+                logger.error("Deadline violated for task %s, wcrt=%d, deadline=%d" %
+                             (v.name, task_results[v].wcrt, self._wcrt_constraints[v]))
             violations = violations or (len(deadline_violations) > 0)
 
         if path == True:
@@ -120,7 +126,8 @@ class ConstraintsManager(object):
         """
         violations = list()
         for task, size in self._backlog_constraints.items():
-            task_results[task].backlog = task.resource.scheduler.compute_max_backlog(task)
+            task_results[task].backlog = task.resource.scheduler.compute_max_backlog(
+                task)
             if task_results[task].backlog > size:
                 violations.append(task)
         return violations
@@ -161,15 +168,15 @@ class ConstraintsManager(object):
 
 class EventModel (object):
     """ The event model describing the activation of tasks as described in [Jersak2005]_, [Richter2005]_, [Henia2005]_.
-    Internally, we use :math:`\delta^-(n)` and  :math:`\delta^+(n)`, 
+    Internally, we use :math:`\delta^-(n)` and  :math:`\delta^+(n)`,
     which represent the minimum/maximum time window containing n events.
-    They can be transformed into :math:`\eta^+(\Delta t)` and :math:`\eta^-(\Delta t)` 
+    They can be transformed into :math:`\eta^+(\Delta t)` and :math:`\eta^-(\Delta t)`
     which represent the maximum/minimum number of events arriving within :math:`\Delta t`.
     """
 
     def __init__(self, P=None, J=None, dmin=None, c=None, T=None, phi=None, name='min', cache=None):
-        """ CTOR 
-        If called without parameters, a minimal event model (1 single activation) is created        
+        """ CTOR
+        If called without parameters, a minimal event model (1 single activation) is created
         """
 
         if cache is None:
@@ -186,7 +193,8 @@ class EventModel (object):
         self.deltaplus_func = lambda x: 0  # minimal model: no activation
 
         ## Event model eta_plus-minus function (internal)
-        self.deltamin_func = lambda x: float("inf")   # minimal model: no activation
+        self.deltamin_func = lambda x: float(
+            "inf")   # minimal model: no activation
 
         ## String description of event model
         self.__description__ = name
@@ -203,8 +211,10 @@ class EventModel (object):
             self.set_c_in_T(c, T)
 
         if P is not None:
-            if J is None: J = 0
-            if dmin is None: dmin = 0
+            if J is None:
+                J = 0
+            if dmin is None:
+                dmin = 0
             self.set_PJd(P, J, dmin)
 
     @staticmethod
@@ -216,45 +226,52 @@ class EventModel (object):
             Equation 3.7 from [Schliecker2011]_.
         """
         MAXX = 1000
-        if n < 2: return 0
+        if n < 2:
+            return 0
         x = options.get_opt('epsilon')
         while eta_plus(x) < n:
             #print "eta_plus(",x,")=",self.eta_plus(x)
             x += 1
-            if x > MAXX: return -1
+            if x > MAXX:
+                return -1
         return  int(math.floor(x))
 
     @staticmethod
     def delta_plus_from_eta_min(n, eta_min):
         """ Delta-plus Function
-            Return the maximum time window containing n activations.            
+            Return the maximum time window containing n activations.
             The delta_plus-function is derived from the eta_minus-function.
             This function is rarely needed, as EventModels are represented by delta-functions internally.
-            Equation 3.8 from [Schliecker2011]_.            
+            Equation 3.8 from [Schliecker2011]_.
         """
         MAXX = 1000
-        if n < 2: return 0
+        if n < 2:
+            return 0
         x = options.get_opt('epsilon')
         while eta_min(x) < n:
             #print "eta_plus(",x,")=",self.eta_plus(x)
             x += 1
-            if x > MAXX: return -1
+            if x > MAXX:
+                return -1
         return  int(math.floor(x))
-
 
     def eta_plus(self, w):
         """ Eta-plus Function
             Return the maximum number of events in a time window w.
             Derived from Equation 3.5 from [Schliecker2011]_,
             but assuming half-open intervals for w
-            as defined in [Richter2005]_.            
+            as defined in [Richter2005]_.
         """
         # the window for 0 activations is 0
-        if w <= 0: return 0
-        # if the window does not include 2 activations, assume that one has occured        
-        if self.delta_min(2) > w: return 1
+        if w <= 0:
+            return 0
+        # if the window does not include 2 activations, assume that one has
+        # occured
+        if self.delta_min(2) > w:
+            return 1
         # if delta_min is constant zero, eta_plus is always infinity
-        if self.delta_min(INFINITY) == 0: return INFINITY
+        if self.delta_min(INFINITY) == 0:
+            return INFINITY
         hi = 10
         lo = 2
 
@@ -278,22 +295,24 @@ class EventModel (object):
 
         return hi
 
-
     def eta_plus_closed(self, w):
         """ Eta-plus Function
             Return the maximum number of events in a time window w.
             Derived from Equation 3.5 from [Schliecker2011]_,
             but assuming CLOSED intervals for w
             as defined in [Richter2005]_.
-            
+
             This is technically identical to eta_plus(w + EPSILON),
             but the use of epsilon has issues with float precision,
             as w+EPSILON == w for large w and small Epsilon (e.g. 40000000+1e-9)
         """
-        # if the window does not include 2 activations, assume that one has occured        
-        if self.delta_min(2) > w: return 1
+        # if the window does not include 2 activations, assume that one has
+        # occured
+        if self.delta_min(2) > w:
+            return 1
         # if delta_min is constant zero, eta_plus is always infinity
-        if self.delta_min(INFINITY) == 0: return INFINITY
+        if self.delta_min(INFINITY) == 0:
+            return INFINITY
         hi = 10
         lo = 2
 
@@ -327,12 +346,12 @@ class EventModel (object):
         n = 2
         while self.delta_plus(n) <= w:
             if(n > MAX_EVENTS):
-                logger.error("w=%f" % w + " n=%d" % n + "deltaplus(n)=%d" % self.delta_plus(n))
+                logger.error("w=%f" % w + " n=%d" % n +
+                             "deltaplus(n)=%d" % self.delta_plus(n))
                 return n
             n += 1
 
         return n - 2
-
 
     def eta_min_closed(self, w):
         """ Eta-minus Function
@@ -343,20 +362,21 @@ class EventModel (object):
         n = 2
         while self.delta_plus(n) < w:
             if(n > MAX_EVENTS):
-                logger.error("w=%f" % w + " n=%d" % n + "deltaplus(n)=%d" % self.delta_plus(n))
+                logger.error("w=%f" % w + " n=%d" % n +
+                             "deltaplus(n)=%d" % self.delta_plus(n))
                 return n
             n += 1
 
         return n - 2
 
-
     def delta_min(self, n):
         """ Delta-minus Function
-            Return the minimum time interval between the first and the last event 
+            Return the minimum time interval between the first and the last event
             of any series of n events.
             This is actually a wrapper to allow caching of delta functions.
         """
-        if n < 2: return 0
+        if n < 2:
+            return 0
 
         ## Caching is activated
         if self.en_delta_caching == True:
@@ -376,22 +396,22 @@ class EventModel (object):
 
     @property
     def deltamin_func(self):
-        """ 
-            Getter to hide deltamin_func 
+        """
+            Getter to hide deltamin_func
         """
         return self._deltamin_func
 
     @deltamin_func.setter
     def deltamin_func(self, func):
-        """ 
-            Setter to hide deltamin_func 
+        """
+            Setter to hide deltamin_func
         """
         self._deltamin_func = func
 
     def delta_plus(self, n):
         """ Delta-plus Function
-            Return the maximum time interval between the first and the last event 
-            of any series of n events.            
+            Return the maximum time interval between the first and the last event
+            of any series of n events.
             This is actually a wrapper to allow caching of delta functions.
         """
         if n < 2:
@@ -410,9 +430,8 @@ class EventModel (object):
                 CACHE_HIT += 1
             return d
 
-        ## default policy        
+        ## default policy
         return self.deltaplus_func(n)
-
 
     def set_PJd(self, P, J=0, dmin=0, early_arrival=False):
         """ Sets the event model to a periodic activation with jitter and minimum distance.
@@ -434,11 +453,9 @@ class EventModel (object):
             self.deltaplus_func = lambda n: (n - 1) * P + J
             self.deltamin_func = lambda n: max((n - 1) * dmin, (n - 1) * P - J)
 
-
     def set_PJ(self, P, J=0, early_arrival=False):
         """ Sets the event model to a periodic activation with jitter."""
         return self.set_PJd(P, J, 0, early_arrival)
-
 
     def set_periodic(self, P, early_arrival=False, offset=0):
         """ Sets the event model to a periodic activation."""
@@ -448,20 +465,21 @@ class EventModel (object):
         """ Sets the event-model to a periodic Task
          with period T and c activations per period.
          No minimum arrival rate is assumed (delta_plus = infinity)!
-         Cf. Equation 1 in [Diemer2010]_.    
+         Cf. Equation 1 in [Diemer2010]_.
         """
         self.__description__ = "%d every %d, dmin=%d" % (c, T, dmin)
         if c == 0 or T >= INFINITY:
             self.deltamin_func = lambda n: 0
         else:
             def c_in_T_deltamin_func(n):
-                if n == INFINITY: return INFINITY
-                else: return (n - 1) * dmin + int(math.floor(float(n - 1) / c) * (T - c * dmin))
+                if n == INFINITY:
+                    return INFINITY
+                else:
+                    return (n - 1) * dmin + int(math.floor(float(n - 1) / c) * (T - c * dmin))
 
             self.deltamin_func = c_in_T_deltamin_func
 
         self.deltaplus_func = lambda n: INFINITY
-
 
     def load(self, accuracy=1000):
         """ Returns the asymptotic load, i.e. the avg. number of events per time """
@@ -471,7 +489,6 @@ class EventModel (object):
             return float("inf")
         else:
             return float(accuracy) / self.delta_min(accuracy)
-
 
     def delta_caching(self, active=True):
         self.en_delta_caching = active
@@ -514,7 +531,6 @@ class Junction (object):
         for t in self.next_tasks:
             t.invalidate_event_model_cache()
 
-
     @property
     def mode(self):
         return self._mode
@@ -530,7 +546,6 @@ class Junction (object):
         task.prev_task = self
         self.next_tasks.add(task)
 
-
     def clean(self):
         """ mark output event model as invalid """
         self.out_event_model = None
@@ -539,11 +554,10 @@ class Junction (object):
         return self.name + " " + self.mode + " junction"
 
 
-
 class Task (object):
     """ A Task is an entity which is mapped on a resource and consumes its service.
     Tasks are activated by events, which are described by EventModel.
-    Events are queued in FIFO order at the input of the task, 
+    Events are queued in FIFO order at the input of the task,
     see Section 3.6.1 in [Jersak2005]_ or Section 3.1 in [Henia2005]_.
     """
 
@@ -556,16 +570,16 @@ class Task (object):
         self.resource = None
 
         ## Link the Path if the task takes part in chained communication
-        self.path = None # FIXME: A task can be part of more than one path! Is this used anywhere?
+        self.path = None  # FIXME: A task can be part of more than one path! Is this used anywhere?
 
         ## Link to Mutex to which Task is mapped
         self.mutex = None
 
-        ## Link to next Tasks, i.e. where to supply event model to        
+        ## Link to next Tasks, i.e. where to supply event model to
         ## Multiple tasks possible (fork semantic)
         self.next_tasks = set()
 
-        ## Link to previous Task, i.e. the one which supplies our in_event_model
+        # Link to previous Task, i.e. the one which supplies our in_event_model
         self.prev_task = None
 
         ## Worst-case execution time
@@ -579,13 +593,15 @@ class Task (object):
 
         self.analysis_results = None
 
-        # compatability to the old call semantics (name, bcet, wcet, scheduling_parameter)
+        # compatability to the old call semantics (name, bcet, wcet,
+        # scheduling_parameter)
         if len(args) == 3:
             self.bcet = args[0]
             self.wcet = args[1]
             self.scheduling_parameter = args[2]
 
-        # After all mandatory attributes have been initialized above, load those set in kwargs
+        # After all mandatory attributes have been initialized above, load
+        # those set in kwargs
         for key in kwargs:
             setattr(self, key, kwargs[key])
 
@@ -616,7 +632,6 @@ class Task (object):
 
         self._bcet = value
 
-
     def bind_resource(self, r):
         """ Bind a Task t to a Resource/Mutex r """
         self.resource = r
@@ -642,7 +657,7 @@ class Task (object):
         self.mutex = None
 
     def link_dependent_task(self, t):
-        """ Link a dependent task t to the task 
+        """ Link a dependent task t to the task
         The dependent task t is activated by the completion of the task.
         """
         self.next_tasks.add(t)
@@ -655,24 +670,25 @@ class Task (object):
         """ returns the set of tasks sharing the same Resource as Task ti
             excluding ti itself
         """
-        if self.resource is None: return []
+        if self.resource is None:
+            return []
         interfering_tasks = copy.copy(self.resource.tasks)
         interfering_tasks.remove(self)
         return interfering_tasks
-
 
     def get_mutex_interferers(self):
         """ returns the set of tasks sharing the same Mutex as Task ti
             excluding ti itself
         """
-        if self.mutex is None: return []
+        if self.mutex is None:
+            return []
         interfering_tasks = copy.copy(self.mutex.tasks)
         interfering_tasks.remove(self)
         return interfering_tasks
 
-
     def invalidate_event_model_cache(self):
-        if self.in_event_model is not None: self.in_event_model.flush_cache()
+        if self.in_event_model is not None:
+            self.in_event_model.flush_cache()
 
     def clean(self):
         """ Cleans all intermediate analysis results """
@@ -692,8 +708,6 @@ class Task (object):
             self.analysis_results.clean()
 
 
-
-
 class Resource (object):
     """ A Resource provides service to tasks. """
 
@@ -709,7 +723,8 @@ class Resource (object):
         ## Analysis function
         self.scheduler = scheduler
 
-        # After all mandatory attributes have been initialized above, load those set in kwargs
+        # After all mandatory attributes have been initialized above, load
+        # those set in kwargs
         for key in kwargs:
             setattr(self, key, kwargs[key])
 
@@ -735,19 +750,19 @@ class Resource (object):
             assert task.resource == self
         return t
 
-
     def unmap_tasks(self):
         """ unmap all tasks from this resource """
         for task in self.tasks:
             task.resource = None
         self.tasks = set()
 
+
 class Mutex:
     """ A mutually-exclusive shared Resource.
     Shared resources create timing interferences between tasks
     which may be executed on different resources (e.g. multi-core CPU)
     but require access to a common resource (e.g. shared main memory) to execute.
-    See e.g. Chapter 5 in [Schliecker2011]_. 
+    See e.g. Chapter 5 in [Schliecker2011]_.
     """
 
     def __init__(self, name=None):
@@ -764,7 +779,7 @@ class Path:
     """ A Path describes a chain of tasks.
     Required for path analysis (e.g. end-to-end latency).
     The information stored in Path classes could be derived from the task graph (see Task.next_tasks and Task.prev_task),
-    but having redundancy here is more flexible (e.g. path analysis may only be interesting for some task chains).    
+    but having redundancy here is more flexible (e.g. path analysis may only be interesting for some task chains).
     """
 
     def __init__(self, name, tasks=None):
@@ -787,7 +802,7 @@ class Path:
         """ linking all tasks along a path"""
         assert len(tasks) > 0
         if len(tasks) == 1:
-            return # This is a fake path with just one task
+            return  # This is a fake path with just one task
         for i in zip(tasks[0:-1], tasks[1:]):
             i[0].link_dependent_task(i[1])
 
@@ -804,7 +819,6 @@ class Path:
         print(str(self))
 
 
-
 class System:
     """ The System is the top-level entity of the system model.
     It contains resources, junctions, tasks and paths.
@@ -813,7 +827,7 @@ class System:
     def __init__(self):
         """ CTOR """
 
-        ## Set of resources, indexed by an ID, e.g. (x,y) tuple for mesh systems
+        # Set of resources, indexed by an ID, e.g. (x,y) tuple for mesh systems
         self.resources = set()
 
         ## Set of task chains
@@ -853,7 +867,8 @@ class System:
     def bind_path(self, path):
         """ Add a Path to the System """
         self.paths.add(path)
-        #NOTE: call to "link_dependent_tasks()" on each task of the path now inside Path
+        # NOTE: call to "link_dependent_tasks()" on each task of the path now
+        # inside Path
         return path
 
     def print_subgraphs(self):
@@ -867,7 +882,8 @@ class System:
             unreachable |= set(resource.tasks)
 
         while len(unreachable) > 0:
-            # pick one random start task (in case the app graph is not well-formed)
+            # pick one random start task (in case the app graph is not well-
+            # formed)
             root_task = iter(unreachable).next()
             # but prefer a task with a source attached
             for t in unreachable:
@@ -879,7 +895,8 @@ class System:
             subgraphs.append(reachable)
             unreachable = unreachable - reachable
 
-        logger.info("Application graph consists of %d disjoint subgraphs:" % len(subgraphs))
+        logger.info("Application graph consists of %d disjoint subgraphs:" %
+                    len(subgraphs))
 
         idx = 0
         for subgraph in subgraphs:
@@ -889,6 +906,3 @@ class System:
                 logger.info("\t%s" % task)
 
         return subgraphs
-
-
-
