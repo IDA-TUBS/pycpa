@@ -290,7 +290,7 @@ class SPNPScheduler(analysis.Scheduler):
         """ Calculated the busy period of the current task
         """
         b = self._blocker(task)
-        w = task.wcet + b
+        w = b
 
         while True:
             w_new = b
