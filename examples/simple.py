@@ -20,7 +20,9 @@ from matplotlib import pyplot
 from pycpa import model
 from pycpa import analysis
 from pycpa import schedulers
+from pycpa import path_analysis
 from pycpa import graph
+
 
 def simple_test():
     # initialyze pycpa. (e.g. read command line switches and set up default options)
@@ -44,6 +46,15 @@ def simple_test():
     # register a PJd event model
     t11.in_event_model = model.EventModel(P=30, J=60)
 
+    # create a path
+    p1 = model.Path("P1", [t11, t12])
+
+    # add constraints to task t11
+    s.constraints.add_backlog_constraint(t11, 5)
+
+    # add constraints to task t12
+    s.constraints.add_wcrt_constraint(t12, 90)
+
     # plot the system graph to visualize the architecture
     g = graph.graph_system(s, 'simple_graph.pdf')
 
@@ -57,6 +68,8 @@ def simple_test():
         for t in sorted(r.tasks, key=str):
             print("%s: wcrt=%d" % (t.name, results[t].wcrt))
 
+    bcl, wcl = path_analysis.end_to_end_latency(p1, results, 2)
+    print "bcl: %d, wcl: %d" % (bcl, wcl)
 
 if __name__ == "__main__":
     simple_test()
