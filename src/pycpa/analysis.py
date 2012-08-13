@@ -302,7 +302,7 @@ def analyze_task(task, task_results):
     assert(task_results[task].bcrt <= task_results[task].wcrt)
 
 
-def out_event_model( task, task_results, dmin=0):
+def out_event_model(task, task_results, dmin=0):
     """ Wrapper to call the actual out_event_model_*,
     which computes the output event model of a task.
     See Chapter 4 in [Richter2005]_ for an overview.
@@ -822,7 +822,7 @@ def _dijkstra(source):
     return dist
 
 
-def analyze_system(system, clean=False, only_dependent_tasks=False):
+def analyze_system(system, clean=False, only_dependent_tasks=False, progress_hook=None):
     """ Analyze all tasks until we find a fixed point
 
         system -- the system to analyze
@@ -844,6 +844,10 @@ def analyze_system(system, clean=False, only_dependent_tasks=False):
     iteration = 0
     logger.debug("analysisOrder: %s" % (analysis_state.analysisOrder))
     while len(analysis_state.dirtyTasks) > 0:
+
+        if progress_hook is not None:
+            progress_hook(analysis_state)
+
         logger.info("Analyzing, %d tasks left" %
                             (len(analysis_state.dirtyTasks)))
 
