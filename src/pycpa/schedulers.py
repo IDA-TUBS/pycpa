@@ -289,7 +289,7 @@ class SPNPScheduler(analysis.Scheduler):
     def spnp_busy_period(self, task):
         """ Calculated the busy period of the current task
         """
-        b = self._blocker(task)
+        b = self._blocker(task) + self.ctx_switch_overhead
         w = b
 
         while True:
@@ -324,7 +324,7 @@ class SPNPScheduler(analysis.Scheduler):
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 
-        b = self._blocker(task)
+        b = self._blocker(task) + self.ctx_switch_overhead
 
         w = (q - 1) * (task.wcet + self.ctx_switch_overhead) + b
 
