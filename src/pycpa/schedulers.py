@@ -256,12 +256,12 @@ class SPNPScheduler(analysis.Scheduler):
     """ Static-Priority-Non-Preemptive Scheduler
         
     Priority is stored in task.scheduling_parameter,
-    smaller priority number -> right of way
+    by default numerically lower numbers have a higher priority
     
     Policy for equal priority is FCFS (i.e. max. interference).
     """
 
-    def __init__(self, priority_cmp=prio_high_wins_equal_fifo, ctx_switch_overhead=0, cycle_time=EPSILON):
+    def __init__(self, priority_cmp=prio_low_wins_equal_fifo, ctx_switch_overhead=0, cycle_time=EPSILON):
         """        
         :param priority_cmp: function to evaluate priority comparison of the form foo(a,b). if foo(a,b) == True, then "a" is more important than "b"
         :param cycle_time: time granularity of the scheduler, see [Bate1998]_ E.q. 4.14
