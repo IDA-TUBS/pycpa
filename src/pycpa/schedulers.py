@@ -501,7 +501,7 @@ class SPPScheduler(analysis.Scheduler):
     """ Static-Priority-Preemptive Scheduler
     
     Priority is stored in task.scheduling_parameter,
-    smaller priority number -> right of way
+    by default numerically lower numbers have a higher priority
     
     Policy for equal priority is FCFS (i.e. max. interference).
     """

@@ -29,6 +29,7 @@ import options
 
 import analysis
 import path_analysis
+import util
 
 INFINITY = float('inf')
 
@@ -180,7 +181,7 @@ class EventModel (object):
     which represent the maximum/minimum number of events arriving within :math:`\Delta t`.
     """
 
-    def __init__(self, P=None, J=None, dmin=None, c=None, T=None, phi=0,
+    def __init__(self, P=None, J=None, dmin=None, c=None, T=None, phi=0, delta_explicit=None,
             name='min', cache=None):
         """ CTOR
         If called without parameters, a minimal event model (1 single activation) is created
@@ -223,6 +224,10 @@ class EventModel (object):
             if dmin is None:
                 dmin = 0
             self.set_PJd(P, J, dmin)
+
+        if delta_explicit is not None:
+            delta_min_points, delta_max_points = delta_explicit
+            self.set_delta_points(delta_min_points, delta_max_points)
 
     @staticmethod
     def delta_min_from_eta_plus(n, eta_plus):
@@ -439,6 +444,38 @@ class EventModel (object):
 
         ## default policy
         return self.deltaplus_func(n)
+
+    def set_delta_points(self, delta_min_points, delta_max_points=[0]):
+        """ Sets the event model to an arbitrary function specified by a list of points.
+        """
+        for p in set(delta_min_points) | set(delta_max_points):
+            _warn_float(p, "delta point")
+
+        def d_min_from_list(n):
+            if n == float("inf"):
+                return float("inf")
+            elif n >= len(delta_min_points):  #return additive extension  if necessary
+                q_max = len(delta_min_points) - 1
+                ret = util.max_additive(lambda x: delta_min_points[x + 1], n, q_max)
+                return ret
+            else:
+                return delta_min_points[n]
+
+        def d_max_from_list(n):
+            if n == float("inf"):
+                return float("inf")
+            elif n >= len(delta_max_points):  #return additive extension  if necessary
+                q_max = len(delta_max_points) - 1
+                ret = util.min_additive(lambda x: delta_max_points[x + 1], n, q_max)
+                return ret
+            else:
+                return delta_max_points[n]
+
+        self.deltaplus_func = d_min_from_list
+        self.deltamin_func = d_max_from_list
+
+
+
 
     def set_PJd(self, P, J=0, dmin=0, early_arrival=False):
         """ Sets the event model to a periodic activation

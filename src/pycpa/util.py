@@ -24,13 +24,32 @@ us = 1000000
 ms = 1000
 s = 1
 
+
+def max_additive(additive_func, q, q_max):
+    if q <= q_max:
+        return additive_func(q)
+    else:
+        ret = 0
+        for a in range(0, (q_max / 2) + 1):
+            ret = max(ret, additive_func(a) + max_additive(q_max - a, q_max))
+        return ret
+
+def min_additive(additive_func, q, q_max):
+    if q <= q_max:
+        return additive_func(q)
+    else:
+        ret = 0
+        for a in range(0, (q_max / 2) + 1):
+            ret = min(ret, additive_func(a) + min_additive(q_max - a, q_max))
+        return ret
+
 def str_to_time_base(s):
     """ Return the time base for the string """
     conversion = {'s':s, 'ms':ms, 'us':us, 'ns':ns, 'ps':ps}
     if s in conversion:
         return conversion[s]
     else:
-        raise AssertionError
+        raise ValueError
 
 def time_base_to_str(t):
     """ Return the time base for the string """
@@ -38,7 +57,7 @@ def time_base_to_str(t):
     if t in conversion:
         return conversion[t]
     else:
-        raise AssertionError
+        raise ValueError
 
 def calculate_base_time(frequencies):
     lcm = LCM(frequencies)
