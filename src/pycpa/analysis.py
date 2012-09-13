@@ -264,26 +264,13 @@ class Scheduler:
             n += 1
         return n - 1
 
-    def compute_max_backlog(self, task, output_delay=0):
+    def compute_max_backlog(self, task, task_results, output_delay=0):
         """ Compute the maximum backlog of Task t.
             This is the maximum number of outstanding activations.
         """
-        t = 1
-        TMAX = 300
-        max_blog = 0
-        while True:
-            blog = task.in_event_model.eta_plus(
-                t) - self.compute_service(task, t - output_delay)
-            if blog > max_blog:
-                max_blog = blog
-            if blog <= 0:
-                #print "T=",t
-                return max_blog
-            t += 1
-
-            if t > TMAX:
-                return float("inf")
-
+        q_max = len(task_results[task].busy_times)
+        b = [task.in_event_model.eta_plus(task_results[task].busy_times[q] + output_delay) - q + 1 for q in  range(1, q_max)]
+        return max(b)
 
 def analyze_task(task, task_results):
     """ Analyze Task BUT DONT propagate event model.
