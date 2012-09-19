@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2011, 2012 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -34,6 +34,7 @@ def max_additive(additive_func, q, q_max):
             ret = max(ret, additive_func(a) + max_additive(q_max - a, q_max))
         return ret
 
+
 def min_additive(additive_func, q, q_max):
     if q <= q_max:
         return additive_func(q)
@@ -43,32 +44,37 @@ def min_additive(additive_func, q, q_max):
             ret = min(ret, additive_func(a) + min_additive(q_max - a, q_max))
         return ret
 
+
 def str_to_time_base(s):
     """ Return the time base for the string """
-    conversion = {'s':s, 'ms':ms, 'us':us, 'ns':ns, 'ps':ps}
+    conversion = {'s': s, 'ms': ms, 'us': us, 'ns': ns, 'ps': ps}
     if s in conversion:
         return conversion[s]
     else:
         raise ValueError
 
+
 def time_base_to_str(t):
     """ Return the time base for the string """
-    conversion = {s:'s', ms:'ms', us:'us', ns:'ns', ps:'ps'}
+    conversion = {s: 's', ms: 'ms', us: 'us', ns: 'ns', ps: 'ps'}
     if t in conversion:
         return conversion[t]
     else:
         raise ValueError
 
+
 def calculate_base_time(frequencies):
     lcm = LCM(frequencies)
     if lcm > ps:
-        analysis.logger.error("high base-time value! consider using ps instead")
+        error_msg = "high base-time value! consider using ps instead"
+        analysis.logger.error(error_msg)
     return lcm
+
 
 def cycles_to_time(value, freq, base_time, rounding="ceil"):
     """ Converts the cycle/bittimes to an absolute time in base_time
     """
-    scaler = fractions.Fraction (base_time, freq)
+    scaler = fractions.Fraction(base_time, freq)
     value = fractions.Fraction(value)
     if rounding == "ceil":
         return int(fractions.math.ceil(value * scaler))
@@ -77,10 +83,12 @@ def cycles_to_time(value, freq, base_time, rounding="ceil"):
     else:
         raise NotImplementedError("roudning %s not supported" % rounding)
 
+
 def time_to_time(value, base_in, base_out, rounding="ceil"):
-    """ Convert an absolute time given in base_in to another absolute time given in base_out 
+    """ Convert an absolute time given in base_in
+    to another absolute time given in base_out
     """
-    scaler = fractions.Fraction (base_out) / fractions.Fraction (base_in)
+    scaler = fractions.Fraction(base_out) / fractions.Fraction(base_in)
     if rounding == "ceil":
         return int(fractions.math.ceil(value * scaler))
     elif rounding == "floor":
@@ -88,10 +96,12 @@ def time_to_time(value, base_in, base_out, rounding="ceil"):
     else:
         raise NotImplementedError("roudning %s not supported" % rounding)
 
+
 def time_to_cycles(value, freq, base_time, rounding="ceil"):
-    """ Converts an absolute time given in the base_time domain into cycles
+    """ Converts an absolute time given in
+    the base_time domain into cycles
     """
-    scaler = fractions.Fraction (base_time, freq)
+    scaler = fractions.Fraction(base_time, freq)
     value = fractions.Fraction(value)
     if rounding == "ceil":
         return int(fractions.math.ceil(value / scaler))
@@ -107,13 +117,16 @@ def gcd(a, b):
         a, b = b, a % b
     return a
 
+
 def lcm(a, b):
     """ Return lowest common multiple."""
     return (a * b) / gcd(a, b)
 
+
 def GCD(terms):
     """ Return gcd of a list of numbers."""
     return reduce(lambda a, b: gcd(a, b), terms)
+
 
 def LCM(terms):
     """Return lcm of a list of numbers."""
