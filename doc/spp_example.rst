@@ -149,7 +149,7 @@ The output of this example is:
    :language: none
 
 As you can see, the worst-case response times of the tasks 
-are 10, 13, 2 and 21.
+are 10, 13, 2 and 19.
 
    
 This is the full spp-test file.
