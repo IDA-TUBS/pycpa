@@ -33,9 +33,6 @@ import util
 
 INFINITY = float('inf')
 
-CACHE_MISS = 0
-CACHE_HIT = 0
-
 logger = logging.getLogger("pycpa")
 
 
@@ -181,7 +178,7 @@ class EventModel (object):
     which represent the maximum/minimum number of events arriving within :math:`\Delta t`.
     """
 
-    def __init__(self, P=None, J=None, dmin=None, c=None, T=None, phi=0, delta_explicit=None,
+    def __init__(self, P=None, J=None, dmin=None, c=None, T=None, phi=0,
             name='min', cache=None):
         """ CTOR
         If called without parameters, a minimal event model (1 single activation) is created
@@ -224,10 +221,6 @@ class EventModel (object):
             if dmin is None:
                 dmin = 0
             self.set_PJd(P, J, dmin)
-
-        if delta_explicit is not None:
-            delta_min_points, delta_max_points = delta_explicit
-            self.set_delta_points(delta_min_points, delta_max_points)
 
     @staticmethod
     def delta_min_from_eta_plus(n, eta_plus):
@@ -396,29 +389,11 @@ class EventModel (object):
             if d == None:
                 d = self.deltamin_func(n)
                 self.delta_min_cache[n] = d
-                global CACHE_MISS
-                CACHE_MISS += 1
-            else:
-                global CACHE_HIT
-                CACHE_HIT += 1
             return d
 
         ## default policy
         return self.deltamin_func(n)
 
-    @property
-    def deltamin_func(self):
-        """
-            Getter to hide deltamin_func
-        """
-        return self._deltamin_func
-
-    @deltamin_func.setter
-    def deltamin_func(self, func):
-        """
-            Setter to hide deltamin_func
-        """
-        self._deltamin_func = func
 
     def delta_plus(self, n):
         """ Delta-plus Function
@@ -435,46 +410,116 @@ class EventModel (object):
             if d == None:
                 d = self.deltaplus_func(n)
                 self.delta_plus_cache[n] = d
-                global CACHE_MISS
-                CACHE_MISS += 1
-            else:
-                global CACHE_HIT
-                CACHE_HIT += 1
             return d
 
         ## default policy
         return self.deltaplus_func(n)
 
-    def set_delta_points(self, delta_min_points, delta_max_points=[0]):
-        """ Sets the event model to an arbitrary function specified by a list of points.
+    def set_limited_delta(self, limited_delta_min_func, limited_delta_plus_func, limit_q_min=float('inf'), limit_q_plus=float('inf')):
+        """ Sets the event model to an arbitrary function specified by limited_delta_min_func and limited_delta_plus_func.
+        Contrary to directly setting deltamin_func and deltaplus_func, the given functions are only
+        valid in a limited domain [0, limit_q_min] and [0, limit_q_plus] respectively.
+        For values of q beyond this range, a conservative extension (additive extension) is used.
+        You can also supply a list() object to this function by using lambda x: limited_delta_min_list[x]
+        
+        In that sense, set_limited_delta(deltamin_func, deltaplus_func, float('inf'), float('inf')) is equivalent to
+        em.deltamin_func = deltamin_func
+        em.deltaplus_func = deltaplus_func
         """
-        for p in set(delta_min_points) | set(delta_max_points):
-            _warn_float(p, "delta point")
 
         def d_min_from_list(n):
             if n == float("inf"):
                 return float("inf")
-            elif n >= len(delta_min_points):  #return additive extension  if necessary
-                q_max = len(delta_min_points) - 1
-                ret = util.max_additive(lambda x: delta_min_points[x + 1], n, q_max)
+            elif n >= limit_q_min:  #return additive extension  if necessary
+                q_max = limit_q_min - 1
+                ret = util.additive_extension(lambda x: limited_delta_min_func(x + 1), n, q_max)
                 return ret
             else:
-                return delta_min_points[n]
+                return limited_delta_min_func(n)
 
-        def d_max_from_list(n):
+        def d_plus_from_list(n):
             if n == float("inf"):
                 return float("inf")
-            elif n >= len(delta_max_points):  #return additive extension  if necessary
-                q_max = len(delta_max_points) - 1
-                ret = util.min_additive(lambda x: delta_max_points[x + 1], n, q_max)
+            elif n >= limit_q_plus:  #return additive extension  if necessary
+                q_max = limit_q_plus - 1
+                ret = util.additive_extension(lambda x: limited_delta_plus_func(x + 1), n, q_max)
                 return ret
             else:
-                return delta_max_points[n]
+                return limited_delta_plus_func(n)
 
         self.deltaplus_func = d_min_from_list
-        self.deltamin_func = d_max_from_list
+        self.deltamin_func = d_plus_from_list
 
 
+    def set_limited_trace(self, trace_points, min_sample_size=20):
+        """ Compute a pseudo-conservative event model from a given trace (e.g. from SymTA/S TraceAnalyzer or similar).
+            trace_points must be a list of integers encoding the arrival time of an event.
+            The algorithm will compute delta_min and delta_plus based on the trace by evaluating all candidates.
+            min_sample_size is the minimum amount of candidates that must be available to derive a representative deltamin/deltaplus 
+        """
+
+        for p in set(trace_points):
+            _warn_float(p, "delta point")
+
+        # import numy only when needed
+        import numpy as np
+        trace = np.array(trace_points)
+        q_max = trace.size - min_sample_size + 1
+
+        def raw_deltamin_func(n):
+            """ raw trace deltamin_func, only valid in the interval [0,q_max]
+            """
+            assert n >= 0
+            assert n <= q_max
+
+            d = float('inf')
+            for q in range(0, q_max - n + 1):
+                seq = trace[q:q + n ]
+                assert seq.size == n
+                d_new = seq[-1] - seq[0]
+                assert d_new >= 0
+                d = min(d_new, d)
+            return d
+
+
+        def trace_deltamin_func(n):
+            """ trace-based deltamin function, uses additive extension internally
+            """
+            if n <= 1:
+                return 0
+            elif n > q_max:  #return additive extension  if necessary
+                return util.additive_extension(lambda x: trace_deltamin_func(x + 1), n - 1, q_max - 1)
+            else:
+                return raw_deltamin_func(n)
+
+
+        def raw_deltaplus_func(n):
+            """ raw trace deltaplus_func, only valid in the interval [0,q_max]
+            """
+            assert n >= 0
+            assert n <= q_max
+            d = 0
+            for q in range(0, q_max - n + 1):
+                seq = trace[q:q + n ]
+                assert seq.size == n
+                d_new = seq[-1] - seq[0]
+                assert d_new >= 0
+                d = max(d_new, d)
+            return d
+
+
+        def trace_deltaplus_func(n):
+            """  trace-based deltaplus function, uses additive extension internally
+            """
+            if n <= 1:
+                return 0
+            elif n > q_max:  #return additive extension  if necessary
+                return util.additive_extension(lambda x: trace_deltaplus_func(x + 1), n - 1, q_max - 1)
+            else:
+                return raw_deltaplus_func(n)
+
+        self.deltaplus_func = trace_deltaplus_func
+        self.deltamin_func = trace_deltamin_func
 
 
     def set_PJd(self, P, J=0, dmin=0, early_arrival=False):
@@ -502,7 +547,7 @@ class EventModel (object):
         """ Sets the event model to a periodic activation with jitter."""
         return self.set_PJd(P, J, 0, early_arrival)
 
-    def set_periodic(self, P, early_arrival=False, offset=0):
+    def set_periodic(self, P, early_arrival=False):
         """ Sets the event model to a periodic activation."""
         return self.set_PJd(P, 0, 0, early_arrival)
 
@@ -936,7 +981,7 @@ class System:
                     root_task = t
                     break
 
-            reachable = analysis._breadth_first_search(root_task)
+            reachable = analysis.breadth_first_search(root_task)
             subgraphs.append(reachable)
             unreachable = unreachable - reachable
 

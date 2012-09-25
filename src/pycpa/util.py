@@ -24,24 +24,34 @@ us = 1000000
 ms = 1000
 s = 1
 
+def additive_extension(additive_func, q, q_max):
+    if q <= q_max:
+        return additive_func(q)
+    elif q == float('inf'):
+        return float('inf')
+    else:
+        div = q / q_max
+        rem = q % q_max
+        return div * additive_func(q_max) + additive_func(rem)
 
-def max_additive(additive_func, q, q_max):
+
+def recursive_max_additive(additive_func, q, q_max):
     if q <= q_max:
         return additive_func(q)
     else:
         ret = 0
-        for a in range(0, (q_max / 2) + 1):
-            ret = max(ret, additive_func(a) + max_additive(q_max - a, q_max))
+        for a in range(1, q_max + 1):
+            ret = max(ret, additive_func(a) + recursive_max_additive(additive_func, q - a, q_max))
         return ret
 
 
-def min_additive(additive_func, q, q_max):
+def recursive_min_additive(additive_func, q, q_max):
     if q <= q_max:
         return additive_func(q)
     else:
         ret = 0
-        for a in range(0, (q_max / 2) + 1):
-            ret = min(ret, additive_func(a) + min_additive(q_max - a, q_max))
+        for a in range(1, q_max + 1):
+            ret = min(ret, additive_func(a) + recursive_min_additive(additive_func, q - a, q_max))
         return ret
 
 
