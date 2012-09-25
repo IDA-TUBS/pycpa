@@ -426,6 +426,7 @@ class EventModel (object):
         em.deltamin_func = deltamin_func
         em.deltaplus_func = deltaplus_func
         """
+        self.__description__ = "ltd. direct"
 
         def d_min_from_list(n):
             if n == float("inf"):
@@ -457,6 +458,8 @@ class EventModel (object):
             The algorithm will compute delta_min and delta_plus based on the trace by evaluating all candidates.
             min_sample_size is the minimum amount of candidates that must be available to derive a representative deltamin/deltaplus 
         """
+
+        self.__description__ = "trace-based"
 
         for p in set(trace_points):
             _warn_float(p, "delta point")
