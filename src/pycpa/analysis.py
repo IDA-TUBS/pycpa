@@ -98,9 +98,11 @@ class Scheduler:
         :type task: model.Task
         :param q: the number of activations
         :type q: integer
-        :param details: return a dict of details on the busy window (instead of busy time)
+        :param details: return a dict of details on
+                        the busy window (instead of busy time)
         :type q: boolean
-        :rtype: integer (max. busy-time for q activations) or dict if details==True (details on busy-window)
+        :rtype: integer (max. busy-time for q activations)
+                or dict if details==True (details on busy-window)
         """
 
         w = q * task.wcet
@@ -252,6 +254,7 @@ class Scheduler:
         This service is higher than the maximum arrival curve
         (requested service) of the task if the task is schedulable.
         """
+        # TODO: do we still need this? Can this be used as an interface with MPA?
         if t <= 0:
             return 0
         # infinite service if two events require zero time to process
@@ -365,7 +368,6 @@ def _out_event_model_jitter(task, task_results, dmin=0):
                             task.in_event_model.delta_min(n) - resp_jitter,
                             em.delta_min(n - 1) + dmin)
 
-    # TODO: check deltaplus
     em.deltaplus_func = lambda n: task.in_event_model.delta_plus(
         n) + resp_jitter
 
@@ -382,8 +384,8 @@ def _out_event_model_busy_window(task, task_results, dmin=0):
     This results from Theorems 1, 2 and 3 from [Schliecker2008]_.
     """
     em = model.EventModel()
-    busy_times = task_results[
-        task].busy_times  # copy, because task.busy_times changes!
+    # copy, because task.busy_times changes!
+    busy_times = task_results[task].busy_times
     max_k = len(busy_times)
     min_k = 1  # k \elem N+
 
@@ -392,19 +394,9 @@ def _out_event_model_busy_window(task, task_results, dmin=0):
         return copy.copy(task.in_event_model)
 
     assert max_k > min_k
-#        for n in range(2,4):
-#            for k in range(min_k,max_k):
-# logger.debug("n=%d, k=%d, busy_time(k)=%d, delta=" %(n,k, busy_times[k])+
-# str(task.in_event_model.deltamin_func(n+k-1)-busy_times[k]
-#                              + task.bcrt)
-#                              + ", bcrt="+str(task.bcrt) + " = "
-# + str(min( [task.in_event_model.deltamin_func(n+k-1) - busy_times[k]
-#                      for k in range(min_k,max_k)]) + copy.copy(task.bcrt))
-# + str([task.in_event_model.deltamin_func(n+k-1) - busy_times[k]
-#                      for k in range(min_k,max_k)]))
 
     em.deltamin_func = lambda n: \
-        max((n - 1) * task.bcet,
+        max((n - 1) * dmin,
             min([task.in_event_model.delta_min(n + k - 1) - busy_times[k]
                  for k in range(min_k, max_k)])
             + copy.copy(task_results[task].bcrt)
@@ -432,7 +424,7 @@ def _out_event_model_junction(junction, task_results, non_cycle_prev):
         return None
 
     em = None
-    if junction._mode == 'and':
+    if junction.mode == 'and':
         em = _out_event_model_junction_and(junction)
     else:
         em = _out_event_model_junction_or(junction)
@@ -464,7 +456,7 @@ def _out_event_model_junction_and(junction):
 def _invalidate_event_model_caches(task):
     """ Invalidate all event model caches """
     task.invalidate_event_model_cache()
-    for t in _breadth_first_search(task):
+    for t in breadth_first_search(task):
         t.invalidate_event_model_cache()
 
 
@@ -500,7 +492,7 @@ def _propagate_junction(junction, task_results):
 
     # find potential functional cycles in the app-graph
     # _propagate tasks are all previous input tasks without cycles
-    subgraph = _breadth_first_search(junction)
+    subgraph = breadth_first_search(junction)
     for prev in junction.prev_tasks:
         if prev in subgraph:
             propagate_tasks.remove(prev)
@@ -700,10 +692,9 @@ class GlobalAnalysisState(object):
 
         #print "building dependencies for %d tasks" % (len(context.dirtyTasks))
         for task in self.dirtyTasks:  # go through all tasks
-            all_dep_tasks[task] = _breadth_first_search(
+            all_dep_tasks[task] = breadth_first_search(
                 task, None, self.get_dependent_tasks)
-            # print "got %d dependencies for task %s" %
-            # (len(all_dep_tasks[task]), task)
+
 
         #sort by name first (as secondary key in case the lengths are the same
         all_tasks_by_name = sorted(
@@ -731,7 +722,7 @@ def get_next_tasks(task):
     return task.next_tasks
 
 
-def _breadth_first_search(task, func=None, get_reachable_tasks=get_next_tasks):
+def breadth_first_search(task, func=None, get_reachable_tasks=get_next_tasks):
     """ returns a set of nodes (tasks) which is reachable
     starting from the starting task.
     calls func on the first discover of a task.
@@ -759,17 +750,17 @@ def _breadth_first_search(task, func=None, get_reachable_tasks=get_next_tasks):
     return marked
 
 
-def _generate_distance_map(system):
+def generate_distance_map(system):
     """ Precomputes a distance-map for all tasks in the system.
     """
     dist = dict()
     for r in system.resources:
         for t in r.tasks:
-            dist[t] = _dijkstra(t)
+            dist[t] = dijkstra(t)
     return dist
 
 
-def _dijkstra(source):
+def dijkstra(source):
     """ Calculates a distance-map from the source node
     based on the dijkstra algorithm
     The edge weight is 1 for all linked tasks
@@ -779,7 +770,7 @@ def _dijkstra(source):
 
     # since we don't have a global view on the graph, we aquire a set of all
     # nodes using BFS
-    nodes = _breadth_first_search(source)
+    nodes = breadth_first_search(source)
 
     for v in nodes:
         dist[v] = float('inf')
@@ -809,22 +800,22 @@ def _dijkstra(source):
     return dist
 
 
-def analyze_system(system, clean=False, only_dependent_tasks=False, progress_hook=None):
+def analyze_system(system, task_results=None, only_dependent_tasks=False, progress_hook=None):
     """ Analyze all tasks until we find a fixed point
 
         system -- the system to analyze
-        clean -- if true, all intermediate analysis results (from previous analysis) are cleaned
+        task_results -- if not None, all intermediate analysis results from a previous run are reused
 
         Returns a dictionary with results for each task.
 
         This based on the procedure described in Section 7.2 in [Richter2005]_.
     """
-
-    task_results = dict()
-    for r in system.resources:
-        for t in r.tasks:
-            task_results[t] = TaskResult()
-            t.analysis_results = task_results[t]
+    if task_results is None:
+        task_results = dict()
+        for r in system.resources:
+            for t in r.tasks:
+                task_results[t] = TaskResult()
+                t.analysis_results = task_results[t]
 
     analysis_state = GlobalAnalysisState(system, task_results)
 
@@ -855,10 +846,6 @@ def analyze_system(system, clean=False, only_dependent_tasks=False, progress_hoo
             new_jitter = task_results[t].wcrt - task_results[t].bcrt
             new_busytimes = task_results[t].busy_times
 
-    #        assert(old_t.resource == t.resource)
-    #        assert(old_t.priority == t.priority)
-    # assert(old_t.resource.idleSlope[old_t.priority] ==
-    # t.resource.idleSlope[t.priority])
 
             if new_jitter != old_jitter or old_busytimes != new_busytimes:
                 # If jitter has changed, the input event models of all
@@ -867,26 +854,13 @@ def analyze_system(system, clean=False, only_dependent_tasks=False, progress_hoo
                 # so mark them and all other tasks on their resource for
                 # another analysis
 
-# logger.debug("Propagating output of %s to %d dependent tasks. busy_times=%s"
-# %
-# (t.name, len(analysis_state.dependentTask[t]), task_results[t].busy_times))
-                # print "dependents of %s: %s" % (t.name,
-                # analysis_state.dependentTask[t])
-
+                # propagate event model
                 _propagate(t, task_results)
 
-                analysis_state._mark_dependents_dirty(
-                    t)  # mark all dependencies dirty
-                # _mark_all_dirty(system, analysis_state) # this is always
-                # conservative
+                # mark all dependencies dirty
+                analysis_state._mark_dependents_dirty(t)
                 break  # break the for loop to restart iteration
-            else:
-                #print "Jitter: %g->%g" % (old_jitter, new_jitter)
-                # print "Busy times \n%s -> \n%s" % (old_busytimes,
-                # new_busytimes)
-                # print "Fixed Point at task %s:\n%s\n%s" % (t,
-                # old_t.busy_times, t.busy_times)
-                pass
+
 
             elapsed = (time.clock() - start)
             logger.debug("iteration: %d, time: %.1f task: %s wcrt: %f dirty: %d"
