@@ -68,18 +68,18 @@ def plot_event_model(model, num_events, file_format=None, separate_plots=True, f
     :rtype: None
     """
 
-    eps = 1e-10 # epsilon
+    eps = 1e-1 # epsilon
+
     max_delta_t = model.delta_plus(num_events + 1)
 
     # create ranges which have one point at each step of eta
-    steps_eta_plus = [model.delta_min(x) for x in range(num_events + 1)]
+    steps_eta_plus = [model.delta_min(x) for x in range(num_events + 2)]
     steps_eta_min = [model.delta_plus(x) for x in range(num_events + 2)]
     steps_eta = sorted(set(steps_eta_min + steps_eta_plus))
 
-    range_eta = range(max(steps_eta_min) + 1)
-
     # range including surroundings of integers
-    augmented_range = sorted(range_eta + [x + eps for x in range_eta] + [x - eps for x in range_eta])
+    augmented_range = sorted(steps_eta + [x + eps for x in steps_eta] + [x - eps for x in steps_eta])
+
     w, h = pyplot.figaspect(0.7)
     pyplot.figure(figsize=(w, h))
 
