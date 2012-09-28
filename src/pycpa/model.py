@@ -428,28 +428,30 @@ class EventModel (object):
         """
         self.__description__ = "ltd. direct"
 
-        def d_min_from_list(n):
+
+        def delta_min_func(n):
             if n == float("inf"):
                 return float("inf")
-            elif n >= limit_q_min:  #return additive extension  if necessary
+            elif n > limit_q_min:  #return additive extension  if necessary
+                print ("n", n)
                 q_max = limit_q_min - 1
-                ret = util.additive_extension(lambda x: limited_delta_min_func(x + 1), n, q_max)
+                ret = util.additive_extension(lambda x: delta_min_func(x + 1), n - 1, q_max)
                 return ret
             else:
                 return limited_delta_min_func(n)
 
-        def d_plus_from_list(n):
+        def delta_plus_func(n):
             if n == float("inf"):
                 return float("inf")
-            elif n >= limit_q_plus:  #return additive extension  if necessary
+            elif n > limit_q_plus:  #return additive extension  if necessary
                 q_max = limit_q_plus - 1
-                ret = util.additive_extension(lambda x: limited_delta_plus_func(x + 1), n, q_max)
+                ret = util.additive_extension(lambda x: delta_plus_func(x + 1), n - 1, q_max)
                 return ret
             else:
                 return limited_delta_plus_func(n)
 
-        self.deltaplus_func = d_min_from_list
-        self.deltamin_func = d_plus_from_list
+        self.deltaplus_func = delta_plus_func
+        self.deltamin_func = delta_min_func
 
 
     def set_limited_trace(self, trace_points, min_sample_size=20):
@@ -459,22 +461,24 @@ class EventModel (object):
             min_sample_size is the minimum amount of candidates that must be available to derive a representative deltamin/deltaplus 
         """
 
-        self.__description__ = "trace-based"
-
         for p in set(trace_points):
-            _warn_float(p, "delta point")
+            if type(p) == float:
+                warnings.warn("You are using floats in your timestamps,"
+                             " this may yield non-pessimistic results"
+                             " consider using time conversion from pycpa.util")
+                break
+
 
         # import numy only when needed
         import numpy as np
         trace = np.array(trace_points)
-        q_max = trace.size - min_sample_size + 1
+        q_max = trace.size
 
         def raw_deltamin_func(n):
             """ raw trace deltamin_func, only valid in the interval [0,q_max]
             """
             assert n >= 0
             assert n <= q_max
-
             d = float('inf')
             for q in range(0, q_max - n + 1):
                 seq = trace[q:q + n ]
@@ -483,17 +487,6 @@ class EventModel (object):
                 assert d_new >= 0
                 d = min(d_new, d)
             return d
-
-
-        def trace_deltamin_func(n):
-            """ trace-based deltamin function, uses additive extension internally
-            """
-            if n <= 1:
-                return 0
-            elif n > q_max:  #return additive extension  if necessary
-                return util.additive_extension(lambda x: trace_deltamin_func(x + 1), n - 1, q_max - 1)
-            else:
-                return raw_deltamin_func(n)
 
 
         def raw_deltaplus_func(n):
@@ -510,20 +503,12 @@ class EventModel (object):
                 d = max(d_new, d)
             return d
 
+        # set the trace as a limited delta function and let pycpa extrapolate
+        limit_q_max = max(2, q_max - min_sample_size + 1)
+        print("q_max", q_max, "trace_size", trace.size, limit_q_max)
+        self.set_limited_delta(raw_deltamin_func, raw_deltaplus_func, limit_q_max, limit_q_max)
 
-        def trace_deltaplus_func(n):
-            """  trace-based deltaplus function, uses additive extension internally
-            """
-            if n <= 1:
-                return 0
-            elif n > q_max:  #return additive extension  if necessary
-                return util.additive_extension(lambda x: trace_deltaplus_func(x + 1), n - 1, q_max - 1)
-            else:
-                return raw_deltaplus_func(n)
-
-        self.deltaplus_func = trace_deltaplus_func
-        self.deltamin_func = trace_deltamin_func
-
+        self.__description__ = "trace-based"
 
     def set_PJd(self, P, J=0, dmin=0, early_arrival=False):
         """ Sets the event model to a periodic activation
@@ -676,10 +661,10 @@ class Task (object):
         self.prev_task = None
 
         ## Worst-case execution time
-        self._wcet = 0
+        self.wcet = 0
 
         ## Best-case execution time
-        self._bcet = 0
+        self.bcet = 0
 
         ## Event model activating the Task
         self.in_event_model = None
@@ -703,27 +688,6 @@ class Task (object):
     def __repr__(self):
         """ Returns string representation of Task """
         return self.name
-
-    @property
-    def wcet(self):
-        """ worst case execution time """
-        return self._wcet
-
-    @wcet.setter
-    def wcet(self, value):
-        _warn_float(value, "WCET")
-        self._wcet = value
-
-    @property
-    def bcet(self):
-        """ best case execution time """
-        return self._bcet
-
-    @bcet.setter
-    def bcet(self, value):
-        _warn_float(value, "BCET")
-
-        self._bcet = value
 
     def bind_resource(self, r):
         """ Bind a Task t to a Resource/Mutex r """
