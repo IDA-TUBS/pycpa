@@ -47,7 +47,7 @@ class TaskResult:
     #: List of busy-times
     busy_times = list()
     #: Worst-case activation backlog
-    backlog = float('inf')
+    max_backlog = float('inf')
     #: Number of activations q for which the worst-case response-time was found
     q_wcrt = 0
     # : dict containing details on the busy-window of the worst-case response
@@ -64,7 +64,7 @@ class TaskResult:
         self.wcrt = 0
         self.bcrt = 0
         self.busy_times = list()
-        self.backlog = float('inf')
+        self.max_backlog = float('inf')
         self.q_wcrt = 0
 
     def b_wcrt_str(self):
@@ -270,10 +270,14 @@ class Scheduler:
     def compute_max_backlog(self, task, task_results, output_delay=0):
         """ Compute the maximum backlog of Task t.
             This is the maximum number of outstanding activations.
+            Implemented as shown in Eq.17 of [Diemer2012]_.
         """
         q_max = len(task_results[task].busy_times)
-        b = [task.in_event_model.eta_plus(task_results[task].busy_times[q] + output_delay) - q + 1 for q in  range(1, q_max)]
-        return max(b)
+        b = [task.in_event_model.eta_plus(task_results[task].busy_times[q] +
+            output_delay) - q + 1 for q in  range(1, q_max)]
+        max_backlog = max(b)
+        task_results[task].max_backlog = max_backlog
+        return max_backlog
 
 def analyze_task(task, task_results):
     """ Analyze Task BUT DONT propagate event model.
@@ -286,6 +290,9 @@ def analyze_task(task, task_results):
     assert(task.bcet <= task.wcet)
     task.resource.scheduler.compute_bcrt(task, task_results)
     task.resource.scheduler.compute_wcrt(task, task_results)
+
+    #TODO: now that backlog computation is fast, we could call 
+    # compute_max_backlog() here...
 
     # logger.debug("%s: bcrt=%g, wcrt=%g" % (task.name,
     # task_results[task].bcrt, task_results[task].wcrt))

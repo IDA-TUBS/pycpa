@@ -130,9 +130,8 @@ class ConstraintsManager(object):
         """
         violations = list()
         for task, size in self._backlog_constraints.items():
-            task_results[task].backlog = task.resource.scheduler.compute_max_backlog(
-                task)
-            if task_results[task].backlog > size:
+            task.resource.scheduler.compute_max_backlog(task, task_results)
+            if task_results[task].max_backlog > size:
                 violations.append(task)
         return violations
 

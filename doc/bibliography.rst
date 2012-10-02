@@ -10,6 +10,7 @@ Bibliography
 .. [Schliecker2009recursive] Simon Schliecker and Rolf Ernst, "A Recursive Approach to End-To-End Path Latency Computation in Heterogeneous Multiprocessor Systems", Proc. 7th International Conference on Hardware Software Codesign and System Synthesis (CODES-ISSS), 2009
 .. [Schliecker2009] Simon Schliecker and Mircea Negrean and Rolf Ernst, "Response Time Analysis in Multicore ECUs with Shared Resources", IEEE Transactions on Industrial Informatics, 2009
 .. [Diemer2010] Jonas Diemer and Rolf Ernst, "Back Suction: Service Guarantees for Latency-Sensitive On-Chip Networks", The 4th ACM/IEEE International Symposium on Networks-on-Chip, 2010
+.. [Diemer2012] Jonas Diemer and Daniel Thiele and Rolf Ernst, "Formal Worst-Case Timing Analysis of Ethernet Topologies with Strict-Priority and AVB Switching", 7th IEEE International Symposium on Industrial Embedded Systems (SIES'12), 2012
 .. [Schliecker2011] Simon Schliecker, "Performance Analysis of Multiprocessor Real-Time Systems with Shared Resources", Dissertation, Technische Universität Braunschweig, 2011, submitted 2010
 .. [Palencia2003] Palencia and Harbour, "Offset-based response time analysis of distributed systems scheduled under EDF", Proc. of 15th Euromicro Conference on Real-Time Systems, 2003
 .. [Bate1998] Iain John Bate, "Scheduling and Timing Analysis for Safety Critical Real-Time Systems", Phd Thesis, 1998
