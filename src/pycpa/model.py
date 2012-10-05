@@ -27,8 +27,7 @@ import warnings
 
 import options
 
-import analysis
-import path_analysis
+import path_analysis  # FIXME: Circular import
 import util
 
 INFINITY = float('inf')
@@ -41,8 +40,8 @@ def _warn_float(value, reason=""):
     """
     if type(value) == float:
         warnings.warn("You are using floats, "
-                "this may yield non-pessimistic results (" + reason + ")",
-                UserWarning)
+                      "this may yield non-pessimistic results (" + reason +
+                      ")", UserWarning)
 
 
 class ConstraintsManager(object):
