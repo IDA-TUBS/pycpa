@@ -420,7 +420,7 @@ class EventModel (object):
         valid in a limited domain [0, limit_q_min] and [0, limit_q_plus] respectively.
         For values of q beyond this range, a conservative extension (additive extension) is used.
         You can also supply a list() object to this function by using lambda x: limited_delta_min_list[x]
-        
+
         In that sense, set_limited_delta(deltamin_func, deltaplus_func, float('inf'), float('inf')) is equivalent to
         em.deltamin_func = deltamin_func
         em.deltaplus_func = deltaplus_func
@@ -457,7 +457,7 @@ class EventModel (object):
         """ Compute a pseudo-conservative event model from a given trace (e.g. from SymTA/S TraceAnalyzer or similar).
             trace_points must be a list of integers encoding the arrival time of an event.
             The algorithm will compute delta_min and delta_plus based on the trace by evaluating all candidates.
-            min_sample_size is the minimum amount of candidates that must be available to derive a representative deltamin/deltaplus 
+            min_sample_size is the minimum amount of candidates that must be available to derive a representative deltamin/deltaplus
         """
 
         for p in set(trace_points):
@@ -880,8 +880,11 @@ class System:
     It contains resources, junctions, tasks and paths.
     """
 
-    def __init__(self):
+    def __init__(self, name=''):
         """ CTOR """
+
+        ## Name
+        self.name = name
 
         # Set of resources, indexed by an ID, e.g. (x,y) tuple for mesh systems
         self.resources = set()
