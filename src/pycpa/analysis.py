@@ -50,7 +50,7 @@ class TaskResult:
     max_backlog = float('inf')
     #: Number of activations q for which the worst-case response-time was found
     q_wcrt = 0
-    # : dict containing details on the busy-window of the worst-case response
+    #: dict containing details on the busy-window of the worst-case response
     # time
     b_wcrt = dict()
 
@@ -82,7 +82,7 @@ class Scheduler:
     def __init__(self):
         pass
 
-    def b_plus(self, task, q, details=False):
+    def b_plus(self, task, q, details=None):
         """ Maximum Busy-Time for q activations of a task.
 
         This default implementation assumes that all other tasks
@@ -98,31 +98,30 @@ class Scheduler:
         :type task: model.Task
         :param q: the number of activations
         :type q: integer
-        :param details: return a dict of details on
-                        the busy window (instead of busy time)
+        :param details: reference to a dict of details
+        on the busy window (instead of busy time)
         :type q: boolean
         :rtype: integer (max. busy-time for q activations)
-                or dict if details==True (details on busy-window)
         """
 
         w = q * task.wcet
-
         while True:
             s = 0
             for ti in task.get_resource_interferers():
                 s += ti.wcet * ti.in_event_model.eta_plus(w)
             w_new = q * task.wcet + s
             if w == w_new:
-                if details:
-                    d = dict()
-                    d['q*WCET'] = str(
-                        q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
+                if details is not None:
+                    sum_dict = dict()
+                    sum_dict['q*WCET'] = q * task.wcet
+                    details['q*WCET'] = str(q) + '*' + str(task.wcet)
                     for ti in task.get_resource_interferers():
-                        d[str(ti) + ':eta*WCET'] = str(ti.in_event_model
-                                .eta_plus(w)) + '*'\
-                            + str(ti.wcet) + '=' + \
-                            str(ti.wcet * ti.in_event_model.eta_plus(w))
-                    return d
+                        sum_dict[str(ti) + '.eta*WCET'] = \
+                            ti.in_event_model.eta_plus(w) * ti.wcet
+                        details[str(ti) + ':eta*WCET'] = str(ti.in_event_model
+                            .eta_plus(w)) + '*'\
+                            + str(ti.wcet)
+                    details['sum'] = sum_dict
                 else:
                     return w
             w = w_new
@@ -194,8 +193,9 @@ class Scheduler:
         q = 1
         q_wcrt = 1  # q for which the max wcrt was computed
         wcrt = task.wcet
+        b_wcrt = dict() # store details of busy window leading to wcrt
         task_results[task].busy_times = [0]  # busy time of 0 activations
-        b_wcrt = self.b_plus(task, 1, details=True)
+        self.b_plus(task, 1, details=b_wcrt)
         while True:
             w = self.b_plus(task, q)
             task_results[task].busy_times.append(w)
@@ -207,7 +207,7 @@ class Scheduler:
             if current_response > wcrt:
                 wcrt = current_response
                 q_wcrt = q
-                b_wcrt = self.b_plus(task, q, details=True)
+                self.b_plus(task, q, details=b_wcrt)
 
             # TODO: this should go in central "constraint checking" function
             if options.get_opt('max_wcrt') < wcrt:
@@ -230,6 +230,7 @@ class Scheduler:
         task_results[task].q_wcrt = q_wcrt
         task_results[task].wcrt = wcrt
         task_results[task].b_wcrt = b_wcrt
+        print "yo", b_wcrt
         # logger.debug(task.name + " busy times: " +
         # str(task_results[task].busy_times))
         return wcrt
@@ -291,7 +292,7 @@ def analyze_task(task, task_results):
     task.resource.scheduler.compute_bcrt(task, task_results)
     task.resource.scheduler.compute_wcrt(task, task_results)
 
-    #TODO: now that backlog computation is fast, we could call 
+    #TODO: now that backlog computation is fast, we could call
     # compute_max_backlog() here...
 
     # logger.debug("%s: bcrt=%g, wcrt=%g" % (task.name,

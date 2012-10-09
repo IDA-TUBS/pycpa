@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2012 Philip Axer, Jonas Diemer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -32,14 +32,14 @@ prio_low_wins_equal_domination = lambda a, b : a < b
 
 class EDFPScheduler(analysis.Scheduler):
     """ Earliest-Deadline-First-Preemptive Scheduler
-    
+
     local deadlines must be stored in task.deadline
-    
+
     Policy for coinciding deadlines is max. interference.
-            
+
     .. warning::
         experimental, use with caution
-        
+
     """
 
     def edf_busy_period(self, task):
@@ -65,14 +65,14 @@ class EDFPScheduler(analysis.Scheduler):
 
     def _activation_time_candidates(self, task, q):
         """ Returns a set of activation times which must be evaluated.
-        
+
         similar to [Palencia2003]_ Equation 10 and 15
-        
+
         :param task: the analyzed task
         :type task: model.Task
         :param q: the index of the activation for which candidates are evaluated
         :type q: integer
-        :rtype: set of integers 
+        :rtype: set of integers
         """
         busy_period = self.edf_busy_period(task)
         #print "busy_period", busy_period
@@ -105,9 +105,9 @@ class EDFPScheduler(analysis.Scheduler):
         """ Returns the number of interference activations orginating from task ti
         which is seen during the execution of q activations of task,
         assuming the q-th activation was released at activation_time.
-        
+
         similar to [Palencia2003]_ Equation 9
-        
+
         :param task: the analyzed task
         :type task: model.Task
         :param q: the amount of activations for task
@@ -116,9 +116,9 @@ class EDFPScheduler(analysis.Scheduler):
         :type ti: model.Task
         :param w: busy window length
         :type w: integer
-        :param activation_time: activation time (relative to the busy window start!) 
+        :param activation_time: activation time (relative to the busy window start!)
         :type activation_time: integer
-        :rtype: amount of activations as integer 
+        :rtype: amount of activations as integer
         """
 
         # all activations in the current window
@@ -155,9 +155,9 @@ class EDFPScheduler(analysis.Scheduler):
         return w
 
 
-    def b_plus(self, task, q, details=False):
+    def b_plus(self, task, q, details=None):
         """ time required to process q subsequent activations of task
-         
+
         :param task: the analyzed task
         :type task: model.Task
         :param q: the amount of activations for task
@@ -180,7 +180,7 @@ class EDFPScheduler(analysis.Scheduler):
                 a = ac
 
         #print "  -----> w_max:", w, "ac:", a
-        if details:
+        if details is not None:
             # TODO: implement details==True
             return dict()
         else:
@@ -194,10 +194,10 @@ class EDFPScheduler(analysis.Scheduler):
         :param task: the analyzed task
         :type task: model.Task
         :param q: the number of activations
-        :type q: integer        
+        :type q: integer
         :param w: the current busy-time
         :type w: integer
-        :rtype: integer (max. busy-time for q activations) 
+        :rtype: integer (max. busy-time for q activations)
         """
 
         if task.in_event_model.delta_min(q + 1) >= self.edf_busy_period(task):
@@ -211,7 +211,7 @@ class RoundRobinScheduler(analysis.Scheduler):
     task.scheduling_parameter is the respective slot size
     """
 
-    def b_plus(self, task, q, details=False):
+    def b_plus(self, task, q, details=None):
         w = q * task.wcet
         #print "q=",q
         while True:
@@ -230,39 +230,36 @@ class RoundRobinScheduler(analysis.Scheduler):
             w_new = q * task.wcet + s
 
             if w == w_new:
-                if details:
-                    d = dict()
-                    d['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
+                if details is not None:
+                    details['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
 
                     for ti in task.get_resource_interferers():
                         if hasattr(task, "scheduling_parameter") and task.scheduling_parameter is not None:
                             if int(math.ceil(float(q) * task.wcet / task.scheduling_parameter)) * ti.scheduling_parameter < ti.in_event_model.eta_plus(w) * ti.wcet:
-                                d[str(ti)] = '%d*%d' % \
+                                details[str(ti)] = '%d*%d' % \
                                     (int(math.ceil(float(q) * task.wcet / task.scheduling_parameter)),
                                      ti.scheduling_parameter)
                             else:
-                                d[str(ti)] = '%d*%d' % (ti.in_event_model.eta_plus(w), ti.wcet)
+                                details[str(ti)] = '%d*%d' % (ti.in_event_model.eta_plus(w), ti.wcet)
                         else:
-                            d[str(ti)] = "%d*min(%d,%d)=%d*%d" % \
+                            details[str(ti)] = "%d*min(%d,%d)=%d*%d" % \
                                 (ti.wcet, q, ti.in_event_model.eta_plus(w),
                                  ti.wcet, min(q, ti.in_event_model.eta_plus(w)))
-                    return d
-                else:
-                    return w
+                return w
             w = w_new
 
 
 class SPNPScheduler(analysis.Scheduler):
     """ Static-Priority-Non-Preemptive Scheduler
-        
+
     Priority is stored in task.scheduling_parameter,
     by default numerically lower numbers have a higher priority
-    
+
     Policy for equal priority is FCFS (i.e. max. interference).
     """
 
     def __init__(self, priority_cmp=prio_low_wins_equal_fifo, ctx_switch_overhead=0, cycle_time=EPSILON):
-        """        
+        """
         :param priority_cmp: function to evaluate priority comparison of the form foo(a,b). if foo(a,b) == True, then "a" is more important than "b"
         :param cycle_time: time granularity of the scheduler, see [Bate1998]_ E.q. 4.14
         :param ctx_switch_overhead: context switching overhead (or interframe space for transmission lines)
@@ -309,7 +306,7 @@ class SPNPScheduler(analysis.Scheduler):
         """ Check if we have looked far enough
             compute the time the resource is busy processing q activations of task
             and activations of all higher priority tasks during that time
-            Returns True if stopping-condition is satisfied, False otherwise 
+            Returns True if stopping-condition is satisfied, False otherwise
         """
 
         # if there are no new activations when the current busy period has been completed, we terminate
@@ -318,7 +315,7 @@ class SPNPScheduler(analysis.Scheduler):
         return False
 
 
-    def b_plus(self, task, q, details=False):
+    def b_plus(self, task, q, details=None):
         """ Return the maximum time required to process q activations
         """
         assert(task.scheduling_parameter != None)
@@ -344,20 +341,16 @@ class SPNPScheduler(analysis.Scheduler):
             #print ("w_new: ", w_new)
             if w == w_new:
 
-                if details:
-                    d = dict()
-                    d['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
-                    d['blocker'] = str(b)
+                if details is not None:
+                    details['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
+                    details['blocker'] = str(b)
                     for ti in task.get_resource_interferers():
                         if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):
-                            d[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w + self.cycle_time)) + '*'\
+                            details[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w + self.cycle_time)) + '*'\
                                 + str(ti.wcet) + '=' + str((ti.wcet + self.ctx_switch_overhead) * ti.in_event_model.eta_plus(w + self.cycle_time))
-                    return d
-                else:
-                    w += task.wcet
-                    assert(w >= q * task.wcet)
-                    return w
-                break
+                w += task.wcet
+                assert(w >= q * task.wcet)
+                return w
             w = w_new
 
 
@@ -365,7 +358,7 @@ class SPPOffsetScheduler(analysis.Scheduler):
 
 
     def stopping_condition(self, task, q, w):
-        # TODO: Check!!!        
+        # TODO: Check!!!
         return analysis.Scheduler.stopping_condition(self, task, q, w)
 
 
@@ -424,7 +417,7 @@ class SPPOffsetScheduler(analysis.Scheduler):
         T_i = task_ik.in_event_model.P
         assert(T_i > 0)
         for ti in tasks_in_transaction:
-            # The period (T_i) for all tasks in the transaction is the same 
+            # The period (T_i) for all tasks in the transaction is the same
             assert task_ik.in_event_model.P == ti.in_event_model.P
             J_ij = ti.in_event_model.J
             phi = self.phi_ijk(ti, task_ik)
@@ -470,7 +463,7 @@ class SPPOffsetScheduler(analysis.Scheduler):
 
 
 
-    def b_plus(self, task, q, details=False):
+    def b_plus(self, task, q, details=None):
         """ Return the maximum time required to process q activations
             smaller priority number -> right of way
         """
@@ -490,19 +483,16 @@ class SPPOffsetScheduler(analysis.Scheduler):
             w = max(w, self.w_spp_candidate(tasks_in_transaction, task, candidate, q - 1))
         logger.debug("window for %s is %f", task.name, w)
         assert(w >= q * task.wcet)
-        if details:
-            # TODO: Implement details
-            return dict()
-        else:
-            return w
+
+        return w
 
 
 class SPPScheduler(analysis.Scheduler):
     """ Static-Priority-Preemptive Scheduler
-    
+
     Priority is stored in task.scheduling_parameter,
     by default numerically lower numbers have a higher priority
-    
+
     Policy for equal priority is FCFS (i.e. max. interference).
     """
 
@@ -513,7 +503,7 @@ class SPPScheduler(analysis.Scheduler):
         ## priority ordering
         self.priority_cmp = priority_cmp
 
-    def b_plus(self, task, q, details=False):
+    def b_plus(self, task, q, details=None):
         """ This corresponds to Theorem 1 in [Lehoczky1990]_ or Equation 2.3 in [Richter2005]_. """
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
@@ -536,16 +526,13 @@ class SPPScheduler(analysis.Scheduler):
             #print ("w_new: ", w_new)
             if w == w_new:
                 assert(w >= q * task.wcet)
-                if details:
-                    d = dict()
-                    d['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
+                if details is not None:
+                    details['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
                     for ti in task.get_resource_interferers():
                         if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):
-                            d[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w)) + '*'\
+                            details[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w)) + '*'\
                                 + str(ti.wcet) + '=' + str(ti.wcet * ti.in_event_model.eta_plus(w))
-                    return d
-                else:
-                    return w
+                return w
 
             w = w_new
 
@@ -568,7 +555,7 @@ class SPPSchedulerRoundRobin(SPPScheduler):
                 assert(ti.scheduling_parameter != None)
                 assert(ti.resource == task.resource)
                 if ti.scheduling_parameter == task.scheduling_parameter: # equal priority -> round robin
-                    # assume cooperative round-robin                
+                    # assume cooperative round-robin
                     s += ti.wcet * min(q, ti.in_event_model.eta_plus(w))
                 elif self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter): # lower priority number -> block
                     s += ti.wcet * ti.in_event_model.eta_plus(w)
@@ -590,7 +577,7 @@ class TDMAScheduler(analysis.Scheduler):
         task.scheduling_parameter is the slot size of the respective task
     """
 
-    def b_plus(self, task, q, details=False):
+    def b_plus(self, task, q, details=None):
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 
@@ -602,14 +589,12 @@ class TDMAScheduler(analysis.Scheduler):
 
         assert(w >= q * task.wcet)
 
-        if details:
-            d = dict()
-            d['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
+        if details is not None:
+            details['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
             for tj in task.get_resource_interferers():
-                d["%s.TDMASlot" % (tj)] = str(tj.scheduling_parameter)
-            d['I_TDMA'] = '%d*%d=%d' % (math.ceil(float(q * task.wcet) / task.scheduling_parameter),
+                details["%s.TDMASlot" % (tj)] = str(tj.scheduling_parameter)
+            details['I_TDMA'] = '%d*%d=%d' % (math.ceil(float(q * task.wcet) / task.scheduling_parameter),
                                       t_tdma - task.scheduling_parameter,
                                       math.ceil(float(q * task.wcet) / task.scheduling_parameter) * (t_tdma - task.scheduling_parameter))
-            return d
-        else:
-            return w
+        return w
+
