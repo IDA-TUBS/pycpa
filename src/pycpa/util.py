@@ -15,7 +15,10 @@ Various utility functions
 """
 
 import fractions
-import analysis
+import logging
+from collections import deque
+
+logger = logging.getLogger("pycpa")
 
 # time bases
 ps = 1000000000000
@@ -24,7 +27,97 @@ us = 1000000
 ms = 1000
 s = 1
 
+
+def get_next_tasks(task):
+    """ return the list of next tasks for task object.
+    required for _breadth_first_search """
+    return task.next_tasks
+
+
+def breadth_first_search(task, func=None, get_reachable_tasks=get_next_tasks):
+    """ returns a set of nodes (tasks) which is reachable
+    starting from the starting task.
+    calls func on the first discover of a task.
+
+    get_reachable_tasks(task) specifies a function which returns all tasks
+    considered immediately reachable for a given task.
+    """
+    marked = set()
+    queue = deque()
+
+    queue.append(task)
+    marked.add(task)
+
+    if func is not None:
+        func(task)
+
+    while len(queue) > 0:
+        v = queue.popleft()
+        for e in get_reachable_tasks(v):
+            if e not in marked:
+                if func is not None:
+                    func(task)
+                marked.add(e)
+                queue.append(e)
+    return marked
+
+
+def generate_distance_map(system):
+    """ Precomputes a distance-map for all tasks in the system.
+    """
+    dist = dict()
+    for r in system.resources:
+        for t in r.tasks:
+            dist[t] = dijkstra(t)
+    return dist
+
+def dijkstra(source):
+    """ Calculates a distance-map from the source node
+    based on the dijkstra algorithm
+    The edge weight is 1 for all linked tasks
+    """
+    dist = dict()
+    previous = dict()
+
+    # since we don't have a global view on the graph, we aquire a set of all
+    # nodes using BFS
+    nodes = breadth_first_search(source)
+
+    for v in nodes:
+        dist[v] = float('inf')
+        previous[v] = None
+
+    # init source
+    dist[source] = 0
+
+    # working set of nodes to revisit
+    Q = nodes.copy()
+
+    while len(Q) > 0:
+        # get node with minimum distance
+        u = min(Q, key=lambda x: dist[x])
+
+        if dist[u] == float('inf'):
+            break  # all remaining vertices are inaccessible from source
+
+        Q.remove(u)
+
+        for v in u.next_tasks:  # where v has not yet been removed from Q.
+            alt = dist[u] + 1
+            if alt < dist[v]:
+                dist[v] = alt
+                previous[v] = u
+                Q.add(v)
+    return dist
+
 def additive_extension(additive_func, q, q_max):
+    """ Additive extension for event models.
+    Any sub- or super- additive function additive_func valid in the domain q \in [0, q_max]
+    is extended and the approximited value f(q) is returned.
+    NOTE: this cannot be directly used with delta curves, since they are "1-off",
+    thus if you supply a delta function to additive_func, note to add 1 and supply q-1.
+    e.g. util.additive_extension(lambda x: self.delta_min(x + 1), n - 1, q_max)
+    """
     if q <= q_max:
         return additive_func(q)
     elif q == float('inf'):
@@ -35,31 +128,64 @@ def additive_extension(additive_func, q, q_max):
         return div * additive_func(q_max) + additive_func(rem)
 
 
-def recursive_max_additive(additive_func, q, q_max):
+def recursive_max_additive(additive_func, q, q_max, cache=dict()):
+    """ Sub-additive extension for event models.
+    Any sub-additive function additive_func valid in the domain q \in [0, q_max]
+    is extended and the value f(q) is returned.
+    It is optional to supply a cache dictionary for speedup.
+
+    NOTE: this cannot be directly used with delta curves, since they are "1-off",
+    thus if you supply a delta function to additive_func, note to add 1 and supply q-1.
+    e.g. ret = util.recursive_max_additive(lambda x: self.delta_min(x + 1), n - 1, q_max, self.delta_min_cache)
+
+    The cache is filled according to the delta domain notion, so it can be used with delta-based event models.
+    """
     if q <= q_max:
         return additive_func(q)
     else:
         ret = 0
         for a in range(1, q_max + 1):
-            ret = max(ret, additive_func(a) + recursive_max_additive(additive_func, q - a, q_max))
+            b = cache.get(q - a + 1, None) # cache is in delta domain (thus +1)
+            if b is None:
+                b = recursive_max_additive(additive_func, q - a, q_max, cache)
+                cache[q - a + 1] = b
+            #print a, q - a, additive_func(a), b, additive_func(a) + b
+            ret = max(ret, additive_func(a) + b)
+        #print ret
         return ret
 
 
-def recursive_min_additive(additive_func, q, q_max):
+def recursive_min_additive(additive_func, q, q_max, cache=dict()):
+    """ Super-additive extension for event models.
+    Any additive function additive_func valid in the domain q \in [0, q_max]
+    is extended and the value f(q) is returned.
+    It is optional to supply a cache dictionary for speedup.
+
+    NOTE: this cannot be directly used with delta curves, since they are "1-off",
+    thus if you supply a delta function to additive_func, note to add 1 and supply q-1.
+    e.g. ret = util.recursive_min_additive(lambda x: self.delta_plus(x + 1), n - 1, q_max, self.delta_plus_cache)
+
+    The cache is filled according to the delta domain notion, so it can be used with delta-based event models.
+    """
     if q <= q_max:
         return additive_func(q)
     else:
-        ret = 0
+        ret = float('inf')
         for a in range(1, q_max + 1):
-            ret = min(ret, additive_func(a) + recursive_min_additive(additive_func, q - a, q_max))
+            b = cache.get(q - a + 1, None) # cache is in delta domain (thus +1)
+            if b is None:
+                b = recursive_min_additive(additive_func, q - a, q_max, cache)
+                cache[q - a + 1] = b
+            #print a, q - a, additive_func(a), b, additive_func(a) + b
+            ret = min(ret, additive_func(a) + b)
         return ret
 
 
-def str_to_time_base(s):
+def str_to_time_base(unit):
     """ Return the time base for the string """
     conversion = {'s': s, 'ms': ms, 'us': us, 'ns': ns, 'ps': ps}
     if s in conversion:
-        return conversion[s]
+        return conversion[unit]
     else:
         raise ValueError
 
@@ -74,11 +200,11 @@ def time_base_to_str(t):
 
 
 def calculate_base_time(frequencies):
-    lcm = LCM(frequencies)
-    if lcm > ps:
+    common_timebase = LCM(frequencies)
+    if common_timebase > ps:
         error_msg = "high base-time value! consider using ps instead"
-        analysis.logger.error(error_msg)
-    return lcm
+        logger.error(error_msg)
+    return common_timebase
 
 
 def cycles_to_time(value, freq, base_time, rounding="ceil"):
@@ -135,12 +261,12 @@ def lcm(a, b):
 
 def GCD(terms):
     """ Return gcd of a list of numbers."""
-    return reduce(lambda a, b: gcd(a, b), terms)
+    return reduce(gcd, terms)
 
 
 def LCM(terms):
     """Return lcm of a list of numbers."""
-    return reduce(lambda a, b: lcm(a, b), terms)
+    return reduce(lcm, terms)
 
 
 def combinations_with_replacement(iterable, r):

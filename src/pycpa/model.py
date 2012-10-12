@@ -348,6 +348,7 @@ class EventModel (object):
         MAX_EVENTS = 10000
         n = 2
         while self.delta_plus(n) <= w:
+            assert self.delta_plus(n) <= self.delta_plus(n + 1)
             if(n > MAX_EVENTS):
                 logger.error("w=%f" % w + " n=%d" % n +
                              "deltaplus(n)=%d" % self.delta_plus(n))
@@ -431,9 +432,8 @@ class EventModel (object):
             if n == float("inf"):
                 return float("inf")
             elif n > limit_q_min:  #return additive extension  if necessary
-                print ("n", n)
                 q_max = limit_q_min - 1
-                ret = util.additive_extension(lambda x: delta_min_func(x + 1), n - 1, q_max)
+                ret = util.recursive_max_additive(lambda x: self.delta_min(x + 1), n - 1, q_max, self.delta_min_cache)
                 return ret
             else:
                 return limited_delta_min_func(n)
@@ -443,7 +443,7 @@ class EventModel (object):
                 return float("inf")
             elif n > limit_q_plus:  #return additive extension  if necessary
                 q_max = limit_q_plus - 1
-                ret = util.additive_extension(lambda x: delta_plus_func(x + 1), n - 1, q_max)
+                ret = util.recursive_min_additive(lambda x: self.delta_plus(x + 1), n - 1, q_max, self.delta_plus_cache)
                 return ret
             else:
                 return limited_delta_plus_func(n)
@@ -502,8 +502,8 @@ class EventModel (object):
             return d
 
         # set the trace as a limited delta function and let pycpa extrapolate
-        limit_q_max = max(2, q_max - min_sample_size + 1)
-        print("q_max", q_max, "trace_size", trace.size, limit_q_max)
+        limit_q_max = max(2, q_max - min_sample_size)
+        #print("q_max", q_max, "trace_size", trace.size, limit_q_max)
         self.set_limited_delta(raw_deltamin_func, raw_deltaplus_func, limit_q_max, limit_q_max)
 
         self.__description__ = "trace-based"
@@ -949,7 +949,7 @@ class System:
                     root_task = t
                     break
 
-            reachable = analysis.breadth_first_search(root_task)
+            reachable = breadth_first_search(root_task)
             subgraphs.append(reachable)
             unreachable = unreachable - reachable
 

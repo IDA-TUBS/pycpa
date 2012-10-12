@@ -23,6 +23,7 @@ from collections import deque
 
 import model
 import options
+import util
 
 logger = logging.getLogger("pycpa")
 
@@ -230,7 +231,7 @@ class Scheduler:
         task_results[task].q_wcrt = q_wcrt
         task_results[task].wcrt = wcrt
         task_results[task].b_wcrt = b_wcrt
-        print "yo", b_wcrt
+        #print "yo", b_wcrt
         # logger.debug(task.name + " busy times: " +
         # str(task_results[task].busy_times))
         return wcrt
@@ -291,12 +292,8 @@ def analyze_task(task, task_results):
     assert(task.bcet <= task.wcet)
     task.resource.scheduler.compute_bcrt(task, task_results)
     task.resource.scheduler.compute_wcrt(task, task_results)
+    task.resource.scheduler.compute_max_backlog(task, task_results)
 
-    #TODO: now that backlog computation is fast, we could call
-    # compute_max_backlog() here...
-
-    # logger.debug("%s: bcrt=%g, wcrt=%g" % (task.name,
-    # task_results[task].bcrt, task_results[task].wcrt))
     assert(task_results[task].bcrt <= task_results[task].wcrt)
 
 
@@ -464,7 +461,7 @@ def _out_event_model_junction_and(junction):
 def _invalidate_event_model_caches(task):
     """ Invalidate all event model caches """
     task.invalidate_event_model_cache()
-    for t in breadth_first_search(task):
+    for t in util.breadth_first_search(task):
         t.invalidate_event_model_cache()
 
 
@@ -500,7 +497,7 @@ def _propagate_junction(junction, task_results):
 
     # find potential functional cycles in the app-graph
     # _propagate tasks are all previous input tasks without cycles
-    subgraph = breadth_first_search(junction)
+    subgraph = util.breadth_first_search(junction)
     for prev in junction.prev_tasks:
         if prev in subgraph:
             propagate_tasks.remove(prev)
@@ -700,7 +697,7 @@ class GlobalAnalysisState(object):
 
         #print "building dependencies for %d tasks" % (len(context.dirtyTasks))
         for task in self.dirtyTasks:  # go through all tasks
-            all_dep_tasks[task] = breadth_first_search(
+            all_dep_tasks[task] = util.breadth_first_search(
                 task, None, self.get_dependent_tasks)
 
 
@@ -724,88 +721,6 @@ class GlobalAnalysisState(object):
                                     reverse=True)
 
 
-def get_next_tasks(task):
-    """ return the list of next tasks for task object.
-    required for _breadth_first_search """
-    return task.next_tasks
-
-
-def breadth_first_search(task, func=None, get_reachable_tasks=get_next_tasks):
-    """ returns a set of nodes (tasks) which is reachable
-    starting from the starting task.
-    calls func on the first discover of a task.
-
-    get_reachable_tasks(task) specifies a function which returns all tasks
-    considered immediately reachable for a given task.
-    """
-    marked = set()
-    queue = deque()
-
-    queue.append(task)
-    marked.add(task)
-
-    if func is not None:
-        func(task)
-
-    while len(queue) > 0:
-        v = queue.popleft()
-        for e in get_reachable_tasks(v):
-            if e not in marked:
-                if func is not None:
-                    func(task)
-                marked.add(e)
-                queue.append(e)
-    return marked
-
-
-def generate_distance_map(system):
-    """ Precomputes a distance-map for all tasks in the system.
-    """
-    dist = dict()
-    for r in system.resources:
-        for t in r.tasks:
-            dist[t] = dijkstra(t)
-    return dist
-
-
-def dijkstra(source):
-    """ Calculates a distance-map from the source node
-    based on the dijkstra algorithm
-    The edge weight is 1 for all linked tasks
-    """
-    dist = dict()
-    previous = dict()
-
-    # since we don't have a global view on the graph, we aquire a set of all
-    # nodes using BFS
-    nodes = breadth_first_search(source)
-
-    for v in nodes:
-        dist[v] = float('inf')
-        previous[v] = None
-
-    # init source
-    dist[source] = 0
-
-    # working set of nodes to revisit
-    Q = nodes.copy()
-
-    while len(Q) > 0:
-        # get node with minimum distance
-        u = min(Q, key=lambda x: dist[x])
-
-        if dist[u] == float('inf'):
-            break  # all remaining vertices are inaccessible from source
-
-        Q.remove(u)
-
-        for v in u.next_tasks:  # where v has not yet been removed from Q.
-            alt = dist[u] + 1
-            if alt < dist[v]:
-                dist[v] = alt
-                previous[v] = u
-                Q.add(v)
-    return dist
 
 
 def analyze_system(system, task_results=None, only_dependent_tasks=False, progress_hook=None):

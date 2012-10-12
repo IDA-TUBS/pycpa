@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2010 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -14,12 +14,7 @@ Simple SPP example
 """
 
 from pycpa import model
-from pycpa import analysis
-from pycpa import schedulers
-from pycpa import graph
-
-
-
+from pycpa import plot
 
 
 def trace_example():
@@ -37,7 +32,10 @@ def trace_example():
     bursty_trace = [0, 10 , 20 , 30, 32, 40, 50]
     em.set_limited_trace(bursty_trace, 1)
     print "input trace:", bursty_trace
-    print "output delta(n): ", [em.delta_min(p) for p in range (1, 10)]
+    print "output delta_min(n): ", [em.delta_min(p) for p in range (1, 10)]
+    print "output delta_plus(n): ", [em.delta_plus(p) for p in range (1, 10)
+                                     ]
+    plot.plot_event_model(em, 50)
 
 if __name__ == "__main__":
     trace_example()
