@@ -231,7 +231,6 @@ class Scheduler:
         task_results[task].q_wcrt = q_wcrt
         task_results[task].wcrt = wcrt
         task_results[task].b_wcrt = b_wcrt
-        #print "yo", b_wcrt
         # logger.debug(task.name + " busy times: " +
         # str(task_results[task].busy_times))
         return wcrt
