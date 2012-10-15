@@ -19,7 +19,7 @@ from pycpa import plot
 
 def trace_example():
     # this is a rather extreme trace with just two datapoints
-    # pycpa will use additive extension which is a periodic extension in this case 
+    # pycpa will use additive extension which is a periodic extension in this case
     periodic_trace = [0, 10]
     em = model.EventModel()
     em.set_limited_trace(periodic_trace, 1)
@@ -35,7 +35,7 @@ def trace_example():
     print "output delta_min(n): ", [em.delta_min(p) for p in range (1, 10)]
     print "output delta_plus(n): ", [em.delta_plus(p) for p in range (1, 10)
                                      ]
-    plot.plot_event_model(em, 50)
+    # plot.plot_event_model(em, 50)
 
 if __name__ == "__main__":
     trace_example()
