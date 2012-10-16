@@ -50,16 +50,16 @@ class ConstraintsManager(object):
     """
 
     def __init__(self):
-        ## local task deadlines
+        # # local task deadlines
         self._wcrt_constraints = dict()
 
-        ## latency contraints
+        # # latency contraints
         self._path_constraints = dict()
 
-        ## buffer size constraints
+        # # buffer size constraints
         self._backlog_constraints = dict()
 
-        ## resource load constraints
+        # # resource load constraints
         self._load_constraints = dict()
 
     def check_violations(self, task_results, wcrt=True, path=True, backlog=True, load=True):
@@ -185,27 +185,27 @@ class EventModel (object):
         if cache is None:
             cache = not options.get_opt('nocaching')
 
-        ## Cache to speedup busy window calculations
+        # # Cache to speedup busy window calculations
         self.delta_min_cache = dict()
         self.delta_plus_cache = dict()
 
-        ## Enables or disables delta_min caching
+        # # Enables or disables delta_min caching
         self.delta_caching(cache)
 
-        ## Event model eta_plus-plus function (internal)
+        # # Event model eta_plus-plus function (internal)
         self.deltaplus_func = lambda x: 0  # minimal model: no activation
 
-        ## Event model eta_plus-minus function (internal)
+        # # Event model eta_plus-minus function (internal)
         self.deltamin_func = lambda x: float(
-            "inf")   # minimal model: no activation
+            "inf")  # minimal model: no activation
 
-        ## String description of event model
+        # # String description of event model
         self.__description__ = name
 
-        ## Offset for context sensitive analysis
+        # # Offset for context sensitive analysis
         self.phi = phi
 
-        ## Metadata for standard event models
+        # # Metadata for standard event models
         self.P = 0
         self.J = 0
         self.dmin = 0
@@ -233,7 +233,7 @@ class EventModel (object):
             return 0
         x = options.get_opt('epsilon')
         while eta_plus(x) < n:
-            #print "eta_plus(",x,")=",self.eta_plus(x)
+            # print "eta_plus(",x,")=",self.eta_plus(x)
             x += 1
             if x > MAXX:
                 return -1
@@ -252,7 +252,7 @@ class EventModel (object):
             return 0
         x = options.get_opt('epsilon')
         while eta_min(x) < n:
-            #print "eta_plus(",x,")=",self.eta_plus(x)
+            # print "eta_plus(",x,")=",self.eta_plus(x)
             x += 1
             if x > MAXX:
                 return -1
@@ -382,7 +382,7 @@ class EventModel (object):
         if n < 2:
             return 0
 
-        ## Caching is activated
+        # # Caching is activated
         if self.en_delta_caching == True:
             d = self.delta_min_cache.get(n, None)
             if d == None:
@@ -390,7 +390,7 @@ class EventModel (object):
                 self.delta_min_cache[n] = d
             return d
 
-        ## default policy
+        # # default policy
         return self.deltamin_func(n)
 
 
@@ -403,7 +403,7 @@ class EventModel (object):
         if n < 2:
             return 0
 
-        ## Caching is activated
+        # # Caching is activated
         if self.en_delta_caching == True:
             d = self.delta_plus_cache.get(n, None)
             if d == None:
@@ -411,7 +411,7 @@ class EventModel (object):
                 self.delta_plus_cache[n] = d
             return d
 
-        ## default policy
+        # # default policy
         return self.deltaplus_func(n)
 
     def set_limited_delta(self, limited_delta_min_func, limited_delta_plus_func, limit_q_min=float('inf'), limit_q_plus=float('inf')):
@@ -431,7 +431,7 @@ class EventModel (object):
         def delta_min_func(n):
             if n == float("inf"):
                 return float("inf")
-            elif n > limit_q_min:  #return additive extension  if necessary
+            elif n > limit_q_min:  # return additive extension  if necessary
                 q_max = limit_q_min - 1
                 ret = util.recursive_max_additive(lambda x: self.delta_min(x + 1), n - 1, q_max, self.delta_min_cache)
                 return ret
@@ -441,7 +441,7 @@ class EventModel (object):
         def delta_plus_func(n):
             if n == float("inf"):
                 return float("inf")
-            elif n > limit_q_plus:  #return additive extension  if necessary
+            elif n > limit_q_plus:  # return additive extension  if necessary
                 q_max = limit_q_plus - 1
                 ret = util.recursive_min_additive(lambda x: self.delta_plus(x + 1), n - 1, q_max, self.delta_plus_cache)
                 return ret
@@ -503,7 +503,7 @@ class EventModel (object):
 
         # set the trace as a limited delta function and let pycpa extrapolate
         limit_q_max = max(2, q_max - min_sample_size)
-        #print("q_max", q_max, "trace_size", trace.size, limit_q_max)
+        # print("q_max", q_max, "trace_size", trace.size, limit_q_max)
         self.set_limited_delta(raw_deltamin_func, raw_deltaplus_func, limit_q_max, limit_q_max)
 
         self.__description__ = "trace-based"
@@ -517,7 +517,7 @@ class EventModel (object):
         _warn_float(J, "Jitter")
         _warn_float(dmin, "dmin")
 
-        #save away the properties in case a local analysis uses them directly
+        # save away the properties in case a local analysis uses them directly
         self.P = P
         self.J = J
         self.dmin = dmin
@@ -559,8 +559,8 @@ class EventModel (object):
 
     def load(self, accuracy=1000):
         """ Returns the asymptotic load, i.e. the avg. number of events per time """
-        #print "load = ", float(self.eta_plus(accuracy)),"/",accuracy
-        #return float(self.eta_plus(accuracy)) / accuracy
+        # print "load = ", float(self.eta_plus(accuracy)),"/",accuracy
+        # return float(self.eta_plus(accuracy)) / accuracy
         if self.delta_min(accuracy) == 0:
             return float("inf")
         else:
@@ -586,19 +586,19 @@ class Junction (object):
 
     def __init__(self, name="unknown", mode='and'):
         """ CTOR """
-        ## Name
+        # # Name
         self.name = name
 
-        ## Semantics of the event concatenation
+        # # Semantics of the event concatenation
         self._mode = mode
 
-        ## Set of input tasks
+        # # Set of input tasks
         self.prev_tasks = set()
 
-        ## Output event model
+        # # Output event model
         self.out_event_model = None
 
-        ## Link to next Tasks or Junctions, i.e. where to supply event model to
+        # # Link to next Tasks or Junctions, i.e. where to supply event model to
         self.next_tasks = set()
 
         self.in_event_models = set()
@@ -639,32 +639,32 @@ class Task (object):
 
     def __init__(self, name, *args, **kwargs):
         """ CTOR """
-        ## Descriptive string
+        # # Descriptive string
         self.name = name
 
-        ## Link to Resource to which Task is mapped
+        # # Link to Resource to which Task is mapped
         self.resource = None
 
-        ## Link the Path if the task takes part in chained communication
+        # # Link the Path if the task takes part in chained communication
         self.path = None  # FIXME: A task can be part of more than one path! Is this used anywhere?
 
-        ## Link to Mutex to which Task is mapped
+        # # Link to Mutex to which Task is mapped
         self.mutex = None
 
-        ## Link to next Tasks, i.e. where to supply event model to
-        ## Multiple tasks possible (fork semantic)
+        # # Link to next Tasks, i.e. where to supply event model to
+        # # Multiple tasks possible (fork semantic)
         self.next_tasks = set()
 
         # Link to previous Task, i.e. the one which supplies our in_event_model
         self.prev_task = None
 
-        ## Worst-case execution time
+        # # Worst-case execution time
         self.wcet = 0
 
-        ## Best-case execution time
+        # # Best-case execution time
         self.bcet = 0
 
-        ## Event model activating the Task
+        # # Event model activating the Task
         self.in_event_model = None
 
         self.analysis_results = None
@@ -769,13 +769,13 @@ class Resource (object):
     def __init__(self, name=None, scheduler=None, **kwargs):
         """ CTOR """
 
-        ## Set of tasks mapped to this Resource
+        # # Set of tasks mapped to this Resource
         self.tasks = set()
 
-        ## Resource identifier
+        # # Resource identifier
         self.name = name
 
-        ## Analysis function
+        # # Analysis function
         self.scheduler = scheduler
 
         # After all mandatory attributes have been initialized above, load
@@ -823,10 +823,10 @@ class Mutex:
     def __init__(self, name=None):
         """ CTOR """
 
-        ## Set of tasks mapped to this Resource
+        # # Set of tasks mapped to this Resource
         self.tasks = set()
 
-        ## Resource identifier
+        # # Resource identifier
         self.name = name
 
 
@@ -839,18 +839,18 @@ class Path:
 
     def __init__(self, name, tasks=None):
         """ CTOR """
-        ## List of tasks in Path (must be in correct order)
+        # # List of tasks in Path (must be in correct order)
         if tasks is not None:
             self.tasks = tasks
             self.__link_tasks(tasks)
         else:
             self.tasks = list()
-        ## create backlink to this path from the tasks
-        ## so a task knows its Path
+        # # create backlink to this path from the tasks
+        # # so a task knows its Path
         for t in self.tasks:
             t.path = self
 
-        ## Name of Path
+        # # Name of Path
         self.name = name
 
     def __link_tasks(self, tasks):
@@ -863,7 +863,7 @@ class Path:
 
     def __repr__(self):
         """ Return str representation """
-        #return str(self.name)
+        # return str(self.name)
         s = str(self.name) + ": "
         for c in self.tasks:
             s += " -> " + str(c)
@@ -882,19 +882,19 @@ class System:
     def __init__(self, name=''):
         """ CTOR """
 
-        ## Name
+        # # Name
         self.name = name
 
         # Set of resources, indexed by an ID, e.g. (x,y) tuple for mesh systems
         self.resources = set()
 
-        ## Set of task chains
+        # # Set of task chains
         self.paths = set()
 
-        ## Set of junctions
+        # # Set of junctions
         self.junctions = set()
 
-        ## constraints bookkeeping
+        # # constraints bookkeeping
         self.constraints = ConstraintsManager()
 
     def __repr__(self):
@@ -904,7 +904,7 @@ class System:
             s += str(h) + ", "
         s += '\nresources:'
         for r in sorted(self.resources, key=str):
-            #s += str(k)+":"+str(r)+", "
+            # s += str(k)+":"+str(r)+", "
             s += str(r) + ", "
 
         return s
@@ -949,7 +949,7 @@ class System:
                     root_task = t
                     break
 
-            reachable = breadth_first_search(root_task)
+            reachable = util.breadth_first_search(root_task)
             subgraphs.append(reachable)
             unreachable = unreachable - reachable
 
