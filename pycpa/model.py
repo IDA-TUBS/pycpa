@@ -168,6 +168,7 @@ class ConstraintsManager(object):
         self._load_constraints[resource] = load
 
 
+
 class EventModel (object):
     """ The event model describing the activation of tasks as described in [Jersak2005]_, [Richter2005]_, [Henia2005]_.
     Internally, we use :math:`\delta^-(n)` and  :math:`\delta^+(n)`,
@@ -221,42 +222,40 @@ class EventModel (object):
             self.set_PJd(P, J, dmin)
 
     @staticmethod
-    def delta_min_from_eta_plus(n, eta_plus):
+    def delta_min_from_eta_plus(etaplus_func):
         """ Delta-minus Function
             Return the minimum time window containing n activations.
             The delta_minus-function is derived from the eta_plus-function.
             This function is rarely needed, as EventModels are represented by delta-functions internally.
             Equation 3.7 from [Schliecker2011]_.
         """
-        MAXX = 1000
-        if n < 2:
-            return 0
-        x = options.get_opt('epsilon')
-        while eta_plus(x) < n:
-            # print "eta_plus(",x,")=",self.eta_plus(x)
-            x += 1
-            if x > MAXX:
-                return -1
-        return  int(math.floor(x))
+        # TODO:_ binary search
+        def delta_min(n):
+            if n < 2:
+                return 0
+            x = 0
+            while etaplus_func(x) < n:
+                x += 1
+            return  int(math.floor(x - 1))
+        return delta_min
 
     @staticmethod
-    def delta_plus_from_eta_min(n, eta_min):
+    def delta_plus_from_eta_min(etamin_func):
         """ Delta-plus Function
             Return the maximum time window containing n activations.
             The delta_plus-function is derived from the eta_minus-function.
             This function is rarely needed, as EventModels are represented by delta-functions internally.
             Equation 3.8 from [Schliecker2011]_.
         """
-        MAXX = 1000
-        if n < 2:
-            return 0
-        x = options.get_opt('epsilon')
-        while eta_min(x) < n:
-            # print "eta_plus(",x,")=",self.eta_plus(x)
-            x += 1
-            if x > MAXX:
-                return -1
-        return  int(math.floor(x))
+        # TODO:_ binary search
+        def delta_plus(n):
+            if n < 2:
+                return 0
+            x = 0
+            while etamin_func(x) < n - 1:
+                x += 1
+            return  int(math.floor(x))
+        return delta_plus
 
     def eta_plus(self, w):
         """ Eta-plus Function
@@ -792,7 +791,11 @@ class Resource (object):
         """ returns the asymptotic load """
         l = 0
         for t in self.tasks:
-            l += t.in_event_model.load(accuracy) * float(t.wcet)
+            try:
+                l += t.in_event_model.load(accuracy) * float(t.wcet)
+            except TypeError:
+                logger.warn("cannot compute load for %s, skipping load analysis for this resource" % (self.name))
+                return 0.
             assert l < float("inf")
             assert l >= 0.
         return l

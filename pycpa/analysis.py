@@ -41,17 +41,17 @@ class NotSchedulableException(Exception):
 class TaskResult:
     """ This class stores all analysis results for a single task """
 
-    #: Worst-case response time
+    # : Worst-case response time
     wcrt = 0
-    #: Best-case response time
+    # : Best-case response time
     bcrt = 0  # init wcrt, bcrt with 0 so initial response time jitter is 0
-    #: List of busy-times
+    # : List of busy-times
     busy_times = list()
-    #: Worst-case activation backlog
+    # : Worst-case activation backlog
     max_backlog = float('inf')
-    #: Number of activations q for which the worst-case response-time was found
+    # : Number of activations q for which the worst-case response-time was found
     q_wcrt = 0
-    #: dict containing details on the busy-window of the worst-case response
+    # : dict containing details on the busy-window of the worst-case response
     # time
     b_wcrt = dict()
 
@@ -193,8 +193,10 @@ class Scheduler:
         #  WCRT and q as a starting point. Is this conservative?
         q = 1
         q_wcrt = 1  # q for which the max wcrt was computed
-        wcrt = task.wcet
-        b_wcrt = dict() # store details of busy window leading to wcrt
+        wcrt = 0  # datatype of task.wcet is not known here (e.g. variable execution times)
+
+
+        b_wcrt = dict()  # store details of busy window leading to wcrt
         task_results[task].busy_times = [0]  # busy time of 0 activations
         self.b_plus(task, 1, details=b_wcrt)
         while True:
@@ -227,7 +229,7 @@ class Scheduler:
                 # schedulable!")
                 raise NotSchedulableException("max_iterations for %s reached, "
                         "tasks (likely) not schedulable!" % task.name)
-                #return  float("inf")  #-1
+                # return  float("inf")  #-1
         task_results[task].q_wcrt = q_wcrt
         task_results[task].wcrt = wcrt
         task_results[task].b_wcrt = b_wcrt
@@ -274,7 +276,7 @@ class Scheduler:
             Implemented as shown in Eq.17 of [Diemer2012]_.
         """
         q_max = len(task_results[task].busy_times)
-        b = [task.in_event_model.eta_plus(task_results[task].busy_times[q] +
+        b = [0] + [task.in_event_model.eta_plus(task_results[task].busy_times[q] +
             output_delay) - q + 1 for q in  range(1, q_max)]
         max_backlog = max(b)
         task_results[task].max_backlog = max_backlog
@@ -491,7 +493,7 @@ def _assert_event_model_conservativeness(emif_small, emif_large, n_max=1000):
 
 def _propagate_junction(junction, task_results):
     """ Propagate event model over a junction """
-    #cut function cycles
+    # cut function cycles
     propagate_tasks = copy.copy(junction.prev_tasks)
 
     # find potential functional cycles in the app-graph
@@ -531,7 +533,7 @@ def _event_arrival(task, n, e_0):
     elif n < 0:
         e = e_0 - task.in_event_model.delta_min(-n + 1)
     else:
-        e = 0   # same event, so the difference is 0
+        e = 0  # same event, so the difference is 0
 
     return e
 
@@ -566,9 +568,9 @@ class GlobalAnalysisState(object):
         self.dirtyTasks = set()
         # Dictionary storing the set of all tasks that are immediately
         # dependent on each task
-        ## (i.e. tasks that require re-analysis if a task's output changes)
+        # # (i.e. tasks that require re-analysis if a task's output changes)
         self.dependentTask = {}
-        ## List of tasks sorted in the order in which the should be analyzed
+        # # List of tasks sorted in the order in which the should be analyzed
         self.analysisOrder = []
         # set of junctions used during depdency detection in order to avoid
         # infinite recursions
@@ -638,7 +640,7 @@ class GlobalAnalysisState(object):
 
     def _mark_all_dirty(self, system):
         """ initialize analysis """
-        #mark all tasks dirty
+        # mark all tasks dirty
         for r in system.resources:
             for t in r.tasks:
                 self.dirtyTasks.add(t)
@@ -694,13 +696,13 @@ class GlobalAnalysisState(object):
 
         all_dep_tasks = {}
 
-        #print "building dependencies for %d tasks" % (len(context.dirtyTasks))
+        # print "building dependencies for %d tasks" % (len(context.dirtyTasks))
         for task in self.dirtyTasks:  # go through all tasks
             all_dep_tasks[task] = util.breadth_first_search(
                 task, None, self.get_dependent_tasks)
 
 
-        #sort by name first (as secondary key in case the lengths are the same
+        # sort by name first (as secondary key in case the lengths are the same
         all_tasks_by_name = sorted(
             self.dependentTask.keys(), key=lambda x: x.name)
         self.analysisOrder = sorted(all_tasks_by_name,
@@ -712,7 +714,7 @@ class GlobalAnalysisState(object):
         of immediately dependent tasks as an indicator
         as to which task to analyze first
         """
-        #sort by name first (as secondary key in case the lengths are the same
+        # sort by name first (as secondary key in case the lengths are the same
         all_tasks_by_name = sorted(
             self.dependentTask.keys(), key=lambda x: x.name)
         self.analysisOrder = sorted(all_tasks_by_name,
@@ -790,16 +792,16 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False, progre
                           task_results[t].wcrt, len(analysis_state.dirtyTasks)))
             iteration += 1
 
-        ## check for constraint violations
+        # # check for constraint violations
         if options.get_opt("check_violations"):
             violations = system.constraints.check_violations(task_results)
             if violations == True:
                 logger.error("Analysis stopped!")
                 break
 
-    #print "Global iteration done after %d iterations" % (round)
+    # print "Global iteration done after %d iterations" % (round)
 
-    ## also print the violations if on-the-fly checking was turned off
+    # # also print the violations if on-the-fly checking was turned off
     if not options.get_opt("check_violations"):
         system.constraints.check_violations(task_results)
 
