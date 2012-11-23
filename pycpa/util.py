@@ -128,7 +128,7 @@ def additive_extension(additive_func, q, q_max):
         return div * additive_func(q_max) + additive_func(rem)
 
 
-def recursive_max_additive(additive_func, q, q_max, cache=dict()):
+def recursive_max_additive(additive_func, q, q_max, cache=None):
     """ Sub-additive extension for event models.
     Any sub-additive function additive_func valid in the domain q \in [0, q_max]
     is extended and the value f(q) is returned.
@@ -140,22 +140,24 @@ def recursive_max_additive(additive_func, q, q_max, cache=dict()):
 
     The cache is filled according to the delta domain notion, so it can be used with delta-based event models.
     """
+    if cache is None:
+        cache = dict()
     if q <= q_max:
         return additive_func(q)
     else:
         ret = 0
         for a in range(1, q_max + 1):
-            b = cache.get(q - a + 1, None) # cache is in delta domain (thus +1)
+            b = cache.get(q - a + 1, None)  # cache is in delta domain (thus +1)
             if b is None:
                 b = recursive_max_additive(additive_func, q - a, q_max, cache)
                 cache[q - a + 1] = b
-            #print a, q - a, additive_func(a), b, additive_func(a) + b
+            # print a, q - a, additive_func(a), b, additive_func(a) + b
             ret = max(ret, additive_func(a) + b)
-        #print ret
+        # print ret
         return ret
 
 
-def recursive_min_additive(additive_func, q, q_max, cache=dict()):
+def recursive_min_additive(additive_func, q, q_max, cache=None):
     """ Super-additive extension for event models.
     Any additive function additive_func valid in the domain q \in [0, q_max]
     is extended and the value f(q) is returned.
@@ -167,16 +169,18 @@ def recursive_min_additive(additive_func, q, q_max, cache=dict()):
 
     The cache is filled according to the delta domain notion, so it can be used with delta-based event models.
     """
+    if cache is None:
+        cache = dict()
     if q <= q_max:
         return additive_func(q)
     else:
         ret = float('inf')
         for a in range(1, q_max + 1):
-            b = cache.get(q - a + 1, None) # cache is in delta domain (thus +1)
+            b = cache.get(q - a + 1, None)  # cache is in delta domain (thus +1)
             if b is None:
                 b = recursive_min_additive(additive_func, q - a, q_max, cache)
                 cache[q - a + 1] = b
-            #print a, q - a, additive_func(a), b, additive_func(a) + b
+            # print a, q - a, additive_func(a), b, additive_func(a) + b
             ret = min(ret, additive_func(a) + b)
         return ret
 
