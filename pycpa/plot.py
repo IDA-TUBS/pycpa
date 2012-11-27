@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2007-2012 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -52,18 +52,18 @@ def plot_eta(eta, plot_range, label=None, color=None):
 def plot_event_model(model, num_events, file_format=None, separate_plots=True, file_prefix='', ticks_at_steps=False):
     """ Plot the Task's eta and delta_min functions.
     Intervals in eta are shown half-open, as defined in [Richter2005]_.
-    
+
     :param model: the event model
     :type model: model.EventModel
     :param num_events: Number of events to plot
     :type n: integer
-    :param file_format: the format of the file to be plotted 
+    :param file_format: the format of the file to be plotted
     :type file_format: string
     :param separate_plots:  whether eta and delta plots should be combined
     :type separate_plots: bool
     :param file_prefix: prefix of file name of plots
-    :type file_prefix: string 
-    :param ticks_at_steps:  If True, draw the x-axis ticks at steps of the functions. Otherwise, let matplotlib decide where to draw ticks. 
+    :type file_prefix: string
+    :param ticks_at_steps:  If True, draw the x-axis ticks at steps of the functions. Otherwise, let matplotlib decide where to draw ticks.
     :type ticks_at_steps: bool
     :rtype: None
     """
@@ -94,7 +94,7 @@ def plot_event_model(model, num_events, file_format=None, separate_plots=True, f
     pyplot.plot(steps_eta_min, [model.eta_min(x) for x in steps_eta_min], 'g^') # inclusive markers
     pyplot.plot(steps_eta_min, [model.eta_min(x - eps) for x in steps_eta_min], 'w^') # exclusive markers
 
-    #now eta plus on top    
+    #now eta plus on top
     pyplot.plot([0], [0], 'r-v', label="$\eta^+(\Delta t)$") #only one point for label + legend (with line and marker)
     pyplot.plot(augmented_range, [model.eta_plus(x) for x in augmented_range], 'r-') # line only
     pyplot.plot(steps_eta_plus, [model.eta_plus(x) for x in steps_eta_plus], 'rv') # inclusive markers
@@ -168,7 +168,7 @@ def plot_gantt(tasks, task_results, file_name=None, show=True, xlim=None,
                preemtion_bar_height=0.2,
                height=1, #height of the box during actual execution
                hdist=1, #vertical distance between two execution bars
-               bar_linewidth=1, #linewidth of execution bars 
+               bar_linewidth=1, #linewidth of execution bars
                min_dist_arrows=0.2, # minimum distance between arrows (e.g. in case actications overlap
                plot_event_arrival=True, # plot arrival arrows
                plot_activation_finishing=False, # plot finishing arrows
@@ -211,8 +211,8 @@ def plot_gantt(tasks, task_results, file_name=None, show=True, xlim=None,
         for part in t.q_exec_windows:
             parts += part
 
-        print "orig parts", t.name, parts
-        print "orig execwindows", t.q_exec_windows, parts
+        #print "orig parts", t.name, parts
+        #print "orig execwindows", t.q_exec_windows, parts
 
         if len(parts) == 0:
             ypos -= (hdist + height)
@@ -244,7 +244,7 @@ def plot_gantt(tasks, task_results, file_name=None, show=True, xlim=None,
             #draw the the preemption bars
 
 
-            print t.q_exec_windows[q]
+            #print t.q_exec_windows[q]
             task_activity_end = t.q_exec_windows[q][-1][1]
 
             ax.broken_barh([(xpos, task_activity_end - xpos)],

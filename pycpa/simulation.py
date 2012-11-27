@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2007-2012 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -117,6 +117,7 @@ class SimActivation (Process):
         """ Called by the scheduler to log executions
         """
         assert self.recent_window_start == None
+        logger.info("Executing %s q=%d @t=%d" % (self.task.name, self.q, self.sim.now()))
         self.recent_window_start = self.sim.now()
 
     def log_preemtion(self):
@@ -131,7 +132,7 @@ class SimActivation (Process):
             This will actually just wait until signaled by the scheduler.
             The execution time is decreased by the scheduler (so the scheduler can actually increase
             execution time if that is necessary.
-            
+
         """
         logger.info("Activated %s q=%d @t=%d" % (self.task.name, self.q, self.sim.now()))
         self.start_time = self.sim.now()
@@ -168,7 +169,7 @@ class SimSPP (Process):
 
         s = self.pending[-1]
 
-        # we look 
+        # we look
         for a in reversed(self.pending):
             if a.task.scheduling_parameter <= s.task.scheduling_parameter:
                 s = a
@@ -224,7 +225,7 @@ class SimSPP (Process):
 class SimSPNP (Process):
     """ SPP Resource model
     """
-    def __init__(self, sim, name="SPP", tasks=list()):
+    def __init__(self, sim, name="SPNP", tasks=list()):
 
         assert sim != None
         Process.__init__(self, name=name, sim=sim)
@@ -315,7 +316,6 @@ class SimSPNP (Process):
             if activation in self.pending: self.pending.remove(activation)
             if activation in self.blockers: self.blockers.remove(activation)
 
-## Model ------------------------------------------
 
 class ResourceModel(Simulation):
 

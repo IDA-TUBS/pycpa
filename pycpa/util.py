@@ -188,7 +188,7 @@ def recursive_min_additive(additive_func, q, q_max, cache=None):
 def str_to_time_base(unit):
     """ Return the time base for the string """
     conversion = {'s': s, 'ms': ms, 'us': us, 'ns': ns, 'ps': ps}
-    if s in conversion:
+    if unit in conversion:
         return conversion[unit]
     else:
         raise ValueError
