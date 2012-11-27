@@ -51,7 +51,7 @@ Note, that you only have to do ONE of these steps!
 
    .. code-block:: bash
    
-     $ export PYTHONPATH="/path/to/pycpa/src"
+     $ export PYTHONPATH="/path/to/pycpa"
 
 3. Also you can import pyCPA as an eclipse project, given you use `PyDev <http://pydev.org/>`_.
    Start eclipse and import pyCPA as a new PyDev project.
