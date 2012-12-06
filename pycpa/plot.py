@@ -179,12 +179,17 @@ def plot_gantt(tasks, task_results, file_name=None, show=True, xlim=None,
                arrow_width=0.05, # arrow width
                arrow_head_width=0.4,
                arrow_head_length=0.2,
+               arrow_xscale=1, #scaling for all arrow sizes in x direction
                arrow_yoffset=0.1, # arrow vertical offset
                xticks_only_on_changes=False, # place tick only when events happen
                color_preemtion_bar='0.30',
-               color_execution_bar='lightblue'):
+               color_execution_bar='lightblue',
+               title='Gantt', # title
+               number_xticks=20, # scale xtick values
+               ):
     """ Plot a gantt chart of a given task list.
-        Execution time information is taken from the task attribute q_exec_windows which is written by the simulation framework
+        Execution time information is taken from the task attribute
+        q_exec_windows which is written by the simulation framework
     """
     #matplotlib.rcParams.update(aesthetic_paper_parameters(column_size = 2 * 252))
 
@@ -196,6 +201,11 @@ def plot_gantt(tasks, task_results, file_name=None, show=True, xlim=None,
     yticks = list()
     xticks = set()
     #arrows = list()
+
+    pyplot.title(title)
+
+    arrow_width *= arrow_xscale
+    arrow_head_width *= arrow_xscale
 
     for t in tasks:
 
@@ -330,7 +340,7 @@ def plot_gantt(tasks, task_results, file_name=None, show=True, xlim=None,
     if xticks_only_on_changes == True:
         ax.set_xticks(xticks)
     else:
-        ax.xaxis.set_major_locator(ticker.MaxNLocator(20, steps=[1, 2, 5]))
+        ax.xaxis.set_major_locator(ticker.MaxNLocator(number_xticks, steps=[1, 2, 5]))
 
     ax.set_yticklabels([t.name for t in tasks]) # set tasknames
     ax.autoscale_view(tight=True, scalex=True, scaley=True) # autoscale first
