@@ -33,7 +33,7 @@ class ExamplesTest(unittest.TestCase):
         self.fsock.write("# RUNNING EXAMPLE: %s" % self.file)
         self.fsock.write("######################################################")
 
-        retval = subprocess.check_call(['python', self.file], stderr = fsock, stdout = self.fsock)
+        retval = subprocess.check_call(['python', self.file], stderr = self.fsock, stdout = self.fsock)
 
         self.fsock.write("######################################################")
         # like above:
