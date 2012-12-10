@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2011 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -11,16 +11,17 @@
 Description
 -----------
 
-Regression test of all examples 
+Regression test of all examples
 """
 
 import unittest
 import subprocess
 import glob
 import runpy
+import sys
 
 class ExamplesTest(unittest.TestCase):
-    def __init__(self, f, fsock):
+    def __init__(self, f, fsock=sys.stdout):
         unittest.TestCase.__init__(self)
         self.file = f
         self.fsock = fsock
@@ -32,7 +33,7 @@ class ExamplesTest(unittest.TestCase):
         self.fsock.write("# RUNNING EXAMPLE: %s" % self.file)
         self.fsock.write("######################################################")
 
-        retval = subprocess.check_call(['python', self.file], stderr = fsock, stdout = fsock)
+        retval = subprocess.check_call(['python', self.file], stderr = fsock, stdout = self.fsock)
 
         self.fsock.write("######################################################")
         # like above:
