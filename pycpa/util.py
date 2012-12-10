@@ -128,7 +128,7 @@ def additive_extension(additive_func, q, q_max):
         return div * additive_func(q_max) + additive_func(rem)
 
 
-def recursive_max_additive(additive_func, q, q_max, cache=None):
+def recursive_max_additive(additive_func, q, q_max, cache=None, cache_offset=1):
     """ Sub-additive extension for event models.
     Any sub-additive function additive_func valid in the domain q \in [0, q_max]
     is extended and the value f(q) is returned.
@@ -138,7 +138,8 @@ def recursive_max_additive(additive_func, q, q_max, cache=None):
     thus if you supply a delta function to additive_func, note to add 1 and supply q-1.
     e.g. ret = util.recursive_max_additive(lambda x: self.delta_min(x + 1), n - 1, q_max, self.delta_min_cache)
 
-    The cache is filled according to the delta domain notion, so it can be used with delta-based event models.
+    By default, the cache is filled according to the delta domain notion, so it can be used with delta-based event models.
+    To override this behavior, change the cache_offset parameter to zero
     """
     if cache is None:
         cache = dict()
@@ -147,17 +148,17 @@ def recursive_max_additive(additive_func, q, q_max, cache=None):
     else:
         ret = 0
         for a in range(1, q_max + 1):
-            b = cache.get(q - a + 1, None)  # cache is in delta domain (thus +1)
+            b = cache.get(q - a + cache_offset, None)  # cache is in delta domain (thus +1)
             if b is None:
-                b = recursive_max_additive(additive_func, q - a, q_max, cache)
-                cache[q - a + 1] = b
+                b = recursive_max_additive(additive_func, q - a, q_max, cache, cache_offset)
+                cache[q - a + cache_offset] = b
             # print a, q - a, additive_func(a), b, additive_func(a) + b
             ret = max(ret, additive_func(a) + b)
         # print ret
         return ret
 
 
-def recursive_min_additive(additive_func, q, q_max, cache=None):
+def recursive_min_additive(additive_func, q, q_max, cache=None, cache_offset=1):
     """ Super-additive extension for event models.
     Any additive function additive_func valid in the domain q \in [0, q_max]
     is extended and the value f(q) is returned.
@@ -167,7 +168,8 @@ def recursive_min_additive(additive_func, q, q_max, cache=None):
     thus if you supply a delta function to additive_func, note to add 1 and supply q-1.
     e.g. ret = util.recursive_min_additive(lambda x: self.delta_plus(x + 1), n - 1, q_max, self.delta_plus_cache)
 
-    The cache is filled according to the delta domain notion, so it can be used with delta-based event models.
+    By default, the cache is filled according to the delta domain notion, so it can be used with delta-based event models.
+    To override this behavior, change the cache_offset parameter to zero
     """
     if cache is None:
         cache = dict()
@@ -176,10 +178,10 @@ def recursive_min_additive(additive_func, q, q_max, cache=None):
     else:
         ret = float('inf')
         for a in range(1, q_max + 1):
-            b = cache.get(q - a + 1, None)  # cache is in delta domain (thus +1)
+            b = cache.get(q - a + cache_offset, None)  # cache is in delta domain (thus +1)
             if b is None:
-                b = recursive_min_additive(additive_func, q - a, q_max, cache)
-                cache[q - a + 1] = b
+                b = recursive_min_additive(additive_func, q - a, q_max, cache, cache_offset)
+                cache[q - a + cache_offset] = b
             # print a, q - a, additive_func(a), b, additive_func(a) + b
             ret = min(ret, additive_func(a) + b)
         return ret
@@ -221,7 +223,7 @@ def cycles_to_time(value, freq, base_time, rounding="ceil"):
     elif rounding == "floor":
         return int(fractions.math.floor(value * scaler))
     else:
-        raise NotImplementedError("roudning %s not supported" % rounding)
+        raise NotImplementedError("rounding %s not supported" % rounding)
 
 
 def time_to_time(value, base_in, base_out, rounding="ceil"):
@@ -234,7 +236,7 @@ def time_to_time(value, base_in, base_out, rounding="ceil"):
     elif rounding == "floor":
         return int(fractions.math.floor(value * scaler))
     else:
-        raise NotImplementedError("roudning %s not supported" % rounding)
+        raise NotImplementedError("rounding %s not supported" % rounding)
 
 
 def time_to_cycles(value, freq, base_time, rounding="ceil"):
@@ -248,15 +250,12 @@ def time_to_cycles(value, freq, base_time, rounding="ceil"):
     elif rounding == "floor":
         return int(fractions.math.floor(value / scaler))
     else:
-        raise NotImplementedError("roudning %s not supported" % rounding)
+        raise NotImplementedError("rounding %s not supported" % rounding)
 
 
 def gcd(a, b):
     """Return greatest common divisor using Euclid's Algorithm."""
-    while b:
-        a, b = b, a % b
-    return a
-
+    return fractions.gcd(a, b)
 
 def lcm(a, b):
     """ Return lowest common multiple."""
@@ -265,7 +264,7 @@ def lcm(a, b):
 
 def GCD(terms):
     """ Return gcd of a list of numbers."""
-    return reduce(gcd, terms)
+    return reduce(fractions.gcd, terms)
 
 
 def LCM(terms):

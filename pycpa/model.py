@@ -413,7 +413,13 @@ class EventModel (object):
         # # default policy
         return self.deltaplus_func(n)
 
-    def set_limited_delta(self, limited_delta_min_func, limited_delta_plus_func, limit_q_min=float('inf'), limit_q_plus=float('inf')):
+    def set_limited_delta(self,
+            limited_delta_min_func,
+            limited_delta_plus_func,
+            limit_q_min=float('inf'),
+            limit_q_plus=float('inf'),
+            min_additive=util.recursive_mix_additive,
+            max_additive=util.recursive_max_additive):
         """ Sets the event model to an arbitrary function specified by limited_delta_min_func and limited_delta_plus_func.
         Contrary to directly setting deltamin_func and deltaplus_func, the given functions are only
         valid in a limited domain [0, limit_q_min] and [0, limit_q_plus] respectively.
@@ -432,7 +438,7 @@ class EventModel (object):
                 return float("inf")
             elif n > limit_q_min:  # return additive extension  if necessary
                 q_max = limit_q_min - 1
-                ret = util.recursive_max_additive(lambda x: self.delta_min(x + 1), n - 1, q_max, self.delta_min_cache)
+                ret = max_additive(lambda x: self.delta_min(x + 1), n - 1, q_max, self.delta_min_cache)
                 return ret
             else:
                 return limited_delta_min_func(n)
@@ -442,7 +448,7 @@ class EventModel (object):
                 return float("inf")
             elif n > limit_q_plus:  # return additive extension  if necessary
                 q_max = limit_q_plus - 1
-                ret = util.recursive_min_additive(lambda x: self.delta_plus(x + 1), n - 1, q_max, self.delta_plus_cache)
+                ret = min_additive(lambda x: self.delta_plus(x + 1), n - 1, q_max, self.delta_plus_cache)
                 return ret
             else:
                 return limited_delta_plus_func(n)
@@ -451,7 +457,11 @@ class EventModel (object):
         self.deltamin_func = delta_min_func
 
 
-    def set_limited_trace(self, trace_points, min_sample_size=20):
+    def set_limited_trace(self,
+            trace_points,
+            min_sample_size=20,
+            min_additive=util.recursive_mix_additive,
+            max_additive=util.recursive_max_additive):
         """ Compute a pseudo-conservative event model from a given trace (e.g. from SymTA/S TraceAnalyzer or similar).
             trace_points must be a list of integers encoding the arrival time of an event.
             The algorithm will compute delta_min and delta_plus based on the trace by evaluating all candidates.
@@ -503,7 +513,7 @@ class EventModel (object):
         # set the trace as a limited delta function and let pycpa extrapolate
         limit_q_max = max(2, q_max - min_sample_size)
         # print("q_max", q_max, "trace_size", trace.size, limit_q_max)
-        self.set_limited_delta(raw_deltamin_func, raw_deltaplus_func, limit_q_max, limit_q_max)
+        self.set_limited_delta(raw_deltamin_func, raw_deltaplus_func, limit_q_max, limit_q_max, min_additive, max_additive)
 
         self.__description__ = "trace-based"
 
