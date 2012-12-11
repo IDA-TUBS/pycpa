@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2007-2012 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -28,7 +28,6 @@ INFINITY = float('inf')
 import argparse
 import logging
 import sys
-import logging
 
 from pycpa import __license_text__
 
@@ -66,7 +65,7 @@ def get_opt(option):
     If called for the first time, the parsing is done.
     """
     global _opts
-    if _opts is None: init_pycpa()
+    if _opts is None: init_pycpa(implicit=True)
     return getattr(_opts, option)
 
 def set_opt(option, value):
@@ -74,7 +73,7 @@ def set_opt(option, value):
     If called for the first time, the parsing is done.
     """
     global _opts
-    if _opts is None: init_pycpa()
+    if _opts is None: init_pycpa(implicit=True)
     setattr(_opts, option, value)
 
 def pprintTable(out, table, column_sperator="", header_separator=":"):
@@ -109,7 +108,7 @@ def pprintTable(out, table, column_sperator="", header_separator=":"):
 
     return
 
-def init_pycpa():
+def init_pycpa(implicit = False):
     """ Initialize pyCPA.
     This function parses the options and prints them for reference.
     It is called once automatically from get_opt() or set_opt()
@@ -119,18 +118,23 @@ def init_pycpa():
     """
     global _opts, _opts_dict
     _opts_dict = dict()
-    _opts = parser.parse_args()
+    if not implicit:
+        # in this case we are explicitly initialized,
+        # output welcome and consume cmdline parameters
+        print (welcome)
+        print ("invoked via: " + " ".join(sys.argv) + "\n")
 
-    # set up the general logging object
-    if _opts.verbose == True:
-        logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
+        _opts = parser.parse_args()
     else:
-        logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
-
-    print (welcome)
-    print ("invoked via: " + " ".join(sys.argv) + "\n")
-
-    #table of selected paramters
+        print ("implicitly invoked pycpa")
+        # implicit init, through regression test or non-pycpa script
+        # distill defaults and arguments from the parser and pretend nothing happend
+        _opts = argparse.Namespace()
+        for action in parser._actions:
+            if action.default == argparse.SUPPRESS:
+                continue
+            setattr(_opts, action.dest, action.default)
+#table of selected paramters
 
     table = list()
     for attr in dir(_opts):
@@ -138,7 +142,13 @@ def init_pycpa():
             row = ["%s" % attr, str(getattr(_opts, attr))]
             _opts_dict[attr] = str(getattr(_opts, attr))
             table.append(row)
-    pprintTable(sys.stdout, table)
+    if not implicit:
+        pprintTable(sys.stdout, table)
+        print("\n\n")
+    # set up the general logging object
+    if get_opt('verbose') == True:
+        logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
+    else:
+        logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
 
-    print("\n\n")
 
