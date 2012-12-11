@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2010 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -13,11 +13,13 @@ Description
 Plot an event model.
 """
 
+import matplotlib
+matplotlib.use('Agg')
+
 from pycpa import model
 from pycpa import plot
 
 # only type 1 fonts
-import matplotlib
 matplotlib.rcParams['ps.useafm'] = True
 matplotlib.rcParams['pdf.use14corefonts'] = True
 matplotlib.rcParams['text.usetex'] = True
