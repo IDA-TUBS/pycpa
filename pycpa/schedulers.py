@@ -55,7 +55,7 @@ class EDFPScheduler(analysis.Scheduler):
         while True:
             w_new = 0
             for ti in (task.get_resource_interferers() | set([task])):
-                    w_new += ti.wcet * ti.in_event_model.eta_plus(w)
+                w_new += ti.wcet * ti.in_event_model.eta_plus(w)
 
             if w == w_new:
                 break
