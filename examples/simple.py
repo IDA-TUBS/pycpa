@@ -22,7 +22,7 @@ from pycpa import analysis
 from pycpa import schedulers
 from pycpa import path_analysis
 from pycpa import graph
-
+from pycpa import options
 
 def simple_test():
     # initialyze pycpa. (e.g. read command line switches and set up default options)
