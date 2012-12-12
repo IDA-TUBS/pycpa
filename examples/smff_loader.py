@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2012 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -24,6 +24,8 @@ from pycpa import options
 
 def smff_test(filename, outfile, plot, verbose):
 
+    options.init_pycpa()
+
     print "loading", filename
     loader = smff_loader.SMFFLoader()
     s = loader.parse(filename)
@@ -35,7 +37,7 @@ def smff_test(filename, outfile, plot, verbose):
         graph.graph_system(s, sched_param=True, exec_times=True, filename=graph_file)
 
     try:
-        # analyze the system            
+        # analyze the system
         results = analysis.analyze_system(s)
 
         # print some analysis results

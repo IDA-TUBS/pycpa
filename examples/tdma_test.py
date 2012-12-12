@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2012 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -21,6 +21,8 @@ from pycpa import options
 
 
 def tdma_test():
+
+    options.init_pycpa()
 
     s = model.System()
     r1 = s.bind_resource(model.Resource("R1", schedulers.TDMAScheduler()))

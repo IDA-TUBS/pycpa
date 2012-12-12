@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2010 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -17,12 +17,15 @@ from pycpa import model
 from pycpa import analysis
 from pycpa import schedulers
 from pycpa import graph
-
+from pycpa import options
 
 
 
 
 def spp_test():
+
+    options.init_pycpa()
+
     # generate an new system
     s = model.System()
 

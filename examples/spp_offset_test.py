@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2010 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -21,6 +21,8 @@ from pycpa import graph
 
 
 def offset_test():
+
+    options.init_pycpa()
 
     if options.get_opt('propagation') != "jitter_offset":
         print "propagation is forced to jitter_offset"

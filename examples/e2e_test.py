@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2010 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -19,9 +19,11 @@ from pycpa import model
 from pycpa import schedulers
 from pycpa import analysis
 from pycpa import path_analysis
-
+from pycpa import options
 
 def e2e_test():
+    options.init_pycpa()
+
     # generate an new system
     s = model.System()
 
@@ -29,7 +31,7 @@ def e2e_test():
     # register round robin scheduler
     r1 = s.bind_resource(model.Resource("R1", schedulers.RoundRobinScheduler()))
 
-    # map two tasks to 
+    # map two tasks to
     t11 = r1.bind_task(model.Task("T11", wcet=1, bcet=1))
     t12 = r1.bind_task(model.Task("T12", wcet=2, bcet=1))
 

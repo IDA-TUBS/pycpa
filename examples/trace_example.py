@@ -14,10 +14,13 @@ Simple SPP example
 """
 
 from pycpa import model
-from pycpa import plot
+from pycpa import options
 
 
 def trace_example():
+
+    options.init_pycpa()
+
     # this is a rather extreme trace with just two datapoints
     # pycpa will use additive extension which is a periodic extension in this case
     periodic_trace = [0, 10]

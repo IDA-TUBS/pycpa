@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2010 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -26,7 +26,7 @@ from pycpa import graph
 
 def simple_test():
     # initialyze pycpa. (e.g. read command line switches and set up default options)
-    # TODO: NOT NEEDED ANYMORE - Remove after fixing doc
+    options.init_pycpa()
 
     # generate an new system
     s = model.System()

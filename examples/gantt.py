@@ -26,7 +26,7 @@ from pycpa import options
 
 def gantt_test():
     # initialyze pycpa. (e.g. read command line switches and set up default options)
-    # TODO: NOT NEEDED ANYMORE - Remove after fixing doc
+    options.init_pycpa()
 
     # generate an new system
     s = model.System()

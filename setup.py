@@ -25,7 +25,7 @@ setup(name='pycpa',
       url='http://code.google.com/p/pycpa',
       license="MIT",
       packages=['pycpa'],
-      install_requires=['matplotlib', 'pygraphviz', 'argparse'],
+      install_requires=['numpy', 'matplotlib', 'pygraphviz', 'argparse'],
       extras_require={'gantt_charts' : 'simpy',
                       'doc' : 'sphinx'}
      )

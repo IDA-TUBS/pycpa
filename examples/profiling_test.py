@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2011 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -17,19 +17,21 @@ try:
     import hotshot, hotshot.stats
     from matplotlib import pyplot
 except ImportError:
-    print "Sorry, you don't have the matplotlib and hotshop module installed."
+    print "Sorry, you don't have the matplotlib and hotshot module installed."
     print "Please install or reconfigure the modules"
     print "and try again."
 
 
-import logging
 
 
 from pycpa import analysis
 from pycpa import model
 from pycpa import schedulers
+from pycpa import options
 
 def profiling_test():
+
+    options.init_pycpa()
 
     # generate an new system
     s = model.System()
