@@ -21,7 +21,7 @@ import glob
 def test_examples():
     """ run examples in a nose generator test
     """
-    directory = "../examples/"
+    directory = "./examples/"
     for e in sorted(glob.glob(directory + '*.py')):
         yield run_example, e
 
