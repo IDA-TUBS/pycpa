@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 | Copyright (C) 2012 Philip Axer
 | TU Braunschweig, Germany
@@ -60,8 +61,8 @@ def smff_test(filename, outfile, plot, verbose):
 
 if __name__ == "__main__":
     # this is necessary because the file is also called from the regression test suite
-    default_file = os.path.dirname(os.path.realpath(__file__)) + "/smff_system.xml"
-    default_outfile = os.path.dirname(os.path.realpath(__file__)) + "/smff_system_annotated.xml"
+    default_file = os.path.dirname(os.path.realpath(__file__)) + "/../data/smff_system.xml"
+    default_outfile = os.path.dirname(os.path.realpath(__file__)) + "/../data/smff_system_annotated.xml"
 
     options.parser.add_argument('--file', '-f', type=str, default=default_file,
                     help='File to load.')
