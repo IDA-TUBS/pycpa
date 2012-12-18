@@ -62,7 +62,8 @@ class ConstraintsManager(object):
         # # resource load constraints
         self._load_constraints = dict()
 
-    def check_violations(self, task_results, wcrt=True, path=True, backlog=True, load=True):
+    def check_violations(self, task_results, wcrt=True, path=True,
+            backlog=True, load=True):
         """ Check all if all constraints are satisfied.
         Returns True if there are constraint violations.
         :param task_results: dictionary which stores analysis results
@@ -135,7 +136,8 @@ class ConstraintsManager(object):
         return violations
 
     def _check_load_constrains(self, task_results):
-        """ Check all load constraints and return a list of resources which violate their constraint
+        """ Check all load constraints and return a list of resources
+        which violate their constraint
         """
         violations = list()
         for resource, load in self._load_constraints.items():
@@ -170,17 +172,21 @@ class ConstraintsManager(object):
 
 
 class EventModel (object):
-    """ The event model describing the activation of tasks as described in [Jersak2005]_, [Richter2005]_, [Henia2005]_.
+    """ The event model describing the activation of tasks as described
+    in [Jersak2005]_, [Richter2005]_, [Henia2005]_.
     Internally, we use :math:`\delta^-(n)` and  :math:`\delta^+(n)`,
     which represent the minimum/maximum time window containing n events.
-    They can be transformed into :math:`\eta^+(\Delta t)` and :math:`\eta^-(\Delta t)`
-    which represent the maximum/minimum number of events arriving within :math:`\Delta t`.
+    They can be transformed into
+    :math:`\eta^+(\Delta t)` and :math:`\eta^-(\Delta t)`
+    which represent the maximum/minimum number of events arriving within
+    :math:`\Delta t`.
     """
 
     def __init__(self, P=None, J=None, dmin=None, c=None, T=None, phi=0,
             name='min', cache=None):
         """ CTOR
-        If called without parameters, a minimal event model (1 single activation) is created
+        If called without parameters, a maximal event model (unbounded amount
+        of activations) is created
         """
 
         if cache is None:
@@ -194,7 +200,8 @@ class EventModel (object):
         self.delta_caching(cache)
 
         # # Event model eta_plus-plus function (internal)
-        self.deltaplus_func = lambda x: 0  # maximal model: unlimited activations
+        # maximal model: unlimited activations
+        self.deltaplus_func = lambda x: 0
 
         # # Event model eta_plus-minus function (internal)
         self.deltamin_func = lambda x: float(
@@ -226,7 +233,8 @@ class EventModel (object):
         """ Delta-minus Function
             Return the minimum time window containing n activations.
             The delta_minus-function is derived from the eta_plus-function.
-            This function is rarely needed, as EventModels are represented by delta-functions internally.
+            This function is rarely needed, as EventModels are represented
+            by delta-functions internally.
             Equation 3.7 from [Schliecker2011]_.
         """
         # TODO:_ binary search
@@ -244,7 +252,8 @@ class EventModel (object):
         """ Delta-plus Function
             Return the maximum time window containing n activations.
             The delta_plus-function is derived from the eta_minus-function.
-            This function is rarely needed, as EventModels are represented by delta-functions internally.
+            This function is rarely needed, as EventModels are represented
+            by delta-functions internally.
             Equation 3.8 from [Schliecker2011]_.
         """
         # TODO:_ binary search
@@ -306,7 +315,8 @@ class EventModel (object):
 
             This is technically identical to eta_plus(w + EPSILON),
             but the use of epsilon has issues with float precision,
-            as w+EPSILON == w for large w and small Epsilon (e.g. 40000000+1e-9)
+            as w+EPSILON == w for large w and small Epsilon
+            (e.g. 40000000+1e-9)
         """
         # if the window does not include 2 activations, assume that one has
         # occured
@@ -374,7 +384,8 @@ class EventModel (object):
 
     def delta_min(self, n):
         """ Delta-minus Function
-            Return the minimum time interval between the first and the last event
+            Return the minimum time interval between
+            the first and the last event
             of any series of n events.
             This is actually a wrapper to allow caching of delta functions.
         """
@@ -395,7 +406,8 @@ class EventModel (object):
 
     def delta_plus(self, n):
         """ Delta-plus Function
-            Return the maximum time interval between the first and the last event
+            Return the maximum time interval between
+            the first and the last event
             of any series of n events.
             This is actually a wrapper to allow caching of delta functions.
         """
@@ -420,15 +432,15 @@ class EventModel (object):
             limit_q_plus=float('inf'),
             min_additive=util.recursive_min_additive,
             max_additive=util.recursive_max_additive):
-        """ Sets the event model to an arbitrary function specified by limited_delta_min_func and limited_delta_plus_func.
-        Contrary to directly setting deltamin_func and deltaplus_func, the given functions are only
-        valid in a limited domain [0, limit_q_min] and [0, limit_q_plus] respectively.
-        For values of q beyond this range, a conservative extension (additive extension) is used.
-        You can also supply a list() object to this function by using lambda x: limited_delta_min_list[x]
-
-        In that sense, set_limited_delta(deltamin_func, deltaplus_func, float('inf'), float('inf')) is equivalent to
-        em.deltamin_func = deltamin_func
-        em.deltaplus_func = deltaplus_func
+        """ Sets the event model to an arbitrary function specified
+        by limited_delta_min_func and limited_delta_plus_func.
+        Contrary to directly setting deltamin_func and deltaplus_func,
+        the given functions are only valid in a limited domain [0, limit_q_min]
+        and [0, limit_q_plus] respectively.
+        For values of q beyond this range, a conservative extension
+        (additive extension) is used.
+        You can also supply a list() object to this function by using
+        lambda x: limited_delta_min_list[x]
         """
         self.__description__ = "ltd. direct"
 
@@ -438,7 +450,8 @@ class EventModel (object):
                 return float("inf")
             elif n > limit_q_min:  # return additive extension  if necessary
                 q_max = limit_q_min - 1
-                ret = max_additive(lambda x: self.delta_min(x + 1), n - 1, q_max, self.delta_min_cache)
+                ret = max_additive(lambda x: self.delta_min(x + 1),
+                        n - 1, q_max, self.delta_min_cache)
                 return ret
             else:
                 return limited_delta_min_func(n)
@@ -448,7 +461,8 @@ class EventModel (object):
                 return float("inf")
             elif n > limit_q_plus:  # return additive extension  if necessary
                 q_max = limit_q_plus - 1
-                ret = min_additive(lambda x: self.delta_plus(x + 1), n - 1, q_max, self.delta_plus_cache)
+                ret = min_additive(lambda x: self.delta_plus(x + 1),
+                        n - 1, q_max, self.delta_plus_cache)
                 return ret
             else:
                 return limited_delta_plus_func(n)
@@ -462,10 +476,13 @@ class EventModel (object):
             min_sample_size=20,
             min_additive=util.recursive_min_additive,
             max_additive=util.recursive_max_additive):
-        """ Compute a pseudo-conservative event model from a given trace (e.g. from SymTA/S TraceAnalyzer or similar).
-            trace_points must be a list of integers encoding the arrival time of an event.
-            The algorithm will compute delta_min and delta_plus based on the trace by evaluating all candidates.
-            min_sample_size is the minimum amount of candidates that must be available to derive a representative deltamin/deltaplus
+        """ Compute a pseudo-conservative event model from a given trace
+        (e.g. from SymTA/S TraceAnalyzer or similar).
+        trace_points must be a list of integers encoding the arrival time
+        of an event. The algorithm will compute delta_min and delta_plus based
+        on the trace by evaluating all candidates.
+        min_sample_size is the minimum amount of candidates that must
+        be available to derive a representative deltamin/deltaplus
         """
 
         for p in set(trace_points):
@@ -513,7 +530,8 @@ class EventModel (object):
         # set the trace as a limited delta function and let pycpa extrapolate
         limit_q_max = max(2, q_max - min_sample_size)
         # print("q_max", q_max, "trace_size", trace.size, limit_q_max)
-        self.set_limited_delta(raw_deltamin_func, raw_deltaplus_func, limit_q_max, limit_q_max, min_additive, max_additive)
+        self.set_limited_delta(raw_deltamin_func, raw_deltaplus_func,
+                limit_q_max, limit_q_max, min_additive, max_additive)
 
         self.__description__ = "trace-based"
 
@@ -560,14 +578,17 @@ class EventModel (object):
                 if n == INFINITY:
                     return INFINITY
                 else:
-                    return (n - 1) * dmin + int(math.floor(float(n - 1) / c) * (T - c * dmin))
+                    return (n - 1) * dmin + int(math.floor(float(n - 1) / c)
+                            * (T - c * dmin))
 
             self.deltamin_func = c_in_T_deltamin_func
 
         self.deltaplus_func = lambda n: INFINITY
 
     def load(self, accuracy=1000):
-        """ Returns the asymptotic load, i.e. the avg. number of events per time """
+        """ Returns the asymptotic load,
+        i.e. the avg. number of events per time
+        """
         # print "load = ", float(self.eta_plus(accuracy)),"/",accuracy
         # return float(self.eta_plus(accuracy)) / accuracy
         if self.delta_min(accuracy) == 0:
@@ -607,7 +628,8 @@ class Junction (object):
         # # Output event model
         self.out_event_model = None
 
-        # # Link to next Tasks or Junctions, i.e. where to supply event model to
+        # # Link to next Tasks or Junctions,
+        # i.e. where to supply event model to
         self.next_tasks = set()
 
         self.in_event_models = set()
@@ -655,7 +677,8 @@ class Task (object):
         self.resource = None
 
         # # Link the Path if the task takes part in chained communication
-        self.path = None  # FIXME: A task can be part of more than one path! Is this used anywhere?
+        # FIXME: A task can be part of more than one path! Is this used anywhere?
+        self.path = None
 
         # # Link to Mutex to which Task is mapped
         self.mutex = None
@@ -804,7 +827,8 @@ class Resource (object):
             try:
                 l += t.in_event_model.load(accuracy) * float(t.wcet)
             except TypeError:
-                logger.warn("cannot compute load for %s, skipping load analysis for this resource" % (self.name))
+                logger.warn("cannot compute load for %s, skipping load "
+                    "analysis for this resource" % (self.name))
                 return 0.
             assert l < float("inf")
             assert l >= 0.
@@ -846,8 +870,10 @@ class Mutex:
 class Path:
     """ A Path describes a chain of tasks.
     Required for path analysis (e.g. end-to-end latency).
-    The information stored in Path classes could be derived from the task graph (see Task.next_tasks and Task.prev_task),
-    but having redundancy here is more flexible (e.g. path analysis may only be interesting for some task chains).
+    The information stored in Path classes could be derived from the task graph
+    (see Task.next_tasks and Task.prev_task),
+    but having redundancy here is more flexible (e.g. path analysis may only be
+    interesting for some task chains).
     """
 
     def __init__(self, name, tasks=None):
@@ -924,7 +950,8 @@ class System:
 
     def bind_junction(self, j):
         """ Registers a junction object in the System.
-            Logically, the junction neither belongs to a system nor to a resource,
+            Logically, the junction neither belongs
+            to a system nor to a resource,
             for sake of convenience we associate junctions with the system.
         """
         self.junctions.add(j)
@@ -944,8 +971,10 @@ class System:
 
     def print_subgraphs(self):
         """ enumerate all subgraphs of the application graph.
-        if a subgraph is not well-formed (e.g. a source is missing), this algorithm may
-        not work correctly (it will eventually produce to many subgraphs)"""
+        if a subgraph is not well-formed (e.g. a source is missing),
+        this algorithm may
+        not work correctly (it will eventually produce to many subgraphs)
+        """
         subgraphs = list()
         unreachable = set()
 
