@@ -194,7 +194,7 @@ class EventModel (object):
         self.delta_caching(cache)
 
         # # Event model eta_plus-plus function (internal)
-        self.deltaplus_func = lambda x: 0  # minimal model: no activation
+        self.deltaplus_func = lambda x: 0  # maximal model: unlimited activations
 
         # # Event model eta_plus-minus function (internal)
         self.deltamin_func = lambda x: float(
