@@ -16,9 +16,9 @@ This module contains methods for the ananlysis of path latencies.
 It should be imported in scripts that do the analysis.
 """
 
-from . import options
-from . import model
-from . import analysis
+import options
+import model
+import analysis
 
 
 def end_to_end_latency(path, task_results, n=1 , task_overhead=(0, 0),

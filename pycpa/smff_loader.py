@@ -15,9 +15,9 @@ SMFF import/annotate
 
 import xml.dom.minidom
 
-from . import options
-from . import model
-from . import schedulers
+import options
+import model
+import schedulers
 
 import logging
 

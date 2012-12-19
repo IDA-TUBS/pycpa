@@ -22,8 +22,8 @@ except ImportError:
     print "and try again."
     exit(1)
 
-from . import model
-from . import schedulers
+import model
+import schedulers
 
 import logging
 

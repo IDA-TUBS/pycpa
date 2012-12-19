@@ -16,8 +16,8 @@ Local analysis functions (schedulers)
 import itertools
 import math
 import logging
-from . import analysis
-from . import options
+import analysis
+import options
 
 logger = logging.getLogger("pycpa")
 

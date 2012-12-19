@@ -15,7 +15,7 @@ This module contains methods to plot task/architecture graphs of your system
 
 """
 
-from . import model
+import model
 
 try:
     import pygraphviz

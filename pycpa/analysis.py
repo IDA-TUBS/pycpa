@@ -21,9 +21,9 @@ import copy
 import time
 from collections import deque
 
-from . import model
-from . import options
-from . import util
+import model
+import options
+import util
 
 logger = logging.getLogger("pycpa")
 
