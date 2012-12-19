@@ -16,14 +16,17 @@ This module contains methods for real-time scheduling analysis.
 It should be imported in scripts that do the analysis.
 """
 
+from __future__ import absolute_import
+
 import logging
 import copy
 import time
 from collections import deque
 
-import model
-import options
-import util
+from . import model
+from . import options
+from . import util
+from . import path_analysis
 
 logger = logging.getLogger("pycpa")
 
@@ -282,7 +285,7 @@ class Scheduler:
         """
         q_max = len(task_results[task].busy_times)
         b = [0] + [task.in_event_model.eta_plus(
-            task_results[task].busy_times[q] + output_delay)- q + 1
+            task_results[task].busy_times[q] + output_delay) - q + 1
             for q in range(1, q_max)]
         max_backlog = max(b)
         task_results[task].max_backlog = max_backlog
@@ -814,6 +817,95 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
 
     # # also print the violations if on-the-fly checking was turned off
     if not options.get_opt("check_violations"):
-        system.constraints.check_violations(task_results)
+        check_violations(system.constraints, task_results)
 
     return task_results
+
+
+def check_violations(constraints, task_results, wcrt=True, path=True,
+        backlog=True, load=True):
+    """ Check all if all constraints are satisfied.
+    Returns True if there are constraint violations.
+    :param task_results: dictionary which stores analysis results
+    :type task_results: dict (analysis.TaskResult)
+    :param wcrt: if True, check wcrt
+    :param path: if True, check path latencies
+    :param backlog: if True, check buffersized
+    :param load: if True, check loads
+    :rtype: boolean
+    """
+    violations = False
+    if wcrt == True:
+        deadline_violations = _check_wcrt_constraints(constraints, task_results)
+        for v in deadline_violations:
+            logger.error("Deadline violated for task %s, "
+                    "wcrt=%d, deadline=%d" %
+                    (v.name, task_results[v].wcrt,
+                        constraints._wcrt_constraints[v]))
+        violations = violations or (len(deadline_violations) > 0)
+
+    if path == True:
+        latency_violations = _check_path_constraints(constraints, task_results)
+        for v, latency in latency_violations:
+            deadline, n = constraints._path_constraints[v]
+            logger.error("Path latency constraint violated for path %s,"
+                         " latency=%d, deadline=%d, n=%d" % (v, latency, deadline, n))
+        violations = violations or (len(latency_violations) > 0)
+
+    if backlog == True:
+        backlog_violations = _check_backlog_constrains(constraints, task_results)
+        for v in backlog_violations:
+            logger.error("Backlog constraint violated for task %s,"
+                         " backlog=%f, deadline=%d" % (v.name, task_results[v].backlog,
+                                                       constraints._backlog_constraints[v]))
+        violations = violations or (len(backlog_violations) > 0)
+
+    if load == True:
+        load_violations = _check_load_constrains(constraints, task_results)
+        for v in load_violations:
+            logger.error("Load constraint violated for resource %s,"
+                         " actual load=%f, threshold=%f" % (v.name, v.load(),
+                                                            constraints._load_constraints[v]))
+        violations = violations or (len(load_violations) > 0)
+
+    return violations
+
+def _check_wcrt_constraints(constraints, task_results):
+    """ Check all wcrt constraints and return a list of violating tasks
+    """
+    violations = list()
+    for task, deadline in constraints._wcrt_constraints.items():
+        if task_results[task].wcrt > deadline:
+            violations.append(task)
+    return violations
+
+def _check_path_constraints(constraints, task_results):
+    """ Check all path constraints and return a list of violations.
+    Each entry is a tuple of the form (path, latency)
+    """
+    violations = list()
+    for path, (deadline, n) in constraints._path_constraints.items():
+        bcl, wcl = path_analysis.end_to_end_latency(path, task_results, n)
+        if  wcl > deadline:
+            violations.append((path, wcl))
+    return violations
+
+def _check_backlog_constrains(constraints, task_results):
+    """ Check all backlog constraints and return a list of tasks that violate their constraint.
+    """
+    violations = list()
+    for task, size in constraints._backlog_constraints.items():
+        task.resource.scheduler.compute_max_backlog(task, task_results)
+        if task_results[task].max_backlog > size:
+            violations.append(task)
+    return violations
+
+def _check_load_constrains(constraints, task_results):
+    """ Check all load constraints and return a list of resources
+    which violate their constraint
+    """
+    violations = list()
+    for resource, load in constraints._load_constraints.items():
+        if resource.load() > load:
+            violations.append(resource)
+    return violations

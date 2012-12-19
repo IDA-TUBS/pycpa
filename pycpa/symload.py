@@ -13,6 +13,7 @@ Description
 Symta 1.4 loader
 """
 
+from __future__ import absolute_import
 
 try:
     import xml.dom.minidom
@@ -22,8 +23,8 @@ except ImportError:
     print "and try again."
     exit(1)
 
-import model
-import schedulers
+from . import model
+from . import schedulers
 
 import logging
 
@@ -43,22 +44,22 @@ class SymtaLoader14:
     def __init__(self):
         self.system = model.System()
 
-        ## tasks in the system
+        # # tasks in the system
         self.tasks = set()
 
-        ## name -> task map
+        # # name -> task map
         self.task_map = dict()
 
-        ## resources in the system
+        # # resources in the system
         self.resources = set()
 
-        ## name -> resource map
+        # # name -> resource map
         self.resources_map = dict()
 
-        ## we will just store the EventModel as a source
+        # # we will just store the EventModel as a source
         self.sources = set()
 
-        ## name -> sources map
+        # # name -> sources map
         self.sources_map = dict()
 
     def parse(self, filename):
@@ -181,16 +182,16 @@ class SymtaLoader14:
     def _handle_task(self, task_node):
         assert task_node.nodeName == "task"
         name = task_node.attributes["name"].nodeValue
-        ports = task_node.getElementsByTagName("ports")[0] #take first
-        speedup = self._handle_speedup(task_node.getElementsByTagName("speedup")[0]) #take first
-        bcet, wcet = self._handle_tcore(task_node.getElementsByTagName("tCore")[0]) #take first
+        ports = task_node.getElementsByTagName("ports")[0]  # take first
+        speedup = self._handle_speedup(task_node.getElementsByTagName("speedup")[0])  # take first
+        bcet, wcet = self._handle_tcore(task_node.getElementsByTagName("tCore")[0])  # take first
         bcet *= speedup
         wcet *= speedup
-        #inport_list, outport_list = self._handle_ports(ports)
+        # inport_list, outport_list = self._handle_ports(ports)
         logger.info("new task %s, tcore: [%f, %f] speedfactor %f" % (name, bcet, wcet, speedup))
         task = model.Task(name=name, bcet=bcet, wcet=wcet, sched_param=None)
         task.dom_node = task_node
-        task.ports = ports # used later to connect the event streams
+        task.ports = ports  # used later to connect the event streams
         self.tasks.add(task)
         self.task_map[name] = task
 
@@ -221,7 +222,7 @@ class SymtaLoader14:
         em.name = name
         self.sources.add(em)
         self.sources_map[name] = em
-        #graph_extension_container = sourceNode.getElementsByTagName("GraphElementExtensionContainer")[0]
+        # graph_extension_container = sourceNode.getElementsByTagName("GraphElementExtensionContainer")[0]
 
         logger.info("new source %s %s" % (name, str(em)))
 
@@ -245,9 +246,9 @@ class SymtaLoader14:
 
     def _handle_propagation_container(self, propagationContainerNode):
 
-        #just grab the event model
-        #print propagationContainerNode.nodeName
-        #print propagationContainerNode.nodeValue
+        # just grab the event model
+        # print propagationContainerNode.nodeName
+        # print propagationContainerNode.nodeValue
         propagationElement = propagationContainerNode.getElementsByTagName("PropagationElements")[0]
         event_model_propagation_element = propagationElement.getElementsByTagName("EventModelPropagationElement")[0]
         myEventModel = event_model_propagation_element.getElementsByTagName("myEventModel")[0]

@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2007-2012 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -14,8 +14,8 @@ Description
 This module contains methods to plot task/architecture graphs of your system
 
 """
-
-import model
+from __future__ import absolute_import
+from . import model
 
 try:
     import pygraphviz
@@ -41,10 +41,10 @@ def graph_system(s, filename=None, layout='dot',
                  show=False):
     """
     Return a graph of the system
-    
+
     :param s: the system
     :type s: model.System
-    :param filename:  if not None, the graph is plotted to this file        
+    :param filename:  if not None, the graph is plotted to this file
     :param layout: graphviz layout algorithm (default l'dot' works best with hierarchical graphs)
     :param empty_resources:  Plot resources that have no tasks assigned
     :param short_tasks: Label tasks using "T_nn" instead of their potentially long name
@@ -53,7 +53,7 @@ def graph_system(s, filename=None, layout='dot',
     :param rankdir: Layout option for graphviz
     :param show: Show plot
     :type show: boolean
-    :rtype: None 
+    :rtype: None
     """
 
     g = pygraphviz.AGraph(directed='true', compound='true',
@@ -68,7 +68,7 @@ def graph_system(s, filename=None, layout='dot',
 
     for r in s.resources:
         if len(r.tasks) == 0 and not empty_resources:
-            continue # dont plot resources without tasks
+            continue  # dont plot resources without tasks
 
         if g.has_node(r.name):
             print "graph_system warning: duplicate resource", r.name
@@ -103,8 +103,8 @@ def graph_system(s, filename=None, layout='dot',
         for t in r.tasks:
             for nt in t.next_tasks:
                 if isinstance(nt, model.Junction):
-                    g.add_edge(t.name, get_junction_name(nt), len=elen) # edge to junction
-                    for jnt in nt.next_tasks: #edges from junction
+                    g.add_edge(t.name, get_junction_name(nt), len=elen)  # edge to junction
+                    for jnt in nt.next_tasks:  # edges from junction
                         g.add_edge(get_junction_name(nt), jnt.name, len=elen, constraint='True')
                 else:
                     g.add_edge(t.name, nt.name, len=elen, constraint='True')

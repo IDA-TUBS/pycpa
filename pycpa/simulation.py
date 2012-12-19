@@ -14,21 +14,19 @@ This module contains classes to simulate the critical instant with the purpose o
 gantt charts.
 """
 
+from __future__ import absolute_import
+
 
 try:
     from SimPy.Simulation import *
 except ImportError:
-    Simulation = None # get rid of "compile-time" errors
+    Simulation = None  # get rid of "compile-time" errors
     print "Sorry, you don't have the SimPy module installed."
     print "Please install or reconfigure SimPy"
     print "and try again."
 
-
-import model
-import schedulers
-
 import logging
-import plot
+
 
 logger = logging.getLogger("sim")
 
@@ -194,7 +192,7 @@ class SimSPP (Process):
                 yield waitevent, self, self.arrival_event
 
             logger.info("pendings: %d @t=%d" % (len(self.pending), self.sim.now()))
-            #get event
+            # get event
             next_activation = self.select()
             if  next_activation != activation:
                 activation = next_activation
@@ -211,7 +209,7 @@ class SimSPP (Process):
 
                 activation.workload = self.interruptLeft
 
-                #log if this is a real preemtion:
+                # log if this is a real preemtion:
                 if self.select() != activation and  activation.workload > 0:
                     activation.log_preemtion()
 
@@ -268,7 +266,7 @@ class SimSPNP (Process):
         blocker = resource.scheduler._blocker(task)
         self.lowprio_simblocker = None
 
-        #find the SimTask Object of the blocker
+        # find the SimTask Object of the blocker
         for b in self.simtasks:
             if b.task == blocker:
                 self.lowprio_simblocker = b
@@ -291,7 +289,7 @@ class SimSPNP (Process):
             while self.idle() == True:
                 yield waitevent, self, self.arrival_event
 
-            #get event
+            # get event
             new_activation = self.select()
             if new_activation != activation:
             # store the beginning of the execution window
@@ -326,7 +324,7 @@ class ResourceModel(Simulation):
         self.scheduler = None
 
     def runModel(self, task, scheduler, until=float('inf')):
-        ## Initialize Simulation instance
+        # # Initialize Simulation instance
         self.initialize()
 
         self.scheduler = scheduler

@@ -14,6 +14,8 @@ Description
 Various utility functions
 """
 
+from __future__ import absolute_import
+
 import fractions
 import logging
 from collections import deque

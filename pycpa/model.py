@@ -19,15 +19,15 @@ or Section 3.1 in [Henia2005]_.
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import math
 import logging
 import copy
 import warnings
 
-import options
-import path_analysis  # FIXME: Circular import
-import util
+from . import options
+from . import util
 
 INFINITY = float('inf')
 
@@ -60,89 +60,6 @@ class ConstraintsManager(object):
 
         # # resource load constraints
         self._load_constraints = dict()
-
-    def check_violations(self, task_results, wcrt=True, path=True,
-            backlog=True, load=True):
-        """ Check all if all constraints are satisfied.
-        Returns True if there are constraint violations.
-        :param task_results: dictionary which stores analysis results
-        :type task_results: dict (analysis.TaskResult)
-        :param wcrt: if True, check wcrt
-        :param path: if True, check path latencies
-        :param backlog: if True, check buffersized
-        :param load: if True, check loads
-        :rtype: boolean
-        """
-        violations = False
-        if wcrt == True:
-            deadline_violations = self._check_wcrt_constraints(task_results)
-            for v in deadline_violations:
-                logger.error("Deadline violated for task %s, "
-                        "wcrt=%d, deadline=%d" %
-                        (v.name, task_results[v].wcrt,
-                            self._wcrt_constraints[v]))
-            violations = violations or (len(deadline_violations) > 0)
-
-        if path == True:
-            latency_violations = self._check_path_constraints(task_results)
-            for v, latency in latency_violations:
-                deadline, n = self._path_constraints[v]
-                logger.error("Path latency constraint violated for path %s, latency=%d, deadline=%d, n=%d" % (v, latency, deadline, n))
-            violations = violations or (len(latency_violations) > 0)
-
-        if backlog == True:
-            backlog_violations = self._check_backlog_constrains(task_results)
-            for v in backlog_violations:
-                logger.error("Backlog constraint violated for task %s, backlog=%f, deadline=%d" % (v.name, task_results[v].backlog, self._backlog_constraints[v]))
-            violations = violations or (len(backlog_violations) > 0)
-
-        if load == True:
-            load_violations = self._check_load_constrains(task_results)
-            for v in load_violations:
-                logger.error("Load constraint violated for resource %s, actual load=%f, threshold=%f" % (v.name, v.load(), self._load_constraints[v]))
-            violations = violations or (len(load_violations) > 0)
-
-        return violations
-
-    def _check_wcrt_constraints(self, task_results):
-        """ Check all wcrt constraints and return a list of violating tasks
-        """
-        violations = list()
-        for task, deadline in self._wcrt_constraints.items():
-            if task_results[task].wcrt > deadline:
-                violations.append(task)
-        return violations
-
-    def _check_path_constraints(self, task_results):
-        """ Check all path constraints and return a list of violations.
-        Each entry is a tuple of the form (path, latency)
-        """
-        violations = list()
-        for path, (deadline, n) in self._path_constraints.items():
-            bcl, wcl = path_analysis.end_to_end_latency(path, task_results, n)
-            if  wcl > deadline:
-                violations.append((path, wcl))
-        return violations
-
-    def _check_backlog_constrains(self, task_results):
-        """ Check all backlog constraints and return a list of tasks that violate their constraint.
-        """
-        violations = list()
-        for task, size in self._backlog_constraints.items():
-            task.resource.scheduler.compute_max_backlog(task, task_results)
-            if task_results[task].max_backlog > size:
-                violations.append(task)
-        return violations
-
-    def _check_load_constrains(self, task_results):
-        """ Check all load constraints and return a list of resources
-        which violate their constraint
-        """
-        violations = list()
-        for resource, load in self._load_constraints.items():
-            if resource.load() > load:
-                violations.append(resource)
-        return violations
 
     def add_wcrt_constraint(self, task, deadline):
         """ adds a local task deadline constraint
@@ -632,6 +549,11 @@ class Junction (object):
         self.next_tasks = set()
 
         self.in_event_models = set()
+
+        # # at some point Junction looks like a task
+        # i.e. provide wcet, bcet for duck-typing
+        self.bcet = 0
+        self.wcet = 0
 
     def invalidate_event_model_cache(self):
         for t in self.next_tasks:

@@ -15,10 +15,8 @@ Description
 This module contains methods for the ananlysis of path latencies.
 It should be imported in scripts that do the analysis.
 """
-
-import options
-import model
-import analysis
+from __future__ import absolute_import
+from . import options
 
 
 def end_to_end_latency(path, task_results, n=1 , task_overhead=(0, 0),
@@ -46,7 +44,8 @@ def end_to_end_latency(path, task_results, n=1 , task_overhead=(0, 0),
                                                   n, **kwargs)
 
     for t in path.tasks:
-        if isinstance(t, model.Task):
+        # implcitly check if t is a junction
+        if t in task_results:
             # add per-task overheads
             lmin += task_overhead[0]
             lmax += task_overhead[1]
@@ -78,7 +77,8 @@ def end_to_end_latency_classic(path, task_results, n=1, injection_rate='max'):
     lmax = 0
     lmin = 0
     for t in path.tasks:
-        if isinstance(t, model.Task):
+        # implcitly check if t is a junction
+        if t in task_results:
             # sum up best- and worst-case response times
             lmax += task_results[t].wcrt
             lmin += task_results[t].bcrt
@@ -103,7 +103,7 @@ def _event_arrival_path(path, n, e_0=0):
 
     This is :math:`e_0(n)` from Lemma 1 in [Schliecker2009recursive]_.
     """
-    #if e_0 is None:
+    # if e_0 is None:
         # the entry time of the first event
 
     if n > 0:
@@ -111,7 +111,7 @@ def _event_arrival_path(path, n, e_0=0):
     elif n < 0:
         e = e_0 - path.tasks[0].in_event_model.delta_min(-n + 1)
     else:
-        e = 0   # same event, so the difference is 0
+        e = 0  # same event, so the difference is 0
 
     return e
 
@@ -122,7 +122,7 @@ def _event_exit_path(path, i, n):
     (cf. Lemma 2 in [Schliecker2009recursive]_)
     """
 
-    #logger.debug("calculating exit for task %d, n=%d" % (i, n))
+    # logger.debug("calculating exit for task %d, n=%d" % (i, n))
 
     if i == -1:
         # Task -1 is the input event model of task 0,
@@ -131,18 +131,18 @@ def _event_exit_path(path, i, n):
     else:
         e = float('-inf')
         k_max = len(path.tasks[i - 1].busy_times)
-        #print("k_max:",k_max)
+        # print("k_max:",k_max)
         for k in range(k_max + 1):
-            e_k = _event_exit_path(path, i - 1, n - k) +\
+            e_k = _event_exit_path(path, i - 1, n - k) + \
                     path.tasks[i].busy_time(k + 1)
 
-            #logger.debug("busy time for t%d (%d):%d" % (i, k + 1, path.tasks[i].busy_time(k + 1)))
-            #print("e_k:",e_k)
+            # logger.debug("busy time for t%d (%d):%d" % (i, k + 1, path.tasks[i].busy_time(k + 1)))
+            # print("e_k:",e_k)
             if e_k > e:
-                #logger.debug("task %d, n=%d k=%d, new e=%d" % (i, n, k, e_k))
+                # logger.debug("task %d, n=%d k=%d, new e=%d" % (i, n, k, e_k))
                 e = e_k
 
-    #logger.debug("exit for task %d, n=%d is %d" % (i, n, e))
+    # logger.debug("exit for task %d, n=%d is %d" % (i, n, e))
     return e
 
 

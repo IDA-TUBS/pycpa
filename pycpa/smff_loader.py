@@ -12,14 +12,16 @@ Description
 
 SMFF import/annotate
 """
+from __future__ import absolute_import
 
 import xml.dom.minidom
-
-import options
-import model
-import schedulers
-
 import logging
+
+from . import options
+from . import model
+from . import schedulers
+
+
 
 logger = logging.getLogger("smff_loader")
 
@@ -45,22 +47,22 @@ class InvalidSMFFXMLException (Exception):
 class SMFFApplication:
     def __init__(self, xml_node=None):
 
-        ## corresponding dom node
+        # # corresponding dom node
         self.xml_node = xml_node
 
-        ## application name
+        # # application name
         self.name = "none"
 
-        ## application id
+        # # application id
         self.id = -1
 
-        ## set of tasks and tasklinks in the application (if they are mapped to a comm resource)
+        # # set of tasks and tasklinks in the application (if they are mapped to a comm resource)
         self.tasks_pycpa = set()
 
-        ## set of tasklinks in the application
+        # # set of tasklinks in the application
         self.links_pycpa = set()
 
-        ## resolve name mappings
+        # # resolve name mappings
         self.id_to_link_pycpa = dict()
         self.id_to_task_pycpa = dict()
 
@@ -75,19 +77,19 @@ class SMFFLoader:
     def __init__(self):
         self.system = model.System()
 
-        ## the root dom node
+        # # the root dom node
         self.xml_root = None
 
-        ## the smff applications
+        # # the smff applications
         self.smff_applications = set()
 
-        ## all cpu resources in the system
+        # # all cpu resources in the system
         self.resources_pycpa = set()
 
-        ## all communication resources in the system
+        # # all communication resources in the system
         self.comm_resources_pycpa = set()
 
-        ## resolve name mappings
+        # # resolve name mappings
         self.id_to_resource_pycpa = dict()
         self.id_to_comm_resource_pycpa = dict()
         self.id_to_smff_applications = dict()
@@ -237,7 +239,7 @@ class SMFFLoader:
 
         name = activation_pattern_node.attributes["name"].nodeValue
         if name == "PJActivation":
-            ## source
+            # # source
             jitter = int(activation_pattern_node.attributes["activationJitter"].nodeValue)
             period = int(activation_pattern_node.attributes["activationPeriod"].nodeValue)
             em = model.EventModel(P=period, J=jitter)
@@ -338,7 +340,7 @@ class SMFFLoader:
             smff_application.links_pycpa.add(task_model)
 
         else:
-            #no task just link src and trgt
+            # no task just link src and trgt
             src_pycpa.link_dependent_task(trgt_pycpa)
 
     def _handle_mapping(self, mapping_node, smff_application):
@@ -356,8 +358,8 @@ class SMFFLoader:
             smff_application.task_mapping[tid] = rid
 
         for maptasklink_node in mapping_node.getElementsByTagName("mapLink"):
-            ## tricky: when task_link is mapped to a comm_resource (a crid attribute exists)
-            ## we map the link as a pycpa task
+            # # tricky: when task_link is mapped to a comm_resource (a crid attribute exists)
+            # # we map the link as a pycpa task
             crid_attr = maptasklink_node.getAttributeNode("crid")
             lid = int(maptasklink_node.attributes["lid"].nodeValue)
             if crid_attr is not None:
@@ -448,7 +450,7 @@ class SMFFLoader:
     def annotate_results(self):
         analysis_node = None
 
-        ## remove old analysis results
+        # # remove old analysis results
         while len(self.xml_root.childNodes[0].getElementsByTagName("Analysis")) > 0:
             analysis_node = self.xml_root.childNodes[0].getElementsByTagName("Analysis")[0]
             self.xml_root.childNodes[0].removeChild(analysis_node)

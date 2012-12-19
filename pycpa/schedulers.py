@@ -12,12 +12,14 @@ Description
 
 Local analysis functions (schedulers)
 """
+from __future__ import absolute_import
 
 import itertools
 import math
 import logging
-import analysis
-import options
+
+from . import analysis
+from . import options
 
 logger = logging.getLogger("pycpa")
 
@@ -75,7 +77,7 @@ class EDFPScheduler(analysis.Scheduler):
         :rtype: set of integers
         """
         busy_period = self.edf_busy_period(task)
-        #print "busy_period", busy_period
+        # print "busy_period", busy_period
 
         # will contain all deadlines of all
         # resource interferers in the busy period
@@ -83,21 +85,21 @@ class EDFPScheduler(analysis.Scheduler):
 
         for ti in task.get_resource_interferers():
 
-            n = ti.in_event_model.eta_plus(busy_period) # amount of activations of ti in the busy period
-            #print "name:", ti.name, "n:", "range:", range(1, n + 1)
-            ti_deadlines = [ti.in_event_model.delta_min(p) + ti.deadline for p in range(1, n + 1)] # instances of deadlines for ti
-            #print "ti_deadlines", ti_deadlines
+            n = ti.in_event_model.eta_plus(busy_period)  # amount of activations of ti in the busy period
+            # print "name:", ti.name, "n:", "range:", range(1, n + 1)
+            ti_deadlines = [ti.in_event_model.delta_min(p) + ti.deadline for p in range(1, n + 1)]  # instances of deadlines for ti
+            # print "ti_deadlines", ti_deadlines
             candidate_deadlines.extend(ti_deadlines)
-        #print "deadlines", candidate_deadlines
+        # print "deadlines", candidate_deadlines
         # calculate the activation instances so that the deadlines of task and the tis match
 
         candidate_activations = set()
         for di in candidate_deadlines:
             ac = max(0, di - task.deadline)
-            #if ((ac - task.in_event_model.delta_min(q) >= 0) and
+            # if ((ac - task.in_event_model.delta_min(q) >= 0) and
             #   (ac <= busy_period - task.wcet)): # the arrival of the first event must be in the busy window
             if ((ac >= task.in_event_model.delta_min(q)) and
-               (ac < task.in_event_model.delta_min(q + 1))): # the arrival of the first event must be in the busy window
+               (ac < task.in_event_model.delta_min(q + 1))):  # the arrival of the first event must be in the busy window
                 candidate_activations.add(ac)
 
         return candidate_activations
@@ -129,25 +131,25 @@ class EDFPScheduler(analysis.Scheduler):
 
         # all activations which have a deadline before tasks's deadline (and thus have a higher priority)
         n_before_deadline = ti.in_event_model.eta_plus_closed(deadline_task - ti.deadline)
-        #print "ti: ", ti.name, "n_ti", n_ti, "n_before_deadline", n_before_deadline, "w_deadline", deadline_task - ti.deadline + EPSILON
+        # print "ti: ", ti.name, "n_ti", n_ti, "n_before_deadline", n_before_deadline, "w_deadline", deadline_task - ti.deadline + EPSILON
         eta = min(n_ti, n_before_deadline)
         return max(0, eta)
 
     def _window_candidate(self, task, q, activation_time):
         w = q * task.wcet
-        #print "candidate activation_time:", activation_time
+        # print "candidate activation_time:", activation_time
         while True:
-            #print " - w:", w
-            #logging.debug("e: %d", q * task.wcet)
+            # print " - w:", w
+            # logging.debug("e: %d", q * task.wcet)
             s = 0
-            #logging.debug(task.name+" interferers "+ str([i.name for i in task.get_resource_interferers()]))
+            # logging.debug(task.name+" interferers "+ str([i.name for i in task.get_resource_interferers()]))
             for ti in task.get_resource_interferers():
                 eta = self._eta_activation_time(task, q, ti, w, activation_time)
-                #print " - ti", ti.name, "eta", eta
+                # print " - ti", ti.name, "eta", eta
                 s += ti.wcet * eta
 
             w_new = q * task.wcet + s
-            #print ("w_new: ", w_new)
+            # print ("w_new: ", w_new)
             if w == w_new:
                 break
             w = w_new
@@ -169,18 +171,18 @@ class EDFPScheduler(analysis.Scheduler):
         assert(task.wcet >= 0)
 
         activation_candidates = self._activation_time_candidates(task, q)
-        #print "amount of candidates:", activation_candidates
+        # print "amount of candidates:", activation_candidates
         w = 0
         a = 0
         for ac in activation_candidates:
             w_new = self._window_candidate(task, q, ac) - ac + task.in_event_model.delta_min(q)
-            #print "  -> window_candidate:", w_new
+            # print "  -> window_candidate:", w_new
             w_new = w_new
             if w_new > w:
                 w = w_new
                 a = ac
 
-        #print "  -----> w_max:", w, "ac:", a
+        # print "  -----> w_max:", w, "ac:", a
         if details is not None:
             # TODO: implement details==True
             return dict()
@@ -214,12 +216,12 @@ class RoundRobinScheduler(analysis.Scheduler):
 
     def b_plus(self, task, q, details=None):
         w = q * task.wcet
-        #print "q=",q
+        # print "q=",q
         while True:
             s = 0
             for ti in task.get_resource_interferers():
-                #print "sum+=min(",q,",",ti.in_event_model.eta_plus(w)
-                #s += min(q, ti.eta_plus(w))
+                # print "sum+=min(",q,",",ti.in_event_model.eta_plus(w)
+                # s += min(q, ti.eta_plus(w))
                 if hasattr(task, "scheduling_parameter") and task.scheduling_parameter is not None:
                     s += min(int(math.ceil(float(q) * task.wcet / task.scheduling_parameter)) * ti.scheduling_parameter,
                          ti.in_event_model.eta_plus(w) * ti.wcet)
@@ -227,7 +229,7 @@ class RoundRobinScheduler(analysis.Scheduler):
                     # Assume cooperative round robin
                     s += ti.wcet * min(q, ti.in_event_model.eta_plus(w))
 
-            #print "w=",q,"+",sum, ", eta_plus(w)=", task.in_event_model.eta_plus(q+sum)
+            # print "w=",q,"+",sum, ", eta_plus(w)=", task.in_event_model.eta_plus(q+sum)
             w_new = q * task.wcet + s
 
             if w == w_new:
@@ -267,13 +269,13 @@ class SPNPScheduler(analysis.Scheduler):
         """
         analysis.Scheduler.__init__(self)
 
-        ## time granularity of the scheduler
+        # # time granularity of the scheduler
         self.cycle_time = cycle_time
 
-        ## Context-switch overhead
+        # # Context-switch overhead
         self.ctx_switch_overhead = ctx_switch_overhead
 
-        ## priority ordering
+        # # priority ordering
         self.priority_cmp = priority_cmp
 
     def _blocker(self, task):
@@ -327,19 +329,19 @@ class SPNPScheduler(analysis.Scheduler):
         w = (q - 1) * (task.wcet + self.ctx_switch_overhead) + b
 
         while True:
-            #logging.debug("w: %d", w)
-            #logging.debug("e: %d", q * task.wcet)
+            # logging.debug("w: %d", w)
+            # logging.debug("e: %d", q * task.wcet)
             s = 0
-            #logging.debug(task.name+" interferers "+ str([i.name for i in task.get_resource_interferers()]))
+            # logging.debug(task.name+" interferers "+ str([i.name for i in task.get_resource_interferers()]))
             for ti in task.get_resource_interferers():
                 assert(ti.scheduling_parameter != None)
                 assert(ti.resource == task.resource)
-                if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter): # equal priority also interferes (FCFS)
+                if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):  # equal priority also interferes (FCFS)
                     s += (ti.wcet + self.ctx_switch_overhead) * ti.in_event_model.eta_plus(w + self.cycle_time)
-                    #logging.debug("e: %s %d x %d", ti.name, ti.wcet, ti.in_event_model.eta_plus(w))
+                    # logging.debug("e: %s %d x %d", ti.name, ti.wcet, ti.in_event_model.eta_plus(w))
 
             w_new = (q - 1) * (task.wcet + self.ctx_switch_overhead) + b + s
-            #print ("w_new: ", w_new)
+            # print ("w_new: ", w_new)
             if w == w_new:
 
                 if details is not None:
@@ -402,7 +404,7 @@ class SPPOffsetScheduler(analysis.Scheduler):
             Eq. 17 Palencia2002
         """
 
-        #T_i= task_ij.min_average_between_two_events()
+        # T_i= task_ij.min_average_between_two_events()
         T_i = task_ij.in_event_model.P
         print task_ij, task_ij.in_event_model.P
         assert T_i > 0
@@ -422,40 +424,40 @@ class SPPOffsetScheduler(analysis.Scheduler):
             assert task_ik.in_event_model.P == ti.in_event_model.P
             J_ij = ti.in_event_model.J
             phi = self.phi_ijk(ti, task_ik)
-            #print "phi", phi
-            #print "T_i", T_i
-            #print "t", t
+            # print "phi", phi
+            # print "T_i", T_i
+            # print "t", t
             n = math.floor((float(J_ij + phi)) / T_i) + math.ceil((float(t - phi) / float(T_i)))
-            #print "n", n
+            # print "n", n
             w += n * ti.wcet
         return w
 
     def w_spp_candidate(self, tasks_in_transaction, task, candidate, q):
 
-        #initiator of the critical instant for the transaction of task
+        # initiator of the critical instant for the transaction of task
         va = [x for x in candidate if task.path == x.path][0]
         T = task.in_event_model.P
 
         w = float(task.wcet)
 
         while True:
-            #print "---------------------"
-            #print "phi_ijk(task, va)", phi_ijk(task, va)
+            # print "---------------------"
+            # print "phi_ijk(task, va)", phi_ijk(task, va)
             w_new = (q + math.floor((task.in_event_model.J + self.phi_ijk(task, va)) / float(T))) * task.wcet
             logger.debug("   w_new: %f", w_new)
-            #print "w_new", w_new
+            # print "w_new", w_new
             for i in candidate:
                 if i == task:
                     continue
                 w_trans = self.transaction_contribution(tasks_in_transaction[i.path], i, task, w)
                 logger.debug("   w_trans: %f", w_trans)
-                #print "w_trans", w_trans
+                # print "w_trans", w_trans
                 w_new += w_trans
             if w_new == w:
                 break
             w = w_new
 
-        #w += task.in_event_model.phi - phi_ijk(task, va) + task.in_event_model.P
+        # w += task.in_event_model.phi - phi_ijk(task, va) + task.in_event_model.P
         w += -1 * self.phi_ijk(task, va) + task.in_event_model.P - task.in_event_model.J
 
         assert w >= task.wcet
@@ -501,7 +503,7 @@ class SPPScheduler(analysis.Scheduler):
     def __init__(self, priority_cmp=prio_low_wins_equal_fifo):
         analysis.Scheduler.__init__(self)
 
-        ## priority ordering
+        # # priority ordering
         self.priority_cmp = priority_cmp
 
     def b_plus(self, task, q, details=None):
@@ -512,19 +514,19 @@ class SPPScheduler(analysis.Scheduler):
         w = q * task.wcet
 
         while True:
-            #logging.debug("w: %d", w)
-            #logging.debug("e: %d", q * task.wcet)
+            # logging.debug("w: %d", w)
+            # logging.debug("e: %d", q * task.wcet)
             s = 0
-            #logging.debug(task.name+" interferers "+ str([i.name for i in task.get_resource_interferers()]))
+            # logging.debug(task.name+" interferers "+ str([i.name for i in task.get_resource_interferers()]))
             for ti in task.get_resource_interferers():
                 assert(ti.scheduling_parameter != None)
                 assert(ti.resource == task.resource)
-                if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter): # equal priority also interferes (FCFS)
+                if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):  # equal priority also interferes (FCFS)
                     s += ti.wcet * ti.in_event_model.eta_plus(w)
-                    #logging.debug("e: %s %d x %d", ti.name, ti.wcet, ti.in_event_model.eta_plus(w))
+                    # logging.debug("e: %s %d x %d", ti.name, ti.wcet, ti.in_event_model.eta_plus(w))
 
             w_new = q * task.wcet + s
-            #print ("w_new: ", w_new)
+            # print ("w_new: ", w_new)
             if w == w_new:
                 assert(w >= q * task.wcet)
                 if details is not None:
@@ -548,23 +550,23 @@ class SPPSchedulerRoundRobin(SPPScheduler):
 
         w = q * task.wcet
         while True:
-            #logging.debug("w: %d", w)
-            #logging.debug("e: %d", q * task.wcet)
+            # logging.debug("w: %d", w)
+            # logging.debug("e: %d", q * task.wcet)
             s = 0
-            #logging.debug(task.name+" interferers "+ str([i.name for i in task.get_resource_interferers()]))
+            # logging.debug(task.name+" interferers "+ str([i.name for i in task.get_resource_interferers()]))
             for ti in task.get_resource_interferers():
                 assert(ti.scheduling_parameter != None)
                 assert(ti.resource == task.resource)
-                if ti.scheduling_parameter == task.scheduling_parameter: # equal priority -> round robin
+                if ti.scheduling_parameter == task.scheduling_parameter:  # equal priority -> round robin
                     # assume cooperative round-robin
                     s += ti.wcet * min(q, ti.in_event_model.eta_plus(w))
-                elif self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter): # lower priority number -> block
+                elif self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):  # lower priority number -> block
                     s += ti.wcet * ti.in_event_model.eta_plus(w)
-                    #logging.debug("e: %s %d x %d", ti.name, ti.wcet, ti.in_event_model.eta_plus(w))
+                    # logging.debug("e: %s %d x %d", ti.name, ti.wcet, ti.in_event_model.eta_plus(w))
 
 
             w_new = q * task.wcet + s
-            #print ("w_new: ", w_new)
+            # print ("w_new: ", w_new)
             if w == w_new:
                 break
             w = w_new

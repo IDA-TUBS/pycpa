@@ -16,6 +16,7 @@ It will setup an argument parser and set up default parameters.
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 MAX_ITERATIONS = 1000
 MAX_WCRT = float('inf')
@@ -29,7 +30,7 @@ import argparse
 import logging
 import sys
 
-from pycpa import __license_text__
+from . import __license_text__
 
 parser = argparse.ArgumentParser(description='Scheduling Analysis')
 parser.add_argument('--max_iterations', type=int,
@@ -84,10 +85,10 @@ def pprintTable(out, table, column_sperator="", header_separator=":"):
 
     def format(num):
         """Format a number according to given places.  Adds commas, etc. Will truncate floats into ints!"""
-        #try:
+        # try:
         #    inum = int(num)
         #    return locale.format("%.*f", (0, inum), True)
-        #except (ValueError, TypeError):
+        # except (ValueError, TypeError):
         return str(num)
     def get_max_width(table1, index1):
         """Get the maximum width of the given column index"""
@@ -108,7 +109,7 @@ def pprintTable(out, table, column_sperator="", header_separator=":"):
 
     return
 
-def init_pycpa(implicit = False):
+def init_pycpa(implicit=False):
     """ Initialize pyCPA.
     This function parses the options and prints them for reference.
     It is called once automatically from get_opt() or set_opt()
@@ -134,7 +135,7 @@ def init_pycpa(implicit = False):
             if action.default == argparse.SUPPRESS:
                 continue
             setattr(_opts, action.dest, action.default)
-#table of selected paramters
+# table of selected paramters
 
     table = list()
     for attr in dir(_opts):
