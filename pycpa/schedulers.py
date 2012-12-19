@@ -14,10 +14,10 @@ Local analysis functions (schedulers)
 """
 
 import itertools
-import analysis
-import options
 import math
 import logging
+from . import analysis
+from . import options
 
 logger = logging.getLogger("pycpa")
 
@@ -77,7 +77,8 @@ class EDFPScheduler(analysis.Scheduler):
         busy_period = self.edf_busy_period(task)
         #print "busy_period", busy_period
 
-        # will contain all deadlines of all resource interferers in the busy period
+        # will contain all deadlines of all
+        # resource interferers in the busy period
         candidate_deadlines = list([task.deadline])
 
         for ti in task.get_resource_interferers():

@@ -2,7 +2,7 @@
 
 | Copyright (C) 2007-2012 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -16,33 +16,38 @@ This module contains methods for the ananlysis of path latencies.
 It should be imported in scripts that do the analysis.
 """
 
-import options
-import model
-import analysis
+from . import options
+from . import model
+from . import analysis
 
 
-def end_to_end_latency(path, task_results, n=1 , task_overhead=(0, 0), path_overhead=(0, 0), **kwargs):
-    """ Computes the worst-/best-case e2e latency for n tokens to pass the path.    
+def end_to_end_latency(path, task_results, n=1 , task_overhead=(0, 0),
+                       path_overhead=(0, 0), **kwargs):
+    """ Computes the worst-/best-case e2e latency for n tokens to pass the path.
 
     :param path: the path
     :type path: model.Path
     :param n:  amount of events
     :type n: integer
-    :param task_overhead: A constant task_overhead is added once per task to both min and max latency
+    :param task_overhead: A constant task_overhead is added
+    once per task to both min and max latency
     :type task_overhead: tuple (best case overhead, worst-case overhead)
-    :param path_overhead:  A constant path_overhead is added once per path to both min and max latency
-    :type path_overhead: tuple (best case overhead, worst-case overhead)     
+    :param path_overhead:  A constant path_overhead is added
+    once per path to both min and max latency
+    :type path_overhead: tuple (best case overhead, worst-case overhead)
     :rtype: tuple (best-case latency, worst-case latency)
     """
 
     if options.get_opt('e2e_improved') == True:
-        (lmin, lmax) = end_to_end_latency_improved(path, task_results, n, **kwargs)
+        (lmin, lmax) = end_to_end_latency_improved(path, task_results,
+                                                   n, **kwargs)
     else:
-        (lmin, lmax) = end_to_end_latency_classic(path, task_results, n, **kwargs)
+        (lmin, lmax) = end_to_end_latency_classic(path, task_results,
+                                                  n, **kwargs)
 
     for t in path.tasks:
         if isinstance(t, model.Task):
-            # add per-task overheads            
+            # add per-task overheads
             lmin += task_overhead[0]
             lmax += task_overhead[1]
 
@@ -56,16 +61,17 @@ def end_to_end_latency_classic(path, task_results, n=1, injection_rate='max'):
     """ Computes the worst-/best-case end-to-end latency
     Assumes that all tasks in the system have successfully been analyzed.
     Assumes that events enter the path at maximum/minumum rate.
-    The end-to-end latency is the sum of the individual task's worst-case response times.
-    
+    The end-to-end latency is the sum of the individual task's
+    worst-case response times.
+
     This corresponds to Definition 7.3 in [Richter2005]_.
-    
+
     :param path: the path
     :type path: model.Path
     :param n:  amount of events
-    :type n: integer   
+    :type n: integer
     :param injection_rate: assumed injection rate is maximum or minimum
-    :type injection_rate: string 'max' or 'min' 
+    :type injection_rate: string 'max' or 'min'
     :rtype: tuple (best case latency, worst case latency)
     """
 
@@ -127,7 +133,8 @@ def _event_exit_path(path, i, n):
         k_max = len(path.tasks[i - 1].busy_times)
         #print("k_max:",k_max)
         for k in range(k_max + 1):
-            e_k = _event_exit_path(path, i - 1, n - k) + path.tasks[i].busy_time(k + 1)
+            e_k = _event_exit_path(path, i - 1, n - k) +\
+                    path.tasks[i].busy_time(k + 1)
 
             #logger.debug("busy time for t%d (%d):%d" % (i, k + 1, path.tasks[i].busy_time(k + 1)))
             #print("e_k:",e_k)
@@ -152,7 +159,7 @@ def end_to_end_latency_improved(path, task_results, n=1):
 
     for t in path.tasks:
         if isinstance(t, model.Task):
-            # sum up best-case response times        
+            # sum up best-case response times
             lmin += t.bcrt
 
     # add the earliest possible release of event n

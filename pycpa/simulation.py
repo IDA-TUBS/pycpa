@@ -24,11 +24,11 @@ except ImportError:
     print "and try again."
 
 
-import model
-import schedulers
+from . import model
+from . import schedulers
 
 import logging
-import plot
+from . import plot
 
 logger = logging.getLogger("sim")
 

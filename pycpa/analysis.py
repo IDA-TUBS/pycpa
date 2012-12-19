@@ -21,9 +21,9 @@ import copy
 import time
 from collections import deque
 
-import model
-import options
-import util
+from . import model
+from . import options
+from . import util
 
 logger = logging.getLogger("pycpa")
 
@@ -119,10 +119,10 @@ class Scheduler:
                     for ti in task.get_resource_interferers():
                         sum_dict[str(ti) + '.eta*WCET'] = \
                             ti.in_event_model.eta_plus(w) * ti.wcet
-                        details[str(ti) + ':eta*WCET'] = str(ti.in_event_model
-                            .eta_plus(w)) + '*'\
-                            + str(ti.wcet)
-                    details['sum'] = sum_dict
+                        desc_string = str(ti.in_event_model.eta_plus(w))\
+                                        + '*' + str(ti.wcet)
+                        details[str(ti) + ':eta*WCET'] = desc_string
+                        details['sum'] = sum_dict
                 else:
                     return w
             w = w_new
@@ -179,7 +179,8 @@ class Scheduler:
         :type task_results: dict (analysis.TaskResult)
         :rtype: integer (worst-case response time)
 
-        For this, we construct busy windows for q=1, 2, ... task activations (see [Lehoczky1990]_)
+        For this, we construct busy windows for q=1, 2, ... task activations
+        (see [Lehoczky1990]_)
         and iterate until a stop condition (e.g. resource idle again).
         The response time is then the maximum time difference between
         the arrival and the completion of q events.
@@ -192,9 +193,11 @@ class Scheduler:
         # This could possibly be improved by using the previously computed
         #  WCRT and q as a starting point. Is this conservative?
         q = 1
-        q_wcrt = 1  # q for which the max wcrt was computed
-        wcrt = 0  # datatype of task.wcet is not known here (e.g. variable execution times)
-
+        # q for which the max wcrt was computed
+        q_wcrt = 1
+        # datatype of task.wcet is not known here
+        # (e.g. variable execution times)
+        wcrt = 0
 
         b_wcrt = dict()  # store details of busy window leading to wcrt
         task_results[task].busy_times = [0]  # busy time of 0 activations
@@ -215,7 +218,8 @@ class Scheduler:
             # TODO: this should go in central "constraint checking" function
             if options.get_opt('max_wcrt') < wcrt:
                 raise NotSchedulableException("max_wcrt > wcrt of %s, "
-                        "tasks (likely) not schedulable!" % task.name)
+                                              "tasks (likely) not schedulable!"
+                                              % task.name)
 
             # Check stopcondition
             if self.stopping_condition(task, q, w) == True:
@@ -228,7 +232,8 @@ class Scheduler:
                 # raise NameError("max_iterations reached, tasks (likely) not
                 # schedulable!")
                 raise NotSchedulableException("max_iterations for %s reached, "
-                        "tasks (likely) not schedulable!" % task.name)
+                                              "tasks (likely) not schedulable!"
+                                              % task.name)
                 # return  float("inf")  #-1
         task_results[task].q_wcrt = q_wcrt
         task_results[task].wcrt = wcrt
@@ -272,15 +277,17 @@ class Scheduler:
 
     def compute_max_backlog(self, task, task_results, output_delay=0):
         """ Compute the maximum backlog of Task t.
-            This is the maximum number of outstanding activations.
-            Implemented as shown in Eq.17 of [Diemer2012]_.
+        This is the maximum number of outstanding activations.
+        Implemented as shown in Eq.17 of [Diemer2012]_.
         """
         q_max = len(task_results[task].busy_times)
-        b = [0] + [task.in_event_model.eta_plus(task_results[task].busy_times[q] +
-            output_delay) - q + 1 for q in  range(1, q_max)]
+        b = [0] + [task.in_event_model.eta_plus(
+            task_results[task].busy_times[q] + output_delay)- q + 1
+            for q in range(1, q_max)]
         max_backlog = max(b)
         task_results[task].max_backlog = max_backlog
         return max_backlog
+
 
 def analyze_task(task, task_results):
     """ Analyze Task BUT DONT propagate event model.
@@ -348,8 +355,10 @@ def _out_event_model_jitter(task, task_results, dmin=0):
     """ Derive an output event model from response time jitter
      and in_event_model (used as reference).
 
-    This corresponds to Equations 1 (non-recursive) and 2 (recursive from [Schliecker2009]_
-    This is equivalent to Equation 5 in [Henia2005]_ or Equation 4.6 in [Richter2005]_.
+    This corresponds to Equations 1 (non-recursive) and
+    2 (recursive from [Schliecker2009]_
+    This is equivalent to Equation 5 in [Henia2005]
+    or Equation 4.6 in [Richter2005]_.
 
     Uses a reference to task.deltamin_func
     """
@@ -370,9 +379,9 @@ def _out_event_model_jitter(task, task_results, dmin=0):
     else:
         em.deltamin_func = lambda n: \
             n == 2 and max(task.in_event_model.delta_min(2)
-                    - resp_jitter, dmin) or max(
-                            task.in_event_model.delta_min(n) - resp_jitter,
-                            em.delta_min(n - 1) + dmin)
+                           - resp_jitter, dmin) or max(
+                               task.in_event_model.delta_min(n) - resp_jitter,
+                               em.delta_min(n - 1) + dmin)
 
     em.deltaplus_func = lambda n: task.in_event_model.delta_plus(
         n) + resp_jitter
@@ -412,7 +421,7 @@ def _out_event_model_busy_window(task, task_results, dmin=0):
     em.deltaplus_func = lambda n: \
         max([task.in_event_model.delta_plus(n - k + 1) + busy_times[k]
              for k in range(min_k, max_k)]) \
-            - copy.copy(task_results[task].bcrt)
+        - copy.copy(task_results[task].bcrt)
 
     em.__description__ = task.in_event_model.__description__ + "++"
     return em
@@ -454,8 +463,9 @@ def _out_event_model_junction_and(junction):
         min(emif.delta_min(n) for emif in junction.in_event_models))
     em.deltaplus_func = lambda n: (
         max(emif.delta_plus(n) for emif in junction.in_event_models))
-    em.__description__ = "AND " + "".join([emif.__description__
-        for emif in junction.in_event_models])
+    em.__description__ = "AND " + \
+            "".join([emif.__description__
+                     for emif in junction.in_event_models])
     return em
 
 
@@ -505,8 +515,9 @@ def _propagate_junction(junction, task_results):
 
     if len(propagate_tasks) == 0:
         raise NotSchedulableException("AND Junction %s "
-                "consists only of a functional cycle without further stimulus"
-                % junction)
+                                      "consists only of a functional"
+                                      " cycle without further stimulus"
+                                      % junction)
 
     # check if we can reuse the existing output event model
     for t in propagate_tasks:
@@ -604,7 +615,8 @@ class GlobalAnalysisState(object):
 
             if appgraph_well_formed == False:
                 raise NotSchedulableException("Appgraph not well-formed."
-                        "Dangling tasks: %s" % uninizialized)
+                                              "Dangling tasks: %s" %
+                                              uninizialized)
 
             t = uninizialized.popleft()
             if t.in_event_model is not None:
@@ -621,7 +633,8 @@ class GlobalAnalysisState(object):
                 # logger.warning("tasks: %s" % ([(x.name, x.wcet,
                 # x.in_event_model.delta_min(11) / 10) for x in r.tasks]))
                 raise NotSchedulableException("load too high: "
-                        "load on %s exceeds 1.0 (load is %f)" % (r.name, load))
+                                              "load on %s exceeds 1.0"
+                                              "(load is %f)" % (r.name, load))
 
     def clean_analysis_state(self):
         """ Clean the analysis state """
@@ -701,7 +714,6 @@ class GlobalAnalysisState(object):
             all_dep_tasks[task] = util.breadth_first_search(
                 task, None, self.get_dependent_tasks)
 
-
         # sort by name first (as secondary key in case the lengths are the same
         all_tasks_by_name = sorted(
             self.dependentTask.keys(), key=lambda x: x.name)
@@ -722,13 +734,13 @@ class GlobalAnalysisState(object):
                                     reverse=True)
 
 
-
-
-def analyze_system(system, task_results=None, only_dependent_tasks=False, progress_hook=None):
+def analyze_system(system, task_results=None, only_dependent_tasks=False,
+                   progress_hook=None):
     """ Analyze all tasks until we find a fixed point
 
         system -- the system to analyze
-        task_results -- if not None, all intermediate analysis results from a previous run are reused
+        task_results -- if not None, all intermediate analysis
+        results from a previous run are reused
 
         Returns a dictionary with results for each task.
 
@@ -751,7 +763,7 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False, progre
             progress_hook(analysis_state)
 
         logger.info("Analyzing, %d tasks left" %
-                            (len(analysis_state.dirtyTasks)))
+                   (len(analysis_state.dirtyTasks)))
 
         for t in analysis_state.analysisOrder:
             if t not in analysis_state.dirtyTasks:
@@ -761,7 +773,7 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False, progre
             analysis_state.dirtyTasks.remove(t)
 
             if only_dependent_tasks and len(analysis_state.
-                    dependentTask[t]) == 0:
+                                            dependentTask[t]) == 0:
                 continue  # skip analysis of tasks w/o dependents
 
             old_jitter = task_results[t].wcrt - task_results[t].bcrt
@@ -769,7 +781,6 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False, progre
             analyze_task(t, task_results)
             new_jitter = task_results[t].wcrt - task_results[t].bcrt
             new_busytimes = task_results[t].busy_times
-
 
             if new_jitter != old_jitter or old_busytimes != new_busytimes:
                 # If jitter has changed, the input event models of all
@@ -785,11 +796,11 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False, progre
                 analysis_state._mark_dependents_dirty(t)
                 break  # break the for loop to restart iteration
 
-
             elapsed = (time.clock() - start)
             logger.debug("iteration: %d, time: %.1f task: %s wcrt: %f dirty: %d"
-                    % (iteration, elapsed, t.name,
-                          task_results[t].wcrt, len(analysis_state.dirtyTasks)))
+                         % (iteration, elapsed, t.name,
+                            task_results[t].wcrt,
+                            len(analysis_state.dirtyTasks)))
             iteration += 1
 
         # # check for constraint violations

@@ -25,10 +25,9 @@ import logging
 import copy
 import warnings
 
-import options
-
-import path_analysis  # FIXME: Circular import
-import util
+from . import options
+from . import path_analysis  # FIXME: Circular import
+from . import util
 
 INFINITY = float('inf')
 

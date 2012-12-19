@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2012 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -15,10 +15,9 @@ SMFF import/annotate
 
 import xml.dom.minidom
 
-import options
-
-import model
-import schedulers
+from . import options
+from . import model
+from . import schedulers
 
 import logging
 
@@ -97,7 +96,7 @@ class SMFFLoader:
 
         self.xml_root = xml.dom.minidom.parse(filename)
 
-        #  save xml_root node in the system model 
+        #  save xml_root node in the system model
         self.system.xml_node = self.xml_root
 
         self._handle_system_model(self.xml_root)
@@ -358,7 +357,7 @@ class SMFFLoader:
 
         for maptasklink_node in mapping_node.getElementsByTagName("mapLink"):
             ## tricky: when task_link is mapped to a comm_resource (a crid attribute exists)
-            ## we map the link as a pycpa task 
+            ## we map the link as a pycpa task
             crid_attr = maptasklink_node.getAttributeNode("crid")
             lid = int(maptasklink_node.attributes["lid"].nodeValue)
             if crid_attr is not None:
