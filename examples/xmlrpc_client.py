@@ -57,11 +57,11 @@ try:
     proxy.assign_event_model(t11, "PJd", "30,5,0")
     proxy.assign_event_model(t12, "PJd", "15,6,0")
 
-    proxy.run_kernel()
+    proxy.analyze_system()
 
     tasks = [t11, t12, t21, t22]
     for t in tasks:
         print "results for " + proxy.get_task_parameter(t, "name")
-        print proxy.get_result(t)
+        print proxy.get_task_result(t)
 except Exception, v:
     print v

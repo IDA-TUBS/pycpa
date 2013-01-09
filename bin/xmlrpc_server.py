@@ -73,11 +73,13 @@ class CPARPC(xmlrpc.XMLRPC):
         self.pycpa_tasks = dict()
         self.pycpa_results = None
 
+    # TODO: can this become a private method?
     def check_task_id(self, task_id):
         if task_id not in self.pycpa_tasks:
             raise xmlrpc.Fault(INVALID_TASK_ID, "invalid task id")
         return self.pycpa_tasks[task_id]
 
+    # TODO: can this become a private method?
     def check_resource_id(self, resource_id):
         if resource_id not in self.pycpa_resources:
             raise xmlrpc.Fault(INVALID_RESOURCE_ID, "invalid resource id")
@@ -85,8 +87,8 @@ class CPARPC(xmlrpc.XMLRPC):
 
 
     def xmlrpc_new_system(self, name):
-        name = str(name)
         """ create new pycpa system"""
+        name = str(name)
         self.pycpa_system = model.System(name)
         logger.debug("new system %s" %name)
         return unique(self.pycpa_system)
@@ -146,6 +148,7 @@ class CPARPC(xmlrpc.XMLRPC):
         return 0
 
     @check
+    # TODO: refactor to assign_pjd_event_model
     def xmlrpc_assign_event_model(self, task_id, em_type, em_param):
         task = self.check_task_id(task_id)
         em = None
@@ -162,7 +165,7 @@ class CPARPC(xmlrpc.XMLRPC):
         return 0
 
     @check
-    def xmlrpc_get_result(self, task_id):
+    def xmlrpc_get_task_result(self, task_id):
         if self.pycpa_results is None:
             raise xmlrpc.Fault(INVALID_RESULTS, "no results available")
         task = self.check_task_id(task_id)
@@ -172,7 +175,7 @@ class CPARPC(xmlrpc.XMLRPC):
         return self.pycpa_results[task]
 
     @check
-    def xmlrpc_run_kernel(self):
+    def xmlrpc_analyze_system(self):
         for r in self.pycpa_system.resources:
             if r.scheduler is None:
                 raise xmlrpc.Fault(ILLEGAL_SYSTEM, "component %s has no scheduler assigned" % r.name)
@@ -188,7 +191,7 @@ class CPARPC(xmlrpc.XMLRPC):
 if __name__ == '__main__':
     from twisted.internet import reactor
     options.init_pycpa()
-    r = CPARPC()
-    xmlrpc.addIntrospection(r)
-    reactor.listenTCP(options.get_opt("port"), server.Site(r))
+    rpc = CPARPC()
+    xmlrpc.addIntrospection(rpc)
+    reactor.listenTCP(options.get_opt("port"), server.Site(rpc))
     reactor.run()
