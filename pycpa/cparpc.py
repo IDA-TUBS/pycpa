@@ -42,6 +42,7 @@ INVALID_EVENT_MODEL_TYPE = 6
 INVALID_RESULTS = 7
 ILLEGAL_SYSTEM = 8
 NOT_SCHEDULABLE = 9
+GENERAL_ERROR = 10
 
 def check(func):
     """ check decorator
@@ -137,6 +138,16 @@ class CPARPC(xmlrpc.XMLRPC):
         return getattr(self.pycpa_tasks[task_id], param)
 
     @check
+    def xmlrpc_set_resource_parameter(self, resource_id, attribute, value):
+        resource = self.check_resource_id(resource_id)
+        setattr(resource, attribute, value)
+        return 0
+
+    @check
+    def xmlrpc_get_resource_parameter(self, resource_id, param):
+        return getattr(self.pycpa_resources[resource_id], param)
+
+    @check
     def xmlrpc_link_task(self, task_id, target_id):
         task = self.check_task_id(task_id)
         target = self.check_task_id(target_id)
@@ -175,12 +186,12 @@ class CPARPC(xmlrpc.XMLRPC):
         for r in self.pycpa_system.resources:
             if r.scheduler is None:
                 raise xmlrpc.Fault(ILLEGAL_SYSTEM, "component %s has no scheduler assigned" % r.name)
-
         try:
             self.pycpa_results = analysis.analyze_system(self.pycpa_system)
         except analysis.NotSchedulableException as e:
             raise xmlrpc.Fault(NOT_SCHEDULABLE, "not schedulable")
+        # TODO: This makes debugging hard, make it optional
         except Exception as e:
-            return str(e)
+            raise xmlrpc.Fault(GENERAL_ERROR, str(e))
         return 0
 
