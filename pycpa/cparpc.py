@@ -20,8 +20,9 @@ non-python (e.g. close-source) applications.
 from twisted.web import xmlrpc
 
 from pycpa import model
-from pycpa import analysis
 from pycpa import schedulers
+from pycpa import analysis
+from pycpa import path_analysis
 
 import logging
 
@@ -51,6 +52,7 @@ class CPARPC(xmlrpc.XMLRPC):
         self.pycpa_systems = dict()
         self.pycpa_resources = dict()
         self.pycpa_tasks = dict()
+        self.pycpa_paths = dict()
         self.task_results = dict()
         self.scheduling_policies = {
                 "spp" : schedulers.SPPScheduler}
@@ -73,7 +75,17 @@ class CPARPC(xmlrpc.XMLRPC):
             raise xmlrpc.Fault(INVALID_ID, "invalid system id")
         return self.pycpa_systems[system_id]
 
+    def _check_path_id(self, path_id):
+        """ Return a reference to the path with path_id """
+        if path_id not in self.pycpa_paths:
+            raise xmlrpc.Fault(INVALID_ID, "invalid path id")
+        return self.pycpa_paths[path_id]
 
+    def _check_results_id(self, results_id):
+        """ Return a reference to the results with results_id """
+        if results_id not in self.task_results:
+            raise xmlrpc.Fault(INVALID_ID, "invalid results id")
+        return self.task_results[results_id]
 
 
     def xmlrpc_new_system(self, name):
@@ -157,6 +169,23 @@ class CPARPC(xmlrpc.XMLRPC):
         task.link_dependent_task(target)
         return 0
 
+    def xmlrpc_new_path(self, system_id, name, task_ids):
+        """ Adds a path consisting of a list of tasks to the system.
+        Returns path id.
+        """
+        system = self._check_system_id(system_id)
+
+        tasks = []
+        for t_id in task_ids:
+            t = self._check_task_id(t_id)
+            tasks.append(t)
+
+        p = model.Path(name, tasks)
+
+        system.bind_path(p)
+        self.pycpa_paths[unique(p)] = p
+        return unique(p)
+
     def xmlrpc_assign_pjd_event_model(self, task_id, period, jitter, min_dist):
         """ Create an eventmodel and assign it to task. """
         task = self._check_task_id(task_id)
@@ -172,13 +201,12 @@ class CPARPC(xmlrpc.XMLRPC):
 
     def xmlrpc_get_task_result(self, results_id, task_id):
         """ Return a dictionary of results for task_id. """
-        if results_id not in self.task_results:
-            raise xmlrpc.Fault(INVALID_RESULTS, "results not available")
+        results = self._check_results_id(results_id)
         task = self._check_task_id(task_id)
-        if task not in self.task_results[results_id]:
+        if task not in results:
             raise xmlrpc.Fault(INVALID_RESULTS, "no results for task")
 
-        return self.task_results[results_id][task]
+        return results[task]
 
     def xmlrpc_analyze_system(self, system_id):
         """ Analyze system and return a result id. """
@@ -198,4 +226,15 @@ class CPARPC(xmlrpc.XMLRPC):
             # TODO: Log stack trace to server for debugging
             raise xmlrpc.Fault(GENERAL_ERROR, str(e))
         return unique(results)
+
+    def xmlrpc_end_to_end_latency(self, path_id, results_id, n):
+        """ Returns best- and worst-case latency for n events along path. """
+        # TODO: add overheads?
+
+        path = self._check_path_id(path_id)
+        results = self._check_results_id(results_id)
+        return path_analysis.end_to_end_latency(path, results, n)
+
+
+
 
