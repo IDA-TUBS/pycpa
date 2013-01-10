@@ -23,6 +23,7 @@ from pycpa import model
 from pycpa import schedulers
 from pycpa import analysis
 from pycpa import path_analysis
+from pycpa import graph
 
 import logging
 
@@ -235,6 +236,11 @@ class CPARPC(xmlrpc.XMLRPC):
         results = self._check_results_id(results_id)
         return path_analysis.end_to_end_latency(path, results, n)
 
+    def xmlrpc_graph_system(self, system_id, filename):
+        """ Generate a graph of the system (in server directory). """
+        s = self._check_system_id(system_id)
 
+        graph.graph_system(s, filename)
+        return 0
 
 
