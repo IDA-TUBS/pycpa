@@ -5,7 +5,7 @@ Static Priority Preemtive Example
 Introduction
 ------------
 
-.. figure:: spp_graph.png
+.. figure:: _static/spp_graph.png
    :align:   right
 
 In this section, we will dissect the SPP example which is representative for the ideas behind pyCPA.

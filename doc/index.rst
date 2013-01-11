@@ -6,7 +6,7 @@
 Welcome
 =================================
 
-.. figure:: pycpa.png
+.. figure:: _static/pycpa.png
    :align:   right
 
 pyCPA is a pragmatic Python implementation of Compositional Performance Analysis
