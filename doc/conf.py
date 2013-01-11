@@ -219,7 +219,6 @@ man_pages = [
 
 # Mock missing modules for automatic building on readthedocs.org.
 # see https://read-the-docs.readthedocs.org/en/latest/faq.html
-import sys
 
 class Mock(object):
     def __init__(self, *args, **kwargs):
@@ -242,3 +241,4 @@ class Mock(object):
 MOCK_MODULES = ['twisted.web']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
+
