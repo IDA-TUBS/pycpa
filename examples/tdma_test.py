@@ -41,10 +41,10 @@ def tdma_test():
     t12.link_dependent_task(t22)
 
     t11.in_event_model = model.PJdEventModel()
-    t11.in_event_model.set_PJ(30, 5)
+    t11.in_event_model.set_PJd(30, 5)
 
     t12.in_event_model = model.PJdEventModel()
-    t12.in_event_model.set_PJ(15, 6)
+    t12.in_event_model.set_PJd(15, 6)
 
     g = graph.graph_system(s, 'tdma_graph.pdf')
 
