@@ -17,13 +17,7 @@ This module contains methods to plot task/architecture graphs of your system
 from __future__ import absolute_import
 from . import model
 
-try:
-    import pygraphviz
-except ImportError:
-    print "Sorry, you don't have the pygraphviz module installed."
-    print "Please install or reconfigure pygraphviz"
-    print "and try again."
-
+import pygraphviz
 
 
 def get_junction_name(j):

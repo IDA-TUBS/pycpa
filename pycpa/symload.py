@@ -15,13 +15,7 @@ Symta 1.4 loader
 
 from __future__ import absolute_import
 
-try:
-    import xml.dom.minidom
-except ImportError:
-    print "Sorry, you don't have the minidom module installed."
-    print "Please install or reconfigure minidom"
-    print "and try again."
-    exit(1)
+import xml.dom.minidom
 
 from . import model
 from . import schedulers

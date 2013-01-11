@@ -238,7 +238,9 @@ class Mock(object):
         else:
             return Mock()
 
-MOCK_MODULES = ['twisted', 'twisted.web']
+MOCK_MODULES = ['twisted', 'twisted.web',
+                'matplotlib', 'matplotlib.collections',
+                'pygraphviz']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 

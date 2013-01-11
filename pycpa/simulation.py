@@ -17,13 +17,7 @@ gantt charts.
 from __future__ import absolute_import
 
 
-try:
-    from SimPy.Simulation import *
-except ImportError:
-    Simulation = None  # get rid of "compile-time" errors
-    print "Sorry, you don't have the SimPy module installed."
-    print "Please install or reconfigure SimPy"
-    print "and try again."
+from SimPy.Simulation import Process, Simulation, SimEvent, waitevent, hold
 
 import logging
 

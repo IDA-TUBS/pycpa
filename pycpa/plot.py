@@ -17,15 +17,10 @@ General purpose plotting functions:
 """
 
 
-try:
-    from matplotlib import ticker
-    from matplotlib import pyplot
-    from matplotlib import patches
-    from matplotlib.collections import PatchCollection
-except ImportError:
-    print "Sorry, you don't have the matplotlib module installed."
-    print "Please install or reconfigure matplotlib"
-    print "and try again."
+from matplotlib import ticker
+from matplotlib import pyplot
+from matplotlib import patches
+from matplotlib.collections import PatchCollection
 
 import math
 
