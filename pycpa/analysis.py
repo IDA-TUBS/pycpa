@@ -102,8 +102,7 @@ class Scheduler:
         :type task: model.Task
         :param q: the number of activations
         :type q: integer
-        :param details: reference to a dict of details
-        on the busy window (instead of busy time)
+        :param details: reference to a dict of details on the busy window (instead of busy time)
         :type q: boolean
         :rtype: integer (max. busy-time for q activations)
         """

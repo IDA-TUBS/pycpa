@@ -18,6 +18,8 @@ It should be imported in scripts that do the analysis.
 from __future__ import absolute_import
 from . import options
 
+from . import model
+
 
 def end_to_end_latency(path, task_results, n=1 , task_overhead=(0, 0),
                        path_overhead=(0, 0), **kwargs):
@@ -27,11 +29,9 @@ def end_to_end_latency(path, task_results, n=1 , task_overhead=(0, 0),
     :type path: model.Path
     :param n:  amount of events
     :type n: integer
-    :param task_overhead: A constant task_overhead is added
-    once per task to both min and max latency
+    :param task_overhead: A constant task_overhead is added once per task to both min and max latency
     :type task_overhead: tuple (best case overhead, worst-case overhead)
-    :param path_overhead:  A constant path_overhead is added
-    once per path to both min and max latency
+    :param path_overhead:  A constant path_overhead is added once per path to both min and max latency
     :type path_overhead: tuple (best case overhead, worst-case overhead)
     :rtype: tuple (best-case latency, worst-case latency)
     """
@@ -136,7 +136,6 @@ def _event_exit_path(path, i, n):
             e_k = _event_exit_path(path, i - 1, n - k) + \
                     path.tasks[i].busy_time(k + 1)
 
-            # logger.debug("busy time for t%d (%d):%d" % (i, k + 1, path.tasks[i].busy_time(k + 1)))
             # print("e_k:",e_k)
             if e_k > e:
                 # logger.debug("task %d, n=%d k=%d, new e=%d" % (i, n, k, e_k))
