@@ -94,7 +94,7 @@ class CPARPC(xmlrpc.XMLRPC):
         name = str(name)
         s = model.System(name)
         self.pycpa_systems[unique(s)] = s
-        logger.debug("new system %s" %name)
+        logger.debug("new system %s" % name)
         return unique(s)
 
     def xmlrpc_protocol(self):
@@ -106,7 +106,7 @@ class CPARPC(xmlrpc.XMLRPC):
         system = self._check_system_id(system_id)
         name = str(name)
         r = model.Resource(name)
-        logger.debug("new resource %s" %name)
+        logger.debug("new resource %s" % name)
         system.bind_resource(r)
         self.pycpa_resources[unique(r)] = r
         return unique(r)
@@ -192,8 +192,7 @@ class CPARPC(xmlrpc.XMLRPC):
         task = self._check_task_id(task_id)
         em = None
         try:
-            em = model.EventModel()
-            em.set_PJd(int(period), int(jitter), int(min_dist))
+            em = model.PJdEventModel(int(period), int(jitter), int(min_dist))
         except ValueError:
             raise xmlrpc.Fault(INVALID_EVENT_MODEL_DESC,
                                "invalid event model parametrization")
