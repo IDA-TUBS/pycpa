@@ -1,197 +1,246 @@
 #!/usr/bin/env python
 """
-| Copyright (C) 2012 Philip Axer
+| Copyright (C) 2012 Philip Axer, Jonas Diemer
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
          - Philip Axer
+         - Jonas Diemer
 
 Description
 -----------
 
 XML-RPC server for pyCPA. It can be used to interface pycpa with
-non-python (i.e. close-source) applications.
+non-python (e.g. close-source) applications.
 """
 
 
-from twisted.web import xmlrpc, server
+from twisted.web import xmlrpc
 
 from pycpa import model
-from pycpa import analysis
-from pycpa import options
 from pycpa import schedulers
+from pycpa import analysis
+from pycpa import path_analysis
+from pycpa import graph
 
 import logging
 
 logger = logging.getLogger("xmlrpc")
 
 def unique(obj):
+    """ Returns a unique id for obj """
     return id(obj)
 
 
 PYCPA_XMLRPC_VERSION = 1
 
-INVALID_SCHEDULER = 1
-INVALID_SYSTEM = 2
-INVALID_RESOURCE_ID = 3
-INVALID_TASK_ID = 4
+GENERAL_ERROR = 1
+INVALID_SCHEDULER = 2
+INVALID_ID = 3
 INVALID_EVENT_MODEL_DESC = 5
-INVALID_EVENT_MODEL_TYPE = 6
 INVALID_RESULTS = 7
 ILLEGAL_SYSTEM = 8
 NOT_SCHEDULABLE = 9
-GENERAL_ERROR = 10
 
-def check(func):
-    """ check decorator
-    looks for resource_id and task_id in the argument list of func.
-    If found, it will check if there is a corresponding pycpa object,
-    otherwise it will raise an xmlrpc.Fault
-    """
-    def inner(*args, **kwargs):
-        self = args[0] # self is first by convention
-        # always check system
-        if self.pycpa_system is None:
-            raise xmlrpc.Fault(INVALID_SYSTEM, "invalid system")
-        return func(*args, **kwargs)
-    return inner
 
 class CPARPC(xmlrpc.XMLRPC):
     """An example object to be published."""
     def __init__(self, allowNone=False, useDateTime=False):
         xmlrpc.XMLRPC.__init__(self, allowNone, useDateTime)
 
-        self.pycpa_system = None
+        self.pycpa_systems = dict()
         self.pycpa_resources = dict()
         self.pycpa_tasks = dict()
-        self.pycpa_results = None
+        self.pycpa_paths = dict()
+        self.task_results = dict()
         self.scheduling_policies = {
                 "spp" : schedulers.SPPScheduler}
 
-    # TODO: can this become a private method?
-    def check_task_id(self, task_id):
+    def _check_task_id(self, task_id):
+        """ Return a reference to the task with task_id """
         if task_id not in self.pycpa_tasks:
-            raise xmlrpc.Fault(INVALID_TASK_ID, "invalid task id")
+            raise xmlrpc.Fault(INVALID_ID, "invalid task id")
         return self.pycpa_tasks[task_id]
 
-    # TODO: can this become a private method?
-    def check_resource_id(self, resource_id):
+    def _check_resource_id(self, resource_id):
+        """ Return a reference to the resource with resource_id """
         if resource_id not in self.pycpa_resources:
-            raise xmlrpc.Fault(INVALID_RESOURCE_ID, "invalid resource id")
+            raise xmlrpc.Fault(INVALID_ID, "invalid resource id")
         return self.pycpa_resources[resource_id]
+
+    def _check_system_id(self, system_id):
+        """ Return a reference to the system with system_id """
+        if system_id not in self.pycpa_systems:
+            raise xmlrpc.Fault(INVALID_ID, "invalid system id")
+        return self.pycpa_systems[system_id]
+
+    def _check_path_id(self, path_id):
+        """ Return a reference to the path with path_id """
+        if path_id not in self.pycpa_paths:
+            raise xmlrpc.Fault(INVALID_ID, "invalid path id")
+        return self.pycpa_paths[path_id]
+
+    def _check_results_id(self, results_id):
+        """ Return a reference to the results with results_id """
+        if results_id not in self.task_results:
+            raise xmlrpc.Fault(INVALID_ID, "invalid results id")
+        return self.task_results[results_id]
 
 
     def xmlrpc_new_system(self, name):
-        """ create new pycpa system"""
+        """ create new pycpa system and return it's id """
         name = str(name)
-        self.pycpa_system = model.System(name)
+        s = model.System(name)
+        self.pycpa_systems[unique(s)] = s
         logger.debug("new system %s" %name)
-        return unique(self.pycpa_system)
+        return unique(s)
 
     def xmlrpc_protocol(self):
+        """ Return protocol version """
         return PYCPA_XMLRPC_VERSION
 
-    @check
-    def xmlrpc_new_resource(self, name):
+    def xmlrpc_new_resource(self, system_id, name):
+        """ Create a new resource with name and bind it to a system. """
+        system = self._check_system_id(system_id)
         name = str(name)
         r = model.Resource(name)
         logger.debug("new resource %s" %name)
-        self.pycpa_system.bind_resource(r)
+        system.bind_resource(r)
         self.pycpa_resources[unique(r)] = r
         return unique(r)
 
-    @check
     def xmlrpc_assign_scheduler(self, resource_id, scheduler_string):
+        """ Assign a scheduler to a resource. """
         scheduler_string = str(scheduler_string)
-        resource = self.check_resource_id(resource_id)
+        resource = self._check_resource_id(resource_id)
         scheduler = self.scheduling_policies.get(scheduler_string, None)
         if scheduler is None:
             logger.error("invalid scheduler %s selected" % (scheduler_string))
             raise xmlrpc.Fault(INVALID_SCHEDULER, "invalid scheduler")
-        logger.debug("assigned policy %s to resource %s" % (scheduler_string, resource.name))
+        logger.debug("assigned policy %s to resource %s" %
+                     (scheduler_string, resource.name))
         resource.scheduler = scheduler()
         return 0
 
-    @check
-    def xmlrpc_tasks_by_name(self, name):
-        return [task_id for task_id, task in self.pycpa_tasks.iteritems() if task.name == str(name)]
+    def xmlrpc_tasks_by_name(self, system_id, name):
+        """ Return a list of tasks of system_id matching name """
+        system = self._check_system_id(system_id)
+        system_tasks = set()
+        for r in system.resources:
+            system_tasks += r.tasks
 
-    @check
+        return [task_id for task_id, task in self.pycpa_tasks.iteritems()
+                if task in system_tasks and task.name == name]
+
     def xmlrpc_new_task(self, resource_id, name):
-        resource = self.check_resource_id(resource_id)
+        """ Create a new task and bind it to a ressource. """
+        resource = self._check_resource_id(resource_id)
         task = model.Task(str(name))
         task_id = unique(task)
         self.pycpa_tasks[task_id] = task
         resource.bind_task(task)
         return task_id
 
-    @check
     def xmlrpc_set_task_parameter(self, task_id, attribute, value):
-        task = self.check_task_id(task_id)
+        """ Set the attribute of a task to value. """
+        task = self._check_task_id(task_id)
         setattr(task, attribute, value)
         return 0
 
-    @check
-    def xmlrpc_get_task_parameter(self, task_id, param):
-        return getattr(self.pycpa_tasks[task_id], param)
+    def xmlrpc_get_task_parameter(self, task_id, attribute):
+        """ Return the attribute of a task. """
+        return getattr(self.pycpa_tasks[task_id], attribute)
 
-    @check
     def xmlrpc_set_resource_parameter(self, resource_id, attribute, value):
-        resource = self.check_resource_id(resource_id)
+        """ Set the attribute of a resource to value. """
+        resource = self._check_resource_id(resource_id)
         setattr(resource, attribute, value)
         return 0
 
-    @check
-    def xmlrpc_get_resource_parameter(self, resource_id, param):
-        return getattr(self.pycpa_resources[resource_id], param)
+    def xmlrpc_get_resource_parameter(self, resource_id, attribute):
+        """ Return the attribute of a resource. """
+        return getattr(self.pycpa_resources[resource_id], attribute)
 
-    @check
     def xmlrpc_link_task(self, task_id, target_id):
-        task = self.check_task_id(task_id)
-        target = self.check_task_id(target_id)
+        """ Make task with target_id dependent of the task with task_id. """
+        task = self._check_task_id(task_id)
+        target = self._check_task_id(target_id)
         task.link_dependent_task(target)
         return 0
 
-    @check
-    # TODO: refactor to assign_pjd_event_model
-    def xmlrpc_assign_event_model(self, task_id, em_type, em_param):
-        task = self.check_task_id(task_id)
+    def xmlrpc_new_path(self, system_id, name, task_ids):
+        """ Adds a path consisting of a list of tasks to the system.
+        Returns path id.
+        """
+        system = self._check_system_id(system_id)
+
+        tasks = []
+        for t_id in task_ids:
+            t = self._check_task_id(t_id)
+            tasks.append(t)
+
+        p = model.Path(name, tasks)
+
+        system.bind_path(p)
+        self.pycpa_paths[unique(p)] = p
+        return unique(p)
+
+    def xmlrpc_assign_pjd_event_model(self, task_id, period, jitter, min_dist):
+        """ Create an eventmodel and assign it to task. """
+        task = self._check_task_id(task_id)
         em = None
-        if em_type == "PJd":
-            try:
-                period, jitter, min_dist = em_param.split(',')
-                em = model.EventModel()
-                em.set_PJd(int(period), int(jitter), int(min_dist))
-            except ValueError:
-                raise xmlrpc.Fault(INVALID_EVENT_MODEL_DESC, "invalid event model paramerization")
-        else:
-            raise xmlrpc.Fault(INVALID_EVENT_MODEL_TYPE, "invalid event model type")
+        try:
+            em = model.EventModel()
+            em.set_PJd(int(period), int(jitter), int(min_dist))
+        except ValueError:
+            raise xmlrpc.Fault(INVALID_EVENT_MODEL_DESC,
+                               "invalid event model parametrization")
         task.in_event_model = em
         return 0
 
-    @check
-    def xmlrpc_get_task_result(self, task_id):
-        if self.pycpa_results is None:
-            raise xmlrpc.Fault(INVALID_RESULTS, "no results available")
-        task = self.check_task_id(task_id)
-        if task not in self.pycpa_results:
+    def xmlrpc_get_task_result(self, results_id, task_id):
+        """ Return a dictionary of results for task_id. """
+        results = self._check_results_id(results_id)
+        task = self._check_task_id(task_id)
+        if task not in results:
             raise xmlrpc.Fault(INVALID_RESULTS, "no results for task")
 
-        return self.pycpa_results[task]
+        return results[task]
 
-    @check
-    def xmlrpc_analyze_system(self):
-        for r in self.pycpa_system.resources:
+    def xmlrpc_analyze_system(self, system_id):
+        """ Analyze system and return a result id. """
+        system = self.pycpa_systems[system_id]
+        results = None
+        for r in system.resources:
             if r.scheduler is None:
-                raise xmlrpc.Fault(ILLEGAL_SYSTEM, "component %s has no scheduler assigned" % r.name)
+                raise xmlrpc.Fault(ILLEGAL_SYSTEM,
+                                   "component %s has no scheduler assigned"
+                                   % r.name)
         try:
-            self.pycpa_results = analysis.analyze_system(self.pycpa_system)
+            results = analysis.analyze_system(system)
+            self.task_results[unique(results)] = results
         except analysis.NotSchedulableException as e:
             raise xmlrpc.Fault(NOT_SCHEDULABLE, "not schedulable")
-        # TODO: This makes debugging hard, make it optional
         except Exception as e:
+            # TODO: Log stack trace to server for debugging
             raise xmlrpc.Fault(GENERAL_ERROR, str(e))
+        return unique(results)
+
+    def xmlrpc_end_to_end_latency(self, path_id, results_id, n):
+        """ Returns best- and worst-case latency for n events along path. """
+        # TODO: add overheads?
+
+        path = self._check_path_id(path_id)
+        results = self._check_results_id(results_id)
+        return path_analysis.end_to_end_latency(path, results, n)
+
+    def xmlrpc_graph_system(self, system_id, filename):
+        """ Generate a graph of the system (in server directory). """
+        s = self._check_system_id(system_id)
+
+        graph.graph_system(s, filename)
         return 0
+
 
