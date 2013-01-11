@@ -240,7 +240,8 @@ class Mock(object):
 
 MOCK_MODULES = ['twisted', 'twisted.web',
                 'matplotlib', 'matplotlib.collections',
-                'pygraphviz']
+                'pygraphviz',
+                'SimPy', 'SimPy.Simulation']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
