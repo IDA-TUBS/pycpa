@@ -15,8 +15,11 @@ XML-RPC server for pyCPA. It can be used to interface pycpa with
 non-python (e.g. close-source) applications.
 """
 
-
-from twisted.web import xmlrpc
+try:
+    from twisted.web import xmlrpc
+except ImportError:
+    print "Sorry, you don't have the twisted.web module installed."
+    print "Please install or reconfigure and try again."
 
 from pycpa import model
 from pycpa import schedulers
