@@ -24,14 +24,14 @@ def trace_example():
     # this is a rather extreme trace with just two datapoints
     # pycpa will use additive extension which is a periodic extension in this case
     periodic_trace = [0, 10]
-    em = model.EventModel()
+    em = model.TraceEventModel()
     em.set_limited_trace(periodic_trace, 1)
     print "input trace:", periodic_trace
     print "output delta(n): ", [em.delta_min(p) for p in range (1, 10)]
 
     # this a more realistic event model. periodic in nature with
     # a burst at time 32
-    em = model.EventModel()
+    em = model.TraceEventModel()
     bursty_trace = [0, 10 , 20 , 30, 32, 40, 50]
     em.set_limited_trace(bursty_trace, 1)
     print "input trace:", bursty_trace

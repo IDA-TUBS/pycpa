@@ -98,8 +98,7 @@ class EventModel (object):
     :math:`\Delta t`.
     """
 
-    def __init__(self, P=None, J=None, dmin=None, c=None, T=None, phi=0,
-            name='min', cache=None):
+    def __init__(self, name='min', cache=None):
         """ CTOR
         If called without parameters, a maximal event model (unbounded amount
         of activations) is created
@@ -126,23 +125,7 @@ class EventModel (object):
         # # String description of event model
         self.__description__ = name
 
-        # # Offset for context sensitive analysis
-        self.phi = phi
 
-        # # Metadata for standard event models
-        self.P = 0
-        self.J = 0
-        self.dmin = 0
-
-        if c is not None and T is not None:
-            self.set_c_in_T(c, T)
-
-        if P is not None:
-            if J is None:
-                J = 0
-            if dmin is None:
-                dmin = 0
-            self.set_PJd(P, J, dmin)
 
     @staticmethod
     def delta_min_from_eta_plus(etaplus_func):
@@ -341,6 +324,124 @@ class EventModel (object):
         # # default policy
         return self.deltaplus_func(n)
 
+
+    def load(self, accuracy=1000):
+        """ Returns the asymptotic load,
+        i.e. the avg. number of events per time
+        """
+        # print "load = ", float(self.eta_plus(accuracy)),"/",accuracy
+        # return float(self.eta_plus(accuracy)) / accuracy
+        if self.delta_min(accuracy) == 0:
+            return float("inf")
+        else:
+            return float(accuracy) / self.delta_min(accuracy)
+
+    def delta_caching(self, active=True):
+        self.en_delta_caching = active
+
+    def flush_cache(self):
+        self.delta_min_cache = dict()
+
+    def __repr__(self):
+        """ Return a description of the Event-Model"""
+        return self.__description__
+
+
+class PJdEventModel (EventModel):
+    """ A periodic, jitter, min-distance event model.
+    """
+
+    def __init__(self, P=0, J=0, dmin=0, name='min', cache=None):
+        """ CTOR
+        If called without parameters, a maximal event model (unbounded amount
+        of activations) is created
+        """
+        EventModel.__init__(self, name, cache)
+
+        # setup event model
+        self.set_PJd(P, J, dmin)
+
+        # store parameters
+        self.P = P
+        self.J = J
+        self.dmin = dmin
+
+        # offset for some context sensitive analyses
+        self.phi = 0
+
+    def set_PJd(self, P, J=0, dmin=0, early_arrival=False):
+        """ Sets the event model to a periodic activation
+        with jitter and minimum distance.
+        Equations 1 and 2 from [Schliecker2008]_.
+        """
+        _warn_float(P, "Period")
+        _warn_float(J, "Jitter")
+        _warn_float(dmin, "dmin")
+
+        # save away the properties in case a local analysis uses them directly
+        self.P = P
+        self.J = J
+        self.dmin = dmin
+
+        self.__description__ = "P=%g J=%g" % (P, J)
+        if early_arrival:
+            raise(NotImplementedError)
+        else:
+            self.deltaplus_func = lambda n: (n - 1) * P + J
+            self.deltamin_func = lambda n: max((n - 1) * dmin, (n - 1) * P - J)
+
+
+class CTEventModel (EventModel):
+    """ c events every T time event model.
+    """
+    def __init__(self, c, T, dmin=1, name='min', cache=None):
+
+        EventModel.__init__(self, name, cache)
+
+        self.set_c_in_T(c, T, dmin)
+        self.c = c
+        self.T = T
+        self.dmin = dmin
+
+
+    def set_c_in_T(self, c, T, dmin=1):
+        """ Sets the event-model to a periodic Task
+         with period T and c activations per period.
+         No minimum arrival rate is assumed (delta_plus = infinity)!
+         Cf. Equation 1 in [Diemer2010]_.
+        """
+        self.__description__ = "%d every %d, dmin=%d" % (c, T, dmin)
+        if c == 0 or T >= INFINITY:
+            self.deltamin_func = lambda n: 0
+        else:
+            def c_in_T_deltamin_func(n):
+                if n == INFINITY:
+                    return INFINITY
+                else:
+                    return (n - 1) * dmin + int(math.floor(float(n - 1) / c)
+                            * (T - c * dmin))
+
+            self.deltamin_func = c_in_T_deltamin_func
+
+        self.deltaplus_func = lambda n: INFINITY
+
+class LimitedUserEventModel(EventModel):
+    """ User supplied event model on a limited delta domain.
+    """
+    def __init__(self,
+            limited_delta_min_func=None,
+            limited_delta_plus_func=None,
+            limit_q_min=float('inf'),
+            limit_q_plus=float('inf'),
+            min_additive=util.recursive_min_additive,
+            max_additive=util.recursive_max_additive,
+            name='min', cache=None):
+
+        EventModel.__init__(self, name, cache)
+
+        self.set_limited_delta(limited_delta_min_func, limited_delta_plus_func, limit_q_min, limit_q_plus, min_additive, max_additive)
+
+
     def set_limited_delta(self,
             limited_delta_min_func,
             limited_delta_plus_func,
@@ -386,6 +487,19 @@ class EventModel (object):
         self.deltaplus_func = delta_plus_func
         self.deltamin_func = delta_min_func
 
+class TraceEventModel (LimitedUserEventModel):
+    def __init__(self, trace_points=[], min_sample_size=20,
+                 min_additive=util.recursive_min_additive,
+                 max_additive=util.recursive_max_additive,
+                 name='min', cache=None):
+        LimitedUserEventModel.__init__(self, name=name, cache=cache)
+
+        self.trace_points = trace_points
+        self.min_sample_size = min_sample_size
+        self.min_addititive = min_additive
+        self.max_additive = max_additive
+
+        self.set_limited_trace(trace_points, min_sample_size, min_additive, max_additive)
 
     def set_limited_trace(self,
             trace_points,
@@ -450,78 +564,6 @@ class EventModel (object):
                 limit_q_max, limit_q_max, min_additive, max_additive)
 
         self.__description__ = "trace-based"
-
-    def set_PJd(self, P, J=0, dmin=0, early_arrival=False):
-        """ Sets the event model to a periodic activation
-        with jitter and minimum distance.
-        Equations 1 and 2 from [Schliecker2008]_.
-        """
-        _warn_float(P, "Period")
-        _warn_float(J, "Jitter")
-        _warn_float(dmin, "dmin")
-
-        # save away the properties in case a local analysis uses them directly
-        self.P = P
-        self.J = J
-        self.dmin = dmin
-
-        self.__description__ = "P=%g J=%g" % (P, J)
-        if early_arrival:
-            raise(NotImplementedError)
-        else:
-            self.deltaplus_func = lambda n: (n - 1) * P + J
-            self.deltamin_func = lambda n: max((n - 1) * dmin, (n - 1) * P - J)
-
-    def set_PJ(self, P, J=0, early_arrival=False):
-        """ Sets the event model to a periodic activation with jitter."""
-        return self.set_PJd(P, J, 0, early_arrival)
-
-    def set_periodic(self, P, early_arrival=False):
-        """ Sets the event model to a periodic activation."""
-        return self.set_PJd(P, 0, 0, early_arrival)
-
-    def set_c_in_T(self, c, T, dmin=1):
-        """ Sets the event-model to a periodic Task
-         with period T and c activations per period.
-         No minimum arrival rate is assumed (delta_plus = infinity)!
-         Cf. Equation 1 in [Diemer2010]_.
-        """
-        self.__description__ = "%d every %d, dmin=%d" % (c, T, dmin)
-        if c == 0 or T >= INFINITY:
-            self.deltamin_func = lambda n: 0
-        else:
-            def c_in_T_deltamin_func(n):
-                if n == INFINITY:
-                    return INFINITY
-                else:
-                    return (n - 1) * dmin + int(math.floor(float(n - 1) / c)
-                            * (T - c * dmin))
-
-            self.deltamin_func = c_in_T_deltamin_func
-
-        self.deltaplus_func = lambda n: INFINITY
-
-    def load(self, accuracy=1000):
-        """ Returns the asymptotic load,
-        i.e. the avg. number of events per time
-        """
-        # print "load = ", float(self.eta_plus(accuracy)),"/",accuracy
-        # return float(self.eta_plus(accuracy)) / accuracy
-        if self.delta_min(accuracy) == 0:
-            return float("inf")
-        else:
-            return float(accuracy) / self.delta_min(accuracy)
-
-    def delta_caching(self, active=True):
-        self.en_delta_caching = active
-
-    def flush_cache(self):
-        self.delta_min_cache = dict()
-
-    def __repr__(self):
-        """ Return a description of the Event-Model"""
-        return self.__description__
-
 
 class Junction (object):
     """ A junction combines multiple event models into one output event model

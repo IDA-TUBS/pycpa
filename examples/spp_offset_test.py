@@ -59,16 +59,16 @@ def offset_test():
     t51 = cpu2.bind_task(model.Task(name="T51", wcet=100, bcet=100))
     t51.scheduling_parameter = 3
 
-    t11.in_event_model = model.EventModel()
+    t11.in_event_model = model.PJdEventModel()
     t11.in_event_model.set_PJd(20, 0, 0)
 
-    t21.in_event_model = model.EventModel()
+    t21.in_event_model = model.PJdEventModel()
     t21.in_event_model.set_PJd(150, 0, 0)
 
-    t31.in_event_model = model.EventModel()
+    t31.in_event_model = model.PJdEventModel()
     t31.in_event_model.set_PJd(30, 0, 0)
 
-    t51.in_event_model = model.EventModel()
+    t51.in_event_model = model.PJdEventModel()
     t51.in_event_model.set_PJd(200, 0, 0)
 
     s1 = s.bind_path(model.Path("S1", (t21, t22, t23, t24, t25)))

@@ -35,7 +35,7 @@ def junction_test():
     # add a task
     t11 = r1.bind_task(model.Task(name="T11", wcet=3, bcet=1, scheduling_parameter=1))
     # register input event model
-    t11.in_event_model = model.EventModel(P=30, J=15)
+    t11.in_event_model = model.PJdEventModel(P=30, J=15)
 
     # add three more tasks, these will be triggered by other tasks
     t12 = r1.bind_task(model.Task(name="T12", wcet=3, bcet=2, scheduling_parameter=2))

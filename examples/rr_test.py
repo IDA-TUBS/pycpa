@@ -41,8 +41,8 @@ def rr_test():
     t11.link_dependent_task(t21)
     t22.link_dependent_task(t12)
 
-    t11.in_event_model = model.EventModel(c=1, T=5)
-    t22.in_event_model = model.EventModel(c=5, T=17)
+    t11.in_event_model = model.CTEventModel(c=1, T=5)
+    t22.in_event_model = model.CTEventModel(c=5, T=17)
 
     print("Performing analysis")
     results = analysis.analyze_system(s)

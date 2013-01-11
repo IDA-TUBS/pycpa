@@ -21,7 +21,7 @@ class Test(unittest.TestCase):
 
     def test_eta_to_delta_min(self):
         # create some standard event model
-        em_a = model.EventModel(P=10, J=99)
+        em_a = model.PJdEventModel(P=10, J=99)
         em_b = model.EventModel()
         em_b.deltamin_func = model.EventModel.delta_min_from_eta_plus(em_a.eta_plus)
         em_b.deltaplus_func = model.EventModel.delta_plus_from_eta_min(em_a.eta_min)

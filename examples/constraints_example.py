@@ -43,13 +43,13 @@ def constraints_example():
     t12.link_dependent_task(t22)
 
     # register a periodic with jitter event model for T11 and T12
-    t11.in_event_model = model.EventModel(P=30, J=5)
-    t12.in_event_model = model.EventModel(P=15, J=6)
+    t11.in_event_model = model.PJdEventModel(P=30, J=5)
+    t12.in_event_model = model.PJdEventModel(P=15, J=6)
 
     p1 = model.Path("myPath", [t11, t21])
     s.bind_path(p1)
 
-    #deliberately overconstrain the system
+    # deliberately overconstrain the system
     s.constraints.add_path_constraint(p1, 5, n=2)
     s.constraints.add_wcrt_constraint(t11, 1)
     s.constraints.add_load_constraint(r1, 0.5)

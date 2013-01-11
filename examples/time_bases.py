@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2010 Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -63,9 +63,9 @@ def time_bases_test(auto=True):
     t12.link_dependent_task(t22)
 
     # register a periodic with jitter event model for T11 and T12
-    t11.in_event_model = model.EventModel(P=util.time_to_time(30, util.ms, common_time_base, 'floor'),
+    t11.in_event_model = model.PJdEventModel(P=util.time_to_time(30, util.ms, common_time_base, 'floor'),
                                           J=util.time_to_time(5, util.ms, common_time_base, 'ceil'))
-    t12.in_event_model = model.EventModel(P=util.time_to_time(15, util.ms, common_time_base, 'floor'),
+    t12.in_event_model = model.PJdEventModel(P=util.time_to_time(15, util.ms, common_time_base, 'floor'),
                                           J=util.time_to_time(6, util.ms, common_time_base, 'ceil'))
 
     # perform the analysis

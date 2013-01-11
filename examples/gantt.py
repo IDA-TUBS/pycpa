@@ -44,7 +44,7 @@ def gantt_test():
     t11.link_dependent_task(t12)
 
     # register a PJd event model
-    t11.in_event_model = model.EventModel(P=30, J=60)
+    t11.in_event_model = model.PJdEventModel(P=30, J=60)
 
     # perform the analysis
     print("Performing analysis")
@@ -60,7 +60,7 @@ def gantt_test():
     simmodel.runModel(task=t12, scheduler=simulation.SimSPP(name="SPP", sim=simmodel))
 
 
-    #plot
+    # plot
     hp_tasks = list()
     for t in sorted(r1.tasks, key=str):
         if t.scheduling_parameter <= t12.scheduling_parameter:

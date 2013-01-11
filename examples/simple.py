@@ -44,7 +44,7 @@ def simple_test():
     t11.link_dependent_task(t12)
 
     # register a PJd event model
-    t11.in_event_model = model.EventModel(P=30, J=60)
+    t11.in_event_model = model.PJdEventModel(P=30, J=60)
 
     # create a path
     p1 = model.Path("P1", [t11, t12])

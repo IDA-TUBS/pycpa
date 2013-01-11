@@ -25,9 +25,9 @@ matplotlib.rcParams['pdf.use14corefonts'] = True
 matplotlib.rcParams['text.usetex'] = True
 
 P = 30
-J = 60#5
-d = 0#1
-em = model.EventModel(P=P, J=J, dmin=d)
+J = 60  # 5
+d = 0  # 1
+em = model.PJdEventModel(P=P, J=J, dmin=d)
 
 
 print "delta_min(0) =", em.delta_min(0)
