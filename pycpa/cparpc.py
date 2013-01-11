@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 | Copyright (C) 2012 Philip Axer, Jonas Diemer
 | TU Braunschweig, Germany
@@ -46,54 +45,57 @@ NOT_SCHEDULABLE = 9
 
 
 class CPARPC(xmlrpc.XMLRPC):
-    """An example object to be published."""
-    def __init__(self, allowNone=False, useDateTime=False):
-        xmlrpc.XMLRPC.__init__(self, allowNone, useDateTime)
+    """ Basic XML RPC Server for pyCPA. """
+    def __init__(self):
+        xmlrpc.XMLRPC.__init__(self, allowNone=False, useDateTime=False)
 
-        self.pycpa_systems = dict()
-        self.pycpa_resources = dict()
-        self.pycpa_tasks = dict()
-        self.pycpa_paths = dict()
-        self.task_results = dict()
+        self._pycpa_systems = dict()
+        self._pycpa_resources = dict()
+        self._pycpa_tasks = dict()
+        self._pycpa_paths = dict()
+        self._task_results = dict()
+
+        #: Dictionary of scheduler classes.
         self.scheduling_policies = {
-                "spp" : schedulers.SPPScheduler}
+                "spp" : schedulers.SPPScheduler
+        }
 
     def _check_task_id(self, task_id):
         """ Return a reference to the task with task_id """
-        if task_id not in self.pycpa_tasks:
+        if task_id not in self._pycpa_tasks:
             raise xmlrpc.Fault(INVALID_ID, "invalid task id")
-        return self.pycpa_tasks[task_id]
+        return self._pycpa_tasks[task_id]
 
     def _check_resource_id(self, resource_id):
         """ Return a reference to the resource with resource_id """
-        if resource_id not in self.pycpa_resources:
+        if resource_id not in self._pycpa_resources:
             raise xmlrpc.Fault(INVALID_ID, "invalid resource id")
-        return self.pycpa_resources[resource_id]
+        return self._pycpa_resources[resource_id]
 
     def _check_system_id(self, system_id):
         """ Return a reference to the system with system_id """
-        if system_id not in self.pycpa_systems:
+        if system_id not in self._pycpa_systems:
             raise xmlrpc.Fault(INVALID_ID, "invalid system id")
-        return self.pycpa_systems[system_id]
+        return self._pycpa_systems[system_id]
 
     def _check_path_id(self, path_id):
         """ Return a reference to the path with path_id """
-        if path_id not in self.pycpa_paths:
+        if path_id not in self._pycpa_paths:
             raise xmlrpc.Fault(INVALID_ID, "invalid path id")
-        return self.pycpa_paths[path_id]
+        return self._pycpa_paths[path_id]
 
     def _check_results_id(self, results_id):
         """ Return a reference to the results with results_id """
-        if results_id not in self.task_results:
+        if results_id not in self._task_results:
             raise xmlrpc.Fault(INVALID_ID, "invalid results id")
-        return self.task_results[results_id]
+        return self._task_results[results_id]
 
 
     def xmlrpc_new_system(self, name):
         """ create new pycpa system and return it's id """
         name = str(name)
         s = model.System(name)
-        self.pycpa_systems[unique(s)] = s
+        self._pycpa_systems[unique(s)] = s
         logger.debug("new system %s" % name)
         return unique(s)
 
@@ -108,7 +110,7 @@ class CPARPC(xmlrpc.XMLRPC):
         r = model.Resource(name)
         logger.debug("new resource %s" % name)
         system.bind_resource(r)
-        self.pycpa_resources[unique(r)] = r
+        self._pycpa_resources[unique(r)] = r
         return unique(r)
 
     def xmlrpc_assign_scheduler(self, resource_id, scheduler_string):
@@ -131,7 +133,7 @@ class CPARPC(xmlrpc.XMLRPC):
         for r in system.resources:
             system_tasks += r.tasks
 
-        return [task_id for task_id, task in self.pycpa_tasks.iteritems()
+        return [task_id for task_id, task in self._pycpa_tasks.iteritems()
                 if task in system_tasks and task.name == name]
 
     def xmlrpc_new_task(self, resource_id, name):
@@ -139,7 +141,7 @@ class CPARPC(xmlrpc.XMLRPC):
         resource = self._check_resource_id(resource_id)
         task = model.Task(str(name))
         task_id = unique(task)
-        self.pycpa_tasks[task_id] = task
+        self._pycpa_tasks[task_id] = task
         resource.bind_task(task)
         return task_id
 
@@ -151,7 +153,7 @@ class CPARPC(xmlrpc.XMLRPC):
 
     def xmlrpc_get_task_parameter(self, task_id, attribute):
         """ Return the attribute of a task. """
-        return getattr(self.pycpa_tasks[task_id], attribute)
+        return getattr(self._pycpa_tasks[task_id], attribute)
 
     def xmlrpc_set_resource_parameter(self, resource_id, attribute, value):
         """ Set the attribute of a resource to value. """
@@ -161,7 +163,7 @@ class CPARPC(xmlrpc.XMLRPC):
 
     def xmlrpc_get_resource_parameter(self, resource_id, attribute):
         """ Return the attribute of a resource. """
-        return getattr(self.pycpa_resources[resource_id], attribute)
+        return getattr(self._pycpa_resources[resource_id], attribute)
 
     def xmlrpc_link_task(self, task_id, target_id):
         """ Make task with target_id dependent of the task with task_id. """
@@ -184,7 +186,7 @@ class CPARPC(xmlrpc.XMLRPC):
         p = model.Path(name, tasks)
 
         system.bind_path(p)
-        self.pycpa_paths[unique(p)] = p
+        self._pycpa_paths[unique(p)] = p
         return unique(p)
 
     def xmlrpc_assign_pjd_event_model(self, task_id, period, jitter, min_dist):
@@ -210,7 +212,7 @@ class CPARPC(xmlrpc.XMLRPC):
 
     def xmlrpc_analyze_system(self, system_id):
         """ Analyze system and return a result id. """
-        system = self.pycpa_systems[system_id]
+        system = self._pycpa_systems[system_id]
         results = None
         for r in system.resources:
             if r.scheduler is None:
@@ -219,7 +221,7 @@ class CPARPC(xmlrpc.XMLRPC):
                                    % r.name)
         try:
             results = analysis.analyze_system(system)
-            self.task_results[unique(results)] = results
+            self._task_results[unique(results)] = results
         except analysis.NotSchedulableException as e:
             raise xmlrpc.Fault(NOT_SCHEDULABLE, "not schedulable")
         except Exception as e:

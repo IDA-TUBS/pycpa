@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2011 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:

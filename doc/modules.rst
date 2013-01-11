@@ -16,14 +16,14 @@ pyCPA core modules
    modules/options
 
 Schedulers (busy window functions)
-------------------------------------------
+----------------------------------
 .. toctree::
    :maxdepth: 1
 
    modules/schedulers 
 
 Plotting related Modules
---------------------------------
+------------------------
 .. toctree::
    :maxdepth: 1
 
@@ -31,10 +31,11 @@ Plotting related Modules
    modules/graph
    modules/simulation
 
-Import/Export filters
------------------------------
+Server and Import/Export filters
+--------------------------------
 .. toctree::
    :maxdepth: 1
 
+   modules/cparpc
    modules/smff_loader
  
