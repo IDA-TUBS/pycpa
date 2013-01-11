@@ -44,8 +44,8 @@ def test_spp():
     t12.link_dependent_task(t22)
 
     # register a periodic with jitter event model for T11 and T12
-    t11.in_event_model = model.EventModel(P=30, J=5)
-    t12.in_event_model = model.EventModel(P=15, J=6)
+    t11.in_event_model = model.PJdEventModel(P=30, J=5)
+    t12.in_event_model = model.PJdEventModel(P=15, J=6)
 
     # perform the analysis
     task_results = analysis.analyze_system(s)
