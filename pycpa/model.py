@@ -425,7 +425,7 @@ class CTEventModel (EventModel):
 
         self.deltaplus_func = lambda n: INFINITY
 
-class LimitedUserEventModel(EventModel):
+class LimitedDeltaEventModel(EventModel):
     """ User supplied event model on a limited delta domain.
     """
     def __init__(self,
@@ -487,12 +487,12 @@ class LimitedUserEventModel(EventModel):
         self.deltaplus_func = delta_plus_func
         self.deltamin_func = delta_min_func
 
-class TraceEventModel (LimitedUserEventModel):
+class TraceEventModel (LimitedDeltaEventModel):
     def __init__(self, trace_points=[], min_sample_size=20,
                  min_additive=util.recursive_min_additive,
                  max_additive=util.recursive_max_additive,
                  name='min', cache=None):
-        LimitedUserEventModel.__init__(self, name=name, cache=cache)
+        LimitedDeltaEventModel.__init__(self, name=name, cache=cache)
 
         self.trace_points = trace_points
         self.min_sample_size = min_sample_size
