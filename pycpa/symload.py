@@ -268,7 +268,7 @@ class SymtaLoader14:
         mindist_node = standardeventmodel_node.getElementsByTagName("minDist")[0]
         mindist = self._handle_time_value(mindist_node.childNodes[1])
 
-        em = model.EventModel()
+        em = model.PJdEventModel()
         em.set_PJd(period, jitter, mindist)
         em.dom_node = standardeventmodel_node
 

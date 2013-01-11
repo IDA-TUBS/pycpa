@@ -242,7 +242,7 @@ class SMFFLoader:
             # # source
             jitter = int(activation_pattern_node.attributes["activationJitter"].nodeValue)
             period = int(activation_pattern_node.attributes["activationPeriod"].nodeValue)
-            em = model.EventModel(P=period, J=jitter)
+            em = model.PJdEventModel(P=period, J=jitter)
             task_model.in_event_model = em
             return
 
