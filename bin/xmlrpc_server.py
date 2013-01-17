@@ -15,9 +15,8 @@ XML-RPC server for pyCPA. It can be used to interface pycpa with
 non-python (i.e. close-source) applications.
 """
 
-import logging
-
 from twisted.web import xmlrpc, server
+from twisted.internet import reactor
 
 from pycpa import options
 from pycpa import cparpc
@@ -27,7 +26,6 @@ options.parser.add_argument('--port', '-p', type=int, default=7080,
 
 
 if __name__ == '__main__':
-    from twisted.internet import reactor
     options.init_pycpa()
     rpc = cparpc.CPARPC()
     xmlrpc.addIntrospection(rpc)
