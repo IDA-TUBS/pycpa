@@ -21,7 +21,7 @@ from pycpa import model
 from pycpa import schedulers
 from pycpa import analysis
 from pycpa import path_analysis
-from pycpa import graph
+
 
 import logging
 
@@ -238,6 +238,11 @@ class CPARPC(xmlrpc.XMLRPC):
 
     def xmlrpc_graph_system(self, system_id, filename):
         """ Generate a graph of the system (in server directory). """
+        try:
+            from pycpa import graph
+        except ImportError:
+            raise xmlrpc.Fault(GENERAL_ERROR, "graph not supported on this platform.")
+
         s = self._check_system_id(system_id)
 
         graph.graph_system(s, filename)
