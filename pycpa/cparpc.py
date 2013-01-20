@@ -126,6 +126,7 @@ class CPARPC(xmlrpc.XMLRPC):
 
     def xmlrpc_assign_scheduler(self, resource_id, scheduler_string):
         """ Assign a scheduler to a resource.
+        See :func:`xmlrpc_get_valid_schedulers` for a list of valid schedulers.
 
         :param resource_id: ID of the resource to which to assign the scheduler.
         :type resource_id: integer
