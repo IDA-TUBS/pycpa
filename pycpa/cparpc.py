@@ -29,7 +29,8 @@ logger = logging.getLogger("xmlrpc")
 
 def unique(obj):
     """ Returns a unique id for obj """
-    return id(obj)
+    # Convert to string, because XML RPC does not support long ints
+    return str(id(obj))
 
 
 PYCPA_XMLRPC_VERSION = 1
@@ -91,7 +92,13 @@ class CPARPC(xmlrpc.XMLRPC):
 
 
     def xmlrpc_new_system(self, name):
-        """ create new pycpa system and return it's id """
+        """ create new pycpa system and return it's id
+
+        :param name: Name of the system.
+        :type name: string
+        :returns: ID of the created system
+
+        """
         name = str(name)
         s = model.System(name)
         self._pycpa_systems[unique(s)] = s
@@ -103,7 +110,12 @@ class CPARPC(xmlrpc.XMLRPC):
         return PYCPA_XMLRPC_VERSION
 
     def xmlrpc_new_resource(self, system_id, name):
-        """ Create a new resource with name and bind it to a system. """
+        """ Create a new resource with name and bind it to a system.
+
+        :param name: Name of the resurce.
+        :type name: string
+        :returns: ID of the created resource
+        """
         system = self._check_system_id(system_id)
         name = str(name)
         r = model.Resource(name)
@@ -113,7 +125,14 @@ class CPARPC(xmlrpc.XMLRPC):
         return unique(r)
 
     def xmlrpc_assign_scheduler(self, resource_id, scheduler_string):
-        """ Assign a scheduler to a resource. """
+        """ Assign a scheduler to a resource.
+
+        :param resource_id: ID of the resource to which to assign the scheduler.
+        :type resource_id: integer
+        :param scheduler_string: Identifies the type of scheduler to set.
+        :type scheduler_string: string
+        :returns: 0 for success
+        """
         scheduler_string = str(scheduler_string)
         resource = self._check_resource_id(resource_id)
         scheduler = self.scheduling_policies.get(scheduler_string, None)
@@ -124,6 +143,15 @@ class CPARPC(xmlrpc.XMLRPC):
                      (scheduler_string, resource.name))
         resource.scheduler = scheduler()
         return 0
+
+    def xmlrpc_get_valid_schedulers(self):
+        """ Find out which schedulers are supported.
+
+        :returns: List of valid schedulers
+        :rtype: List of strings
+        """
+
+        return self.scheduling_policies.keys()
 
     def xmlrpc_tasks_by_name(self, system_id, name):
         """ Return a list of tasks of system_id matching name """
@@ -136,7 +164,12 @@ class CPARPC(xmlrpc.XMLRPC):
                 if task in system_tasks and task.name == name]
 
     def xmlrpc_new_task(self, resource_id, name):
-        """ Create a new task and bind it to a ressource. """
+        """ Create a new task and bind it to a ressource.
+
+        :param name: Name of the task.
+        :type name: string
+        :returns: ID of the created task.
+        """
         resource = self._check_resource_id(resource_id)
         task = model.Task(str(name))
         task_id = unique(task)
@@ -145,7 +178,15 @@ class CPARPC(xmlrpc.XMLRPC):
         return task_id
 
     def xmlrpc_set_task_parameter(self, task_id, attribute, value):
-        """ Set the attribute of a task to value. """
+        """ Set the attribute of a task to value.
+
+        :param task_id: ID of the task to set the parameter for.
+        :param attribute: Attribute to set.
+        :type attribute: string.
+        :param value: Value to set the attribute to
+        :type value: Depends on attribute.
+
+        """
         task = self._check_task_id(task_id)
         setattr(task, attribute, value)
         return 0
@@ -155,7 +196,15 @@ class CPARPC(xmlrpc.XMLRPC):
         return getattr(self._pycpa_tasks[task_id], attribute)
 
     def xmlrpc_set_resource_parameter(self, resource_id, attribute, value):
-        """ Set the attribute of a resource to value. """
+        """ Set the attribute of a resource to value.
+
+        :param resource_id: ID of the resource to set the parameter for.
+        :param attribute: Attribute to set.
+        :type attribute: string.
+        :param value: Value to set the attribute to
+        :type value: Depends on attribute.
+
+        """
         resource = self._check_resource_id(resource_id)
         setattr(resource, attribute, value)
         return 0
