@@ -33,7 +33,7 @@ def unique(obj):
     return str(id(obj))
 
 
-PYCPA_XMLRPC_VERSION = 1
+PYCPA_XMLRPC_VERSION = 2
 
 GENERAL_ERROR = 1
 INVALID_SCHEDULER = 2
