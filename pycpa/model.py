@@ -347,7 +347,7 @@ class EventModel (object):
         """ Return a description of the Event-Model"""
         return self.__description__
 
- class PJdEventModel (EventModel):
+class PJdEventModel (EventModel):
     """ A periodic, jitter, min-distance event model.
     """
 
