@@ -25,7 +25,6 @@ import math
 import logging
 import copy
 import warnings
-import pickle
 
 from . import options
 from . import util
@@ -390,10 +389,6 @@ class PJdEventModel (EventModel):
             self.deltaplus_func = lambda n: (n - 1) * P + J
             self.deltamin_func = lambda n: max((n - 1) * dmin, (n - 1) * P - J)
 
-    def __setstate__(self, d):
-        self.__dict__.update(d)  # update attributes
-        self.set_PJd(self.P, self.J, self.dmin)
-
 
 class CTEventModel (EventModel):
     """ c events every T time event model.
@@ -429,9 +424,6 @@ class CTEventModel (EventModel):
 
         self.deltaplus_func = lambda n: INFINITY
 
-    def __setstate__(self, d):
-        self.__dict__.update(d)  # update attributes
-        self.self.set_c_in_T(self.c, self.T, self.dmin)
 
 class LimitedDeltaEventModel(EventModel):
     """ User supplied event model on a limited delta domain.
