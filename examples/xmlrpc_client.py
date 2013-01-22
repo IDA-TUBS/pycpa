@@ -25,10 +25,13 @@ try:
 
     print "pyCPA XMLRPC Server Protocol Version:", version
 
+    print "Available schedulers:", proxy.get_valid_schedulers()
+
     s = proxy.new_system("system")
     print "System id:", s
 
     r1 = proxy.new_resource(s, "r1")
+    print "r", r1
     r2 = proxy.new_resource(s, "r2")
 
     proxy.assign_scheduler(r1, "spp")
