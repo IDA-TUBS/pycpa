@@ -25,6 +25,7 @@ import math
 import logging
 import copy
 import warnings
+import pickle
 
 from . import options
 from . import util
@@ -346,6 +347,16 @@ class EventModel (object):
         """ Return a description of the Event-Model"""
         return self.__description__
 
+    def __getstate__(self):
+        odict = self.__dict__.copy()  # copy the dict since we change it
+        del odict['deltaplus_func']  # remove lambda function
+        del odict['deltamin_func']  # remove lambda function
+        del odict['delta_min_cache']  # clear caches
+        del odict['delta_plus_cache']
+        return odict
+
+    def __setstate__(self, d):
+        self.__dict__.update(d)
 
 class PJdEventModel (EventModel):
     """ A periodic, jitter, min-distance event model.
@@ -390,6 +401,10 @@ class PJdEventModel (EventModel):
             self.deltaplus_func = lambda n: (n - 1) * P + J
             self.deltamin_func = lambda n: max((n - 1) * dmin, (n - 1) * P - J)
 
+    def __setstate__(self, d):
+        self.__dict__.update(d)  # update attributes
+        self.set_PJd(self.P, self.J, self.dmin)
+
 
 class CTEventModel (EventModel):
     """ c events every T time event model.
@@ -424,6 +439,10 @@ class CTEventModel (EventModel):
             self.deltamin_func = c_in_T_deltamin_func
 
         self.deltaplus_func = lambda n: INFINITY
+
+    def __setstate__(self, d):
+        self.__dict__.update(d)  # update attributes
+        self.self.set_c_in_T(self.c, self.T, self.dmin)
 
 class LimitedDeltaEventModel(EventModel):
     """ User supplied event model on a limited delta domain.
@@ -486,6 +505,11 @@ class LimitedDeltaEventModel(EventModel):
 
         self.deltaplus_func = delta_plus_func
         self.deltamin_func = delta_min_func
+
+    def __getstate__(self):
+        # TODO convert to a list
+        raise pickle.PicklingError("LimitedDeltaEventModel cannot be pickled yet")
+
 
 class TraceEventModel (LimitedDeltaEventModel):
     def __init__(self, trace_points=[], min_sample_size=20,
@@ -564,6 +588,9 @@ class TraceEventModel (LimitedDeltaEventModel):
                 limit_q_max, limit_q_max, min_additive, max_additive)
 
         self.__description__ = "trace-based"
+
+    def __getstate__(self):
+        raise pickle.PicklingError("TraceEventModel cannot be pickled yet")
 
 class Junction (object):
     """ A junction combines multiple event models into one output event model
