@@ -125,8 +125,7 @@ class Scheduler:
                                         + '*' + str(ti.wcet)
                         details[str(ti) + ':eta*WCET'] = desc_string
                         details['sum'] = sum_dict
-                else:
-                    return w
+                return w
             w = w_new
 
     def b_min(self, task, q):
