@@ -68,7 +68,7 @@ class EDFPScheduler(analysis.Scheduler):
     def _activation_time_candidates(self, task, q):
         """ Returns a set of activation times which must be evaluated.
 
-        similar to [Palencia2003]_ Equation 10 and 15
+        similar to [Palencia1998]_ Equation 10 and 15
 
         :param task: the analyzed task
         :type task: model.Task
@@ -358,7 +358,12 @@ class SPNPScheduler(analysis.Scheduler):
 
 
 class SPPOffsetScheduler(analysis.Scheduler):
+    """ Static-Priority-Preemptive Scheduler
+    with offset support.
 
+    This is currently untested.
+    Formulars are implemented according to [Palencia1998]_
+    """
 
     def stopping_condition(self, task, q, w):
         # TODO: Check!!!

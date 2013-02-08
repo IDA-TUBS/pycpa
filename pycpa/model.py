@@ -346,7 +346,6 @@ class EventModel (object):
         """ Return a description of the Event-Model"""
         return self.__description__
 
-
 class PJdEventModel (EventModel):
     """ A periodic, jitter, min-distance event model.
     """
@@ -425,6 +424,7 @@ class CTEventModel (EventModel):
 
         self.deltaplus_func = lambda n: INFINITY
 
+
 class LimitedDeltaEventModel(EventModel):
     """ User supplied event model on a limited delta domain.
     """
@@ -486,6 +486,7 @@ class LimitedDeltaEventModel(EventModel):
 
         self.deltaplus_func = delta_plus_func
         self.deltamin_func = delta_min_func
+
 
 class TraceEventModel (LimitedDeltaEventModel):
     def __init__(self, trace_points=[], min_sample_size=20,
@@ -564,6 +565,7 @@ class TraceEventModel (LimitedDeltaEventModel):
                 limit_q_max, limit_q_max, min_additive, max_additive)
 
         self.__description__ = "trace-based"
+
 
 class Junction (object):
     """ A junction combines multiple event models into one output event model

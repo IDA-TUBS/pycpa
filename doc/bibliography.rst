@@ -13,4 +13,5 @@ Bibliography
 .. [Diemer2012] Jonas Diemer and Daniel Thiele and Rolf Ernst, "Formal Worst-Case Timing Analysis of Ethernet Topologies with Strict-Priority and AVB Switching", 7th IEEE International Symposium on Industrial Embedded Systems (SIES'12), 2012
 .. [Schliecker2011] Simon Schliecker, "Performance Analysis of Multiprocessor Real-Time Systems with Shared Resources", Dissertation, Technische Universität Braunschweig, 2011, submitted 2010
 .. [Palencia2003] Palencia and Harbour, "Offset-based response time analysis of distributed systems scheduled under EDF", Proc. of 15th Euromicro Conference on Real-Time Systems, 2003
+.. [Paliencia1998] Palencia and Harbour, "Schedulability analysis for tasks with static and dynamic offsets", Proc. of RTSS, 1998
 .. [Bate1998] Iain John Bate, "Scheduling and Timing Analysis for Safety Critical Real-Time Systems", Phd Thesis, 1998
