@@ -44,7 +44,7 @@ class InvalidSMFFXMLException (Exception):
         return repr(self.value + " in node " % self.dom_node.nodeName)
 
 
-class SMFFApplication:
+class SMFFApplication(object):
     def __init__(self, xml_node=None):
 
         # # corresponding dom node
@@ -70,7 +70,7 @@ class SMFFApplication:
         self.task_mapping = dict()
         self.task_link_mapping = dict()
 
-class SMFFLoader:
+class SMFFLoader(object):
     """ a simple SMFF xml loader
     reverse engineered sources, implements only a functional subset
     """

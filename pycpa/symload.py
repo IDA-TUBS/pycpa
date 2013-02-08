@@ -31,7 +31,7 @@ class InvalidSymtaXMLException (Exception):
     def __str__(self):
         return repr(self.value + " in node " % self.dom_node.nodeName)
 
-class SymtaLoader14:
+class SymtaLoader14(object):
     """ a simple SymTA/S xml loader
         reverse engineered sources, implements only a functional subset
     """
@@ -272,6 +272,6 @@ class SymtaLoader14:
         factor = speedup.attributes['factor']
         return float(factor.nodeValue)
 
-class SymtaWriter:
+class SymtaWriter(object):
     """ not implemented """
     pass

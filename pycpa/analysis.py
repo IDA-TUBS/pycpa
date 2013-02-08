@@ -41,7 +41,7 @@ class NotSchedulableException(Exception):
         return repr(self.value)
 
 
-class TaskResult:
+class TaskResult(object):
     """ This class stores all analysis results for a single task """
 
     # : Worst-case response time
@@ -80,7 +80,7 @@ class TaskResult:
         return s[:-2]
 
 
-class Scheduler:
+class Scheduler(object):
     """ This class encapsulates the scheduler-specific analysis """
 
     def __init__(self):

@@ -812,7 +812,7 @@ class Resource (object):
         self.tasks = set()
 
 
-class Mutex:
+class Mutex(object):
     """ A mutually-exclusive shared Resource.
     Shared resources create timing interferences between tasks
     which may be executed on different resources (e.g. multi-core CPU)
@@ -830,7 +830,7 @@ class Mutex:
         self.name = name
 
 
-class Path:
+class Path(object):
     """ A Path describes a chain of tasks.
     Required for path analysis (e.g. end-to-end latency).
     The information stored in Path classes could be derived from the task graph
@@ -876,7 +876,7 @@ class Path:
         print(str(self))
 
 
-class System:
+class System(object):
     """ The System is the top-level entity of the system model.
     It contains resources, junctions, tasks and paths.
     """
