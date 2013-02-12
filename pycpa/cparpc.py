@@ -330,6 +330,33 @@ class CPARPC(xmlrpc.XMLRPC):
         task.in_event_model = em
         return 0
 
+    def xmlrpc_assign_ct_event_model(self, task_id, c, T, min_dist):
+        """ Create an eventmodel and assign it to task.
+        The event model will represent a periodic burst with c activations
+        every T time units, with the activations in each burst being
+        min_dist time units apart from each other.
+
+        :param task_id: ID of the task
+        :type task_id: string
+        :param c: Number of activations per burst
+        :type c: integer
+        :param T: Period of the bursts
+        :type T: integer
+        :param min_dist: Minimum distance between events (in unit time)
+        :type min_dist: integer
+        :returns: 0
+
+        """
+        task = self._check_task_id(task_id)
+        em = None
+        try:
+            em = model.CTEventModel(int(c), int(T), int(min_dist))
+        except ValueError:
+            raise xmlrpc.Fault(INVALID_EVENT_MODEL_DESC,
+                               "invalid event model parametrization")
+        task.in_event_model = em
+        return 0
+
     def xmlrpc_get_task_result(self, results_id, task_id):
         """ Obtain the analysis results for a task.
 
