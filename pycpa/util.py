@@ -15,9 +15,16 @@ Various utility functions
 """
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 
 import fractions
 import logging
+import random
+import math
+import itertools
 from collections import deque
 
 logger = logging.getLogger("pycpa")
@@ -29,6 +36,30 @@ us = 1000000
 ms = 1000
 s = 1
 
+def window(seq, n=2):
+    """Returns a sliding window (of width n) over data from the iterable
+    s -> (s0,s1,...s[n-1]), (s1,s2,...,sn), ..."""
+    it = iter(seq)
+    result = tuple(itertools.islice(it, n))
+    if len(result) == n:
+        yield result
+    for elem in it:
+        result = result[1:] + (elem,)
+        yield result
+
+def uunifast(num_tasks, utilization):
+    """ Returns a list of random utilizations, one per task
+    [0.1, 0.23, ...]
+    WCET and event model (i.e. PJd) must be calculated in a second step)
+    """
+    sum_u = utilization
+    util = list()
+    for i in range(1, num_tasks):
+        next_sum_u = sum_u * math.pow(random.random(), 1.0 / float(num_tasks - i))
+        util.append(sum_u - next_sum_u)
+        sum_u = next_sum_u
+    util.append(sum_u)
+    return util
 
 def get_next_tasks(task):
     """ return the list of next tasks for task object.
