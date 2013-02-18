@@ -414,7 +414,6 @@ class SPPOffsetScheduler(analysis.Scheduler):
 
         # T_i= task_ij.min_average_between_two_events()
         T_i = task_ij.in_event_model.P
-        print task_ij, task_ij.in_event_model.P
         assert T_i > 0
 
         phi_ik = task_ik.in_event_model.phi

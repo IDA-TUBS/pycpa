@@ -26,6 +26,7 @@ import logging
 import copy
 import time
 from collections import deque
+import functools
 
 from . import model
 from . import options
@@ -786,7 +787,7 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
             analyze_task(t, task_results)
 
             #sanity check
-            assert reduce(lambda x, y: x and y,\
+            assert functools.reduce(lambda x, y: x and y,\
                            [b - a >= t.wcet for a,b \
                             in util.window(task_results[t].busy_times)]) == True
 
