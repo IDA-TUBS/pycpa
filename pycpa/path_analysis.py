@@ -15,9 +15,13 @@ Description
 This module contains methods for the ananlysis of path latencies.
 It should be imported in scripts that do the analysis.
 """
-from __future__ import absolute_import
-from . import options
 
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
+from . import options
 from . import model
 
 

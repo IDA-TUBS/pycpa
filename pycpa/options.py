@@ -15,8 +15,10 @@ This module contains methods to initalize the pycpa environment.
 It will setup an argument parser and set up default parameters.
 """
 
-from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
 
 MAX_ITERATIONS = 1000
 MAX_WCRT = float('inf')
@@ -127,7 +129,6 @@ def init_pycpa(implicit=False):
 
         _opts = parser.parse_args()
     else:
-        print ("implicitly invoked pycpa")
         # implicit init, through regression test or non-pycpa script
         # distill defaults and arguments from the parser and pretend nothing happend
         _opts = argparse.Namespace()
