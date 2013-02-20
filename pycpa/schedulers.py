@@ -35,6 +35,209 @@ prio_high_wins_equal_domination = lambda a, b : a > b
 prio_low_wins_equal_domination = lambda a, b : a < b
 
 
+class TrivialFIFOScheduler(analysis.Scheduler):
+    """ Trivial FIFO Scheduler
+    The trivial scheduler assums all activations in the
+    busy window could block the task. This cannot happen in reality.
+
+    See :class:`pycpa.schedulers.FIFOScheduler`.
+    """
+
+
+    def __init__(self):
+        analysis.Scheduler.__init__(self)
+
+    def b_plus(self, task, q, details=None):
+        """ Returns the largest time interval to process q activation,
+        assuming they all arrive in the same busy window.
+
+        """
+        assert(task.wcet >= 0)
+
+        w = q * task.wcet
+
+        while True:
+            # logging.debug("w: %d", w)
+            # logging.debug("e: %d", q * task.wcet)
+            s = 0
+            # logging.debug(task.name+" interferers "+ str([i.name for i in task.get_resource_interferers()]))
+            for ti in task.get_resource_interferers():
+                    s += ti.wcet * ti.in_event_model.eta_plus(w)
+                    # logging.debug("e: %s %d x %d", ti.name, ti.wcet, ti.in_event_model.eta_plus(w))
+
+            w_new = q * task.wcet + s
+            # print ("w_new: ", w_new)
+            if w == w_new:
+                assert(w >= q * task.wcet)
+                if details is not None:
+                    details['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
+                    for ti in task.get_resource_interferers():
+                            details[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w)) + '*'\
+                                + str(ti.wcet) + '=' + str(ti.wcet * ti.in_event_model.eta_plus(w))
+                return w
+
+            w = w_new
+
+class FIFOScheduler(analysis.Scheduler):
+    """ FIFO Scheduler
+
+    This is a candidate-based FIFO scheduling analysis.
+    """
+
+    def __init__(self):
+        analysis.Scheduler.__init__(self)
+
+    def compute_wcrt(self, task, task_results):
+        """ Compute the worst-case response time of Task
+
+        :param task: the analyzed task
+        :type task: model.Task
+        :param task_results: dictionary which stores analysis results
+        :type task_results: dict (analysis.TaskResult)
+        :rtype: integer (worst-case response time)
+
+        """
+
+        max_iterations = options.get_opt('max_iterations')
+        details = dict()
+
+        max_wcrt = 0
+        q_wcrt = 0
+        task_results[task].busy_times = [0]  # busy time of 0 activations
+        q = 1
+        while True:
+
+            if q == max_iterations:
+                logger.error(
+                    "max_iterations reached, tasks (likely) not schedulable!")
+                # raise NameError("max_iterations reached, tasks (likely) not
+                # schedulable!")
+                raise NotSchedulableException("max_iterations for %s reached, "
+                                              "tasks (likely) not schedulable!"
+                                              % task.name)
+
+            if task.in_event_model.delta_min(q) >= self.q_plus(task, q):
+                break
+            b_plus = self.b_plus(task,q)
+            task_results[task].busy_times.append(b_plus)
+
+            current_response = self.__wcrt_candidate(task, q)
+            if current_response > max_wcrt:
+                max_wcrt = current_response
+                q_wcrt = q
+            q += 1
+
+        task_results[task].q_wcrt = q_wcrt
+        task_results[task].wcrt = max_wcrt
+        task_results[task].b_wcrt = self.__wcrt_candidate(task, q_wcrt, details=True)
+
+        return task_results
+
+    def __b_plus_candidate(self, task, q, release_time):
+        """ Returns the multiple event busy time of q events of the given task
+        assuming they all arrive in the same busy window and the very
+        first event arrives at release_time.
+        """
+        # window initialized to the first activation
+        w = release_time
+        for qi in range(1, q+1):
+            # first, we check in which interval a
+            # following activation qi could arrive in, without ending the
+            # busy window.
+            w = self.__q_plus_candidate(task, qi, release_time)
+            # for the next event we pick the latest possible release time
+            # so the event doesn't fall outside the busy window
+            release_time = w
+        return w + task.wcet
+
+    def __q_plus_candidate(self, task, q, release_time):
+        """ Returns the queuing delay of the q-th activation
+        assuming its earliest release time is release_time """
+        w = task.wcet*(q-1)
+        for ti in task.get_resource_interferers():
+            w += ti.in_event_model.eta_plus_closed(release_time)
+        return w
+
+    def __get_candidates_in_window(self, task, w):
+        """ Returns a set of candidate release times in the window w """
+
+        candidates = set()
+        for ti in task.get_resource_interferers():
+            q_max = ti.in_event_model.eta_plus(w)
+            candidates.update([ti.in_event_model.delta_min(q) for q in range(1, q_max+1)])
+        return candidates
+
+    def q_plus(self, task, q, details=False):
+        """ Returns the largest time interval from the arrival of
+        the first activation until the q-th activation is admitted
+        service, assuming all q events arrive in the same busy window
+        """
+
+        return self.b_plus(task, q) - task.wcet
+
+    def b_plus(self, task, q, details=False):
+        """ Returns the largest time interval from the arrival of
+        the first until the finishing of the q-th event,
+        assuming all q activations arrive in the same busy window
+        """
+        candidates_checked = set()
+        candidates_outstanding = set([0])
+
+        release_time = 0
+        b_max = 0
+        w_max = 0
+        a = 0
+
+        while len(candidates_outstanding) > 0:
+            release_time = candidates_outstanding.pop()
+            candidates_checked.add(release_time)
+
+            w = self.__b_plus_candidate(task, q, release_time)
+            candidates_outstanding.update(self.__get_candidates_in_window(task,w) - candidates_checked)
+            b_new = w - release_time
+            if b_new > b_max:
+                b_max = b_new
+                w_max = w
+                a = release_time
+
+        if details:
+            details_dict = dict()
+            details_dict['release time'] = a
+            details_dict['total window'] = w_max
+            details_dict['busy time'] = b_max
+            return details_dict
+
+        return b_max
+
+    def __wcrt_candidate(self, task, q, details=False):
+        candidates_checked = set()
+        candidates_outstanding = set([0])
+
+        release_time = 0
+        wcrt_max = 0
+        w_max = 0
+        a = 0
+        while len(candidates_outstanding) > 0:
+            release_time = candidates_outstanding.pop()
+            candidates_checked.add(release_time)
+
+            w = self.__q_plus_candidate(task, q, release_time) + task.wcet
+            candidates_outstanding.update(self.__get_candidates_in_window(task,w) - candidates_checked)
+            wcrt_new  = w - release_time
+            if wcrt_new > wcrt_max:
+                wcrt_max = wcrt_new
+                a = release_time
+                w_max = w
+
+        if details:
+            details_dict = dict()
+            details_dict['release time'] = a
+            details_dict['total window'] = w_max
+            details_dict['wcrt'] = wcrt_max
+            return details_dict
+        return wcrt_max
+
+
 class EDFPScheduler(analysis.Scheduler):
     """ Earliest-Deadline-First-Preemptive Scheduler
 
