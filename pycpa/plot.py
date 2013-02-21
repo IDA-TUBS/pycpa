@@ -16,6 +16,12 @@ General purpose plotting functions:
 * gantt plotting (requires the simulation engine)
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
+
 
 from matplotlib import ticker
 from matplotlib import pyplot
@@ -156,7 +162,7 @@ def aesthetic_paper_parameters(column_size=252):
               'ytick.labelsize': 8,
               'text.usetex': True,
               'figure.figsize': fig_size}
-    print params
+    print( params)
     return params
 
 def plot_gantt(tasks, task_results, file_name=None, show=True, xlim=None,
@@ -209,7 +215,7 @@ def plot_gantt(tasks, task_results, file_name=None, show=True, xlim=None,
         yticks.append(ypos) # append a y-tick, so we see a dashed line here
 
         if not hasattr(t, 'q_exec_windows'):
-            print "task %s has no q_exec_windows assigned! use simulation.py to simulate the CI" % t.name
+            print( "task %s has no q_exec_windows assigned! use simulation.py to simulate the CI" % t.name)
             exit(-1)
 
         # broken bar segments
@@ -309,7 +315,7 @@ def plot_gantt(tasks, task_results, file_name=None, show=True, xlim=None,
                      verticalalignment='bottom')
 
             if task and task == t:
-                print task_results[t].q_wcrt
+                print( task_results[t].q_wcrt)
                 wcrt_start = t.in_event_model.delta_min(task_results[t].q_wcrt)
                 wcrt_end = task_results[t].wcrt + wcrt_start
                 annotation_ypos = ypos - height / 2. - wcrt_voffset
