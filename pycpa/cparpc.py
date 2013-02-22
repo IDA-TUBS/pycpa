@@ -14,6 +14,10 @@ Description
 XML-RPC server for pyCPA. It can be used to interface pycpa with
 non-python (e.g. close-source) applications.
 """
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
 
 from twisted.web import xmlrpc
 

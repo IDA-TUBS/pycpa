@@ -15,9 +15,13 @@ This module contains methods to plot task/architecture graphs of your system
 
 """
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
+
+
 from . import model
-
-
 
 def get_junction_name(j):
     name = 'Junction ' + j.name + ":"
@@ -136,12 +140,12 @@ def graph_system(s, filename=None, layout='dot',
             continue  # dont plot resources without tasks
 
         if g.has_node(r.name):
-            print "graph_system warning: duplicate resource", r.name
+            print("graph_system warning: duplicate resource %s", r.name)
         g.add_node(r.name, color='#aaaacc', shape='none')
         res_tasks = [r.name]
         for t in r.tasks:
             if g.has_node(t.name):
-                print "graph_system warning: duplicate task", t.name
+                print("graph_system warning: duplicate task %s", t.name)
             if short_tasks:
                 lab = "T_" + str(task_num)
                 task_num += 1

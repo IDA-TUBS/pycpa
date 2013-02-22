@@ -18,8 +18,10 @@ The general System Model is described in Section 3.6.1 in [Jersak2005]_
 or Section 3.1 in [Henia2005]_.
 """
 
-from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
 
 import math
 import logging
@@ -104,15 +106,18 @@ class EventModel (object):
         of activations) is created
         """
 
-        if cache is None:
-            cache = not options.get_opt('nocaching')
+        # # Enables or disables caching
+        self.en_caching = not options.get_opt('nocaching')
 
         # # Cache to speedup busy window calculations
         self.delta_min_cache = dict()
         self.delta_plus_cache = dict()
 
-        # # Enables or disables delta_min caching
-        self.delta_caching(cache)
+        self.eta_min_cache = dict()
+        self.eta_plus_cache = dict()
+
+        self.eta_min_closed_cache = dict()
+        self.eta_plus_closed_cache = dict()
 
         # # Event model eta_plus-plus function (internal)
         # maximal model: unlimited activations
@@ -172,6 +177,10 @@ class EventModel (object):
             but assuming half-open intervals for w
             as defined in [Richter2005]_.
         """
+        n = self.eta_plus_cache.get(w, None)
+        if n is not None:
+            return n
+
         # the window for 0 activations is 0
         if w <= 0:
             return 0
@@ -203,6 +212,9 @@ class EventModel (object):
         assert self.delta_min(hi) < w
         assert self.delta_min(hi + 1) >= w
 
+        if self.en_caching:
+            self.eta_plus_cache[w] = hi
+
         return hi
 
     def eta_plus_closed(self, w):
@@ -217,6 +229,10 @@ class EventModel (object):
             as w+EPSILON == w for large w and small Epsilon
             (e.g. 40000000+1e-9)
         """
+        n = self.eta_plus_closed_cache.get(w, None)
+        if n is not None:
+            return n
+
         # if the window does not include 2 activations, assume that one has
         # occured
         if self.delta_min(2) > w:
@@ -245,6 +261,9 @@ class EventModel (object):
         assert self.delta_min(hi) <= w
         assert self.delta_min(hi + 1) > w
 
+        if self.en_caching:
+            self.eta_plus_closed_cache[w] = hi
+
         return hi
 
     def eta_min(self, w):
@@ -253,6 +272,10 @@ class EventModel (object):
             Derived from Equation 3.6 from [Schliecker2011]_,
             but different, as Eq. 3.6 is wrong.
         """
+        n = self.eta_min_cache.get(w, None)
+        if n is not None:
+            return n
+
         MAX_EVENTS = 10000
         n = 2
         while self.delta_plus(n) <= w:
@@ -263,6 +286,9 @@ class EventModel (object):
                 return n
             n += 1
 
+        if self.en_caching:
+            self.eta_min_cache[w] = n-2
+
         return n - 2
 
     def eta_min_closed(self, w):
@@ -270,6 +296,10 @@ class EventModel (object):
             Return the minimum number of events in a time window w.
             Using CLOSED intevals
         """
+        n = self.eta_min_closed_cache.get(w, None)
+        if n is not None:
+            return n
+
         MAX_EVENTS = 10000
         n = 2
         while self.delta_plus(n) < w:
@@ -278,6 +308,9 @@ class EventModel (object):
                              "deltaplus(n)=%d" % self.delta_plus(n))
                 return n
             n += 1
+
+        if self.en_caching:
+            self.eta_min_closed_cache[w] = n-2
 
         return n - 2
 
@@ -292,7 +325,7 @@ class EventModel (object):
             return 0
 
         # # Caching is activated
-        if self.en_delta_caching == True:
+        if self.en_caching == True:
             d = self.delta_min_cache.get(n, None)
             if d == None:
                 d = self.deltamin_func(n)
@@ -314,7 +347,7 @@ class EventModel (object):
             return 0
 
         # # Caching is activated
-        if self.en_delta_caching == True:
+        if self.en_caching == True:
             d = self.delta_plus_cache.get(n, None)
             if d == None:
                 d = self.deltaplus_func(n)
@@ -336,11 +369,15 @@ class EventModel (object):
         else:
             return float(accuracy) / self.delta_min(accuracy)
 
-    def delta_caching(self, active=True):
-        self.en_delta_caching = active
-
     def flush_cache(self):
         self.delta_min_cache = dict()
+        self.delta_plus_cache = dict()
+
+        self.eta_min_cache = dict()
+        self.eta_plus_cache = dict()
+
+        self.eta_min_closed_cache = dict()
+        self.eta_plus_closed_cache = dict()
 
     def __repr__(self):
         """ Return a description of the Event-Model"""

@@ -17,11 +17,16 @@ It should be imported in scripts that do the analysis.
 """
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 
 import logging
 import copy
 import time
 from collections import deque
+import functools
 
 from . import model
 from . import options
@@ -780,6 +785,12 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
             old_jitter = task_results[t].wcrt - task_results[t].bcrt
             old_busytimes = copy.copy(task_results[t].busy_times)
             analyze_task(t, task_results)
+
+            #sanity check
+            assert functools.reduce(lambda x, y: x and y,\
+                           [b - a >= t.wcet for a,b \
+                            in util.window(task_results[t].busy_times)]) == True
+
             new_jitter = task_results[t].wcrt - task_results[t].bcrt
             new_busytimes = task_results[t].busy_times
 
