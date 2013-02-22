@@ -19,9 +19,6 @@ from pycpa import schedulers
 from pycpa import graph
 
 
-
-
-
 def test_spp():
     # generate an new system
     s = model.System()
