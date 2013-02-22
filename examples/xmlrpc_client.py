@@ -62,6 +62,8 @@ try:
     proxy.assign_pjd_event_model(t11, 30, 5, 0)
     proxy.assign_pjd_event_model(t12, 15, 6, 0)
 
+    print proxy.graph_system_dot(s, 'xmlrpc_client_test.dot')
+
     results = proxy.analyze_system(s)
     print "Results id:", results
 
