@@ -21,7 +21,7 @@ from pycpa import model
 from pycpa import schedulers
 from pycpa import analysis
 from pycpa import path_analysis
-
+from pycpa import graph
 
 import logging
 
@@ -431,7 +431,7 @@ class CPARPC(xmlrpc.XMLRPC):
 
         """
         try:
-            from pycpa import graph
+            import pygraphviz
         except ImportError:
             raise xmlrpc.Fault(GENERAL_ERROR, "graph not supported on this platform.")
 
@@ -440,4 +440,26 @@ class CPARPC(xmlrpc.XMLRPC):
         graph.graph_system(s, filename)
         return 0
 
+
+    def xmlrpc_graph_system_dot(self, system_id, filename):
+        """ Generate a graph of the system in dot file format (in server directory).
+        The resulting file can be converted using graphviz.
+        E.g. to create a PDF, run:
+           dot -Tpdf <filename> -o out.pdf
+
+        :param system_id: ID of the system to analyze
+        :type system_id: string
+        :param filename: File name (relative to server working directory) to which to write to. If empty, return dot file as string only.
+        :type filename: string
+        :returns: string representation of graph in dot format
+        :rtype: string
+        """
+
+        s = self._check_system_id(system_id)
+
+        if filename == '':
+            filename = None
+
+        g = graph.graph_system(s, dotout=filename)
+        return g.string()
 

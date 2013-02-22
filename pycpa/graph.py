@@ -17,7 +17,6 @@ This module contains methods to plot task/architecture graphs of your system
 from __future__ import absolute_import
 from . import model
 
-import pygraphviz
 
 
 def get_junction_name(j):
@@ -26,13 +25,76 @@ def get_junction_name(j):
         name += p.name + ","
     return name
 
+class dotgraph(object):
+    """ Minimalistic implementation of the pygraphviz API.
+    With this, you can write graphs to a file. """
+
+    def __init__(self, **kwargs):
+        self.dot_str = 'strict digraph {\n'
+        self.dot_str += 'graph' + self._str_attr(kwargs)
+
+        #[conpound=true, ordering=out, rankdir=LR, remincross=true\n'
+        self.dot_str += ';\n'
+        self.node_strs = dict()
+
+    def _str_attr(self, attr):
+        first = True
+        node_str = '['
+        for k,v in attr.items():
+            if first:
+                first = False
+            else:
+                node_str += ',\n'
+            node_str += '{k}=\"{v}\"'.format(k=k,v=v)
+        node_str += ']'
+        return node_str
+
+    def add_node(self, name, **kwargs):
+        node_str = '{name}'.format(name=name)
+        node_str += self._str_attr(kwargs) + ';\n'
+        self.node_strs [name] = node_str
+
+    def add_subgraph(self, nodes, name):
+        subgraph_str = 'subgraph {name}'.format(name=name)
+        subgraph_str += '{\n'
+        for n in nodes:
+            subgraph_str += '  ' + self.node_strs[n] + '\n'
+
+        subgraph_str += '}\n'
+        self.dot_str += subgraph_str
+
+    def add_edge(self, n1, n2, **kwargs):
+        edge_str = '"{n1}" -> "{n2}"'.format(n1=n1, n2=n2)
+        edge_str += self._str_attr(kwargs) + ';\n'
+        self.dot_str += edge_str
+
+    def write(self, filename):
+        f = open(filename, 'w')
+        self.dot_str += '}\n'
+        f.write(self.dot_str)
+
+    def has_node(self, name):
+        return name in self.node_strs
+
+    def layout(self, l):
+        pass
+
+    def draw(self, f):
+        raise NotImplementedError('Drawing not supported, '
+                                  'please install pygraphviz.')
+
+    def string(self):
+        return self.dot_str
+
 
 def graph_system(s, filename=None, layout='dot',
                  empty_resources=False, short_tasks=False,
                  exec_times=False,
                  sched_param=False,
                  rankdir='LR',
-                 show=False):
+                 show=False,
+                 dotout=None
+                 ):
     """
     Return a graph of the system
 
@@ -47,15 +109,24 @@ def graph_system(s, filename=None, layout='dot',
     :param rankdir: Layout option for graphviz
     :param show: Show plot
     :type show: boolean
+    :param dotout: If set, write a dot file to this filename
     :rtype: None
     """
 
-    g = pygraphviz.AGraph(directed='true', compound='true',
+
+    try:
+        import pygraphviz
+        g = pygraphviz.AGraph(directed='true', compound='true',
                           rankdir=rankdir,
                           remincross='true',
                           ordering='out'
                           )
-
+    except ImportError:
+        g = dotgraph(directed='true', compound='true',
+                    rankdir=rankdir,
+                    remincross='true',
+                    ordering='out'
+                    )
     # first, create all nodes
     task_num = 0
     elen = 10
@@ -113,7 +184,6 @@ def graph_system(s, filename=None, layout='dot',
 
     g.layout(layout)
 
-
     if filename is not None:
         g.draw(filename)
 
@@ -122,6 +192,9 @@ def graph_system(s, filename=None, layout='dot',
             g.draw(format='xlib')
         except IOError:
             pass
+
+    if dotout is not None:
+        g.write(dotout)
 
     return g
 
