@@ -31,13 +31,7 @@ import logging
 
 logger = logging.getLogger("xmlrpc")
 
-def _unique(obj):
-    """ Returns a unique id for obj """
-    # Convert to string, because XML RPC does not support long ints
-    return str(id(obj))
-
-
-PYCPA_XMLRPC_VERSION = 2
+PYCPA_XMLRPC_VERSION = 3
 
 GENERAL_ERROR = 1
 INVALID_SCHEDULER = 2
@@ -66,10 +60,53 @@ class CPARPC(xmlrpc.XMLRPC):
         self._pycpa_paths = dict()
         self._task_results = dict()
 
+        self.id_type = 'numeric'
+
         #: Dictionary of scheduler classes.
         self.scheduling_policies = {
                 "spp" : schedulers.SPPScheduler
         }
+
+    def _unique(self, obj):
+        """ Returns a unique id for obj """
+
+        if self.id_type == 'numeric':
+            # Convert to string, because XML RPC does not support long ints
+            return str(id(obj))
+
+        objdict = None  # to check for duplicate
+        if isinstance(obj, model.System):
+            uid = obj.name
+            objdict = self._pycpa_systems
+        elif isinstance(obj, model.Task):
+            uid = obj.name
+            objdict = self._pycpa_tasks
+        elif isinstance(obj, model.Path):
+            uid = obj.name
+            objdict = self._pycpa_paths
+        elif isinstance(obj, model.Resource):
+            uid = obj.name
+            objdict = self._pycpa_resources
+        elif isinstance(obj, dict):
+            uid = 'results'
+            objdict = self._task_results
+        else:
+            raise xmlrpc.Fault(GENERAL_ERROR, "invalid type: %s"
+                               % (obj))
+
+        if self.id_type == 'full':
+            #TODO: Prefix uid with full name
+            raise NotImplementedError
+
+        # Generate unique name by suffixing a number
+        uid_base = uid
+        suffix = 1
+        while uid in objdict:
+            uid = uid_base + str(suffix)
+            suffix += 1
+
+        return uid
+
 
     def _check_task_id(self, task_id):
         """
@@ -105,6 +142,23 @@ class CPARPC(xmlrpc.XMLRPC):
         return self._task_results[results_id]
 
 
+    def xmlrpc_set_id_type(self, id_type):
+        ''' Select the type for returned IDs.
+        'numeric' generates numeric IDs (strings of long int)
+        'name' generates the ID from the objects' name
+        'full' is like 'name', but prefixes name by parent's name (TODO)
+
+        :param id_type: 'numeric', 'name', or 'full'
+        :type id_type: string
+        :returns: 0
+        '''
+        if id_type in {'numeric', 'name', 'full'}:
+            self.id_type = id_type
+        else:
+            raise xmlrpc.Fault(GENERAL_ERROR, 'invalid id type')
+        return 0
+
+
     def xmlrpc_new_system(self, name):
         """ create new pycpa system and return it's id
 
@@ -116,9 +170,10 @@ class CPARPC(xmlrpc.XMLRPC):
         """
         name = str(name)
         s = model.System(name)
-        self._pycpa_systems[_unique(s)] = s
+        sid = self._unique(s)
+        self._pycpa_systems[sid] = s
         logger.debug("new system %s" % name)
-        return _unique(s)
+        return sid
 
     def xmlrpc_protocol(self):
         """
@@ -142,8 +197,9 @@ class CPARPC(xmlrpc.XMLRPC):
         r = model.Resource(name)
         logger.debug("new resource %s" % name)
         system.bind_resource(r)
-        self._pycpa_resources[_unique(r)] = r
-        return _unique(r)
+        rid = self._unique(r)
+        self._pycpa_resources[rid] = r
+        return rid
 
     def xmlrpc_assign_scheduler(self, resource_id, scheduler_string):
         """ Assign a scheduler to a resource.
@@ -200,7 +256,7 @@ class CPARPC(xmlrpc.XMLRPC):
         """
         resource = self._check_resource_id(resource_id)
         task = model.Task(str(name))
-        task_id = _unique(task)
+        task_id = self._unique(task)
         self._pycpa_tasks[task_id] = task
         resource.bind_task(task)
         return task_id
@@ -307,8 +363,9 @@ class CPARPC(xmlrpc.XMLRPC):
         p = model.Path(name, tasks)
 
         system.bind_path(p)
-        self._pycpa_paths[_unique(p)] = p
-        return _unique(p)
+        pid = self._unique(p)
+        self._pycpa_paths[pid] = p
+        return pid
 
     def xmlrpc_assign_pjd_event_model(self, task_id, period, jitter, min_dist):
         """ Create an eventmodel and assign it to task.
@@ -396,13 +453,14 @@ class CPARPC(xmlrpc.XMLRPC):
                                    % r.name)
         try:
             results = analysis.analyze_system(system)
-            self._task_results[_unique(results)] = results
+            rid = self._unique(results)
+            self._task_results[rid] = results
         except analysis.NotSchedulableException as e:
             raise xmlrpc.Fault(NOT_SCHEDULABLE, "not schedulable")
         except Exception as e:
             # TODO: Log stack trace to server for debugging
             raise xmlrpc.Fault(GENERAL_ERROR, str(e))
-        return _unique(results)
+        return rid
 
     def xmlrpc_end_to_end_latency(self, path_id, results_id, n):
         """ Perform a path analysis to obtain the end-to-end latency.
