@@ -27,11 +27,13 @@ try:
 
     print "Available schedulers:", proxy.get_valid_schedulers()
 
+    proxy.set_id_type('name')
+
     s = proxy.new_system("system")
     print "System id:", s
 
     r1 = proxy.new_resource(s, "r1")
-    print "r", r1
+    print "r1 id", r1
     r2 = proxy.new_resource(s, "r2")
 
     proxy.assign_scheduler(r1, "spp")
@@ -62,7 +64,7 @@ try:
     proxy.assign_pjd_event_model(t11, 30, 5, 0)
     proxy.assign_pjd_event_model(t12, 15, 6, 0)
 
-    print proxy.graph_system_dot(s, 'xmlrpc_client_test.dot')
+    proxy.graph_system_dot(s, 'xmlrpc_client_test.dot')
 
     results = proxy.analyze_system(s)
     print "Results id:", results
