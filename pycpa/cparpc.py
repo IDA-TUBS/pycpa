@@ -101,7 +101,9 @@ class CPARPC(xmlrpc.XMLRPC):
         # Generate unique name by suffixing a number
         uid_base = uid
         suffix = 1
-        while uid in objdict:
+        while ((uid in objdict) and
+               (objdict[uid] != obj)):
+            # only generate a new ID if the duplicate isnt the obj
             uid = uid_base + str(suffix)
             suffix += 1
 
@@ -147,6 +149,8 @@ class CPARPC(xmlrpc.XMLRPC):
         'numeric' generates numeric IDs (strings of long int)
         'name' generates the ID from the objects' name
         'full' is like 'name', but prefixes name by parent's name (TODO)
+
+        In case of 'name' or 'full', the ID is suffixed in case of duplicates.
 
         :param id_type: 'numeric', 'name', or 'full'
         :type id_type: string
