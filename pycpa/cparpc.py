@@ -54,12 +54,10 @@ class CPARPC(xmlrpc.XMLRPC):
     def __init__(self):
         xmlrpc.XMLRPC.__init__(self, allowNone=False, useDateTime=False)
 
-        self._pycpa_systems = dict()
-        self._pycpa_resources = dict()
-        self._pycpa_tasks = dict()
-        self._pycpa_paths = dict()
-        self._task_results = dict()
+        # dictionary to store all object references
+        self._objects = dict()
 
+        #: Specifies how unique IDs are generated
         self.id_type = 'numeric'
 
         #: Dictionary of scheduler classes.
@@ -74,25 +72,11 @@ class CPARPC(xmlrpc.XMLRPC):
             # Convert to string, because XML RPC does not support long ints
             return str(id(obj))
 
-        objdict = None  # to check for duplicate
-        if isinstance(obj, model.System):
-            uid = obj.name
-            objdict = self._pycpa_systems
-        elif isinstance(obj, model.Task):
-            uid = obj.name
-            objdict = self._pycpa_tasks
-        elif isinstance(obj, model.Path):
-            uid = obj.name
-            objdict = self._pycpa_paths
-        elif isinstance(obj, model.Resource):
-            uid = obj.name
-            objdict = self._pycpa_resources
-        elif isinstance(obj, dict):
+        if isinstance(obj, dict):
+            # results does not have a name property
             uid = 'results'
-            objdict = self._task_results
         else:
-            raise xmlrpc.Fault(GENERAL_ERROR, "invalid type: %s"
-                               % (obj))
+            uid = obj.name
 
         if self.id_type == 'full':
             #TODO: Prefix uid with full name
@@ -101,8 +85,8 @@ class CPARPC(xmlrpc.XMLRPC):
         # Generate unique name by suffixing a number
         uid_base = uid
         suffix = 1
-        while ((uid in objdict) and
-               (objdict[uid] != obj)):
+        while ((uid in self._objects) and
+               (self._objects[uid] != obj)):
             # only generate a new ID if the duplicate isnt the obj
             uid = uid_base + str(suffix)
             suffix += 1
@@ -110,38 +94,19 @@ class CPARPC(xmlrpc.XMLRPC):
         return uid
 
 
-    def _check_task_id(self, task_id):
+    def _obj_from_id(self, identifier, check_type=None):
+        """ Return a reference to the object with the supplied id.
+        If check_type is not None, the object is checked to be of type check_type.
         """
-        :returns: a reference to the task with task_id
-        :rtype: string
-        """
-        if task_id not in self._pycpa_tasks:
-            raise xmlrpc.Fault(INVALID_ID, "invalid task id")
-        return self._pycpa_tasks[task_id]
-
-    def _check_resource_id(self, resource_id):
-        """ Return a reference to the resource with resource_id """
-        if resource_id not in self._pycpa_resources:
-            raise xmlrpc.Fault(INVALID_ID, "invalid resource id")
-        return self._pycpa_resources[resource_id]
-
-    def _check_system_id(self, system_id):
-        """ Return a reference to the system with system_id """
-        if system_id not in self._pycpa_systems:
-            raise xmlrpc.Fault(INVALID_ID, "invalid system id")
-        return self._pycpa_systems[system_id]
-
-    def _check_path_id(self, path_id):
-        """ Return a reference to the path with path_id """
-        if path_id not in self._pycpa_paths:
-            raise xmlrpc.Fault(INVALID_ID, "invalid path id")
-        return self._pycpa_paths[path_id]
-
-    def _check_results_id(self, results_id):
-        """ Return a reference to the results with results_id """
-        if results_id not in self._task_results:
-            raise xmlrpc.Fault(INVALID_ID, "invalid results id")
-        return self._task_results[results_id]
+        if identifier not in self._objects:
+            raise xmlrpc.Fault(INVALID_ID, "invalid id '{0}'"
+                               .format(identifier))
+        else:
+            obj = self._objects[identifier]
+            if check_type is not None and not isinstance(obj, check_type):
+                raise xmlrpc.Fault(INVALID_ID, "type of '{0}' is not {1}".
+                                   format(obj, check_type))
+        return obj
 
 
     def xmlrpc_set_id_type(self, id_type):
@@ -175,7 +140,7 @@ class CPARPC(xmlrpc.XMLRPC):
         name = str(name)
         s = model.System(name)
         sid = self._unique(s)
-        self._pycpa_systems[sid] = s
+        self._objects[sid] = s
         logger.debug("new system %s" % name)
         return sid
 
@@ -196,13 +161,13 @@ class CPARPC(xmlrpc.XMLRPC):
         :returns: ID of the created resource
         :rtype: string
         """
-        system = self._check_system_id(system_id)
+        system = self._obj_from_id(system_id, model.System)
         name = str(name)
         r = model.Resource(name)
         logger.debug("new resource %s" % name)
         system.bind_resource(r)
         rid = self._unique(r)
-        self._pycpa_resources[rid] = r
+        self._objects[rid] = r
         return rid
 
     def xmlrpc_assign_scheduler(self, resource_id, scheduler_string):
@@ -216,7 +181,7 @@ class CPARPC(xmlrpc.XMLRPC):
         :returns: 0 for success
         """
         scheduler_string = str(scheduler_string)
-        resource = self._check_resource_id(resource_id)
+        resource = self._obj_from_id(resource_id, model.Resource)
         scheduler = self.scheduling_policies.get(scheduler_string, None)
         if scheduler is None:
             logger.error("invalid scheduler %s selected" % (scheduler_string))
@@ -240,12 +205,12 @@ class CPARPC(xmlrpc.XMLRPC):
         :returns: a list of tasks of system_id matching name
         :rtype: list of strings
         """
-        system = self._check_system_id(system_id)
+        system = self._obj_from_id(system_id, model.System)
         system_tasks = set()
         for r in system.resources:
             system_tasks += r.tasks
 
-        return [task_id for task_id, task in self._pycpa_tasks.iteritems()
+        return [task_id for task_id, task in self._objects
                 if task in system_tasks and task.name == name]
 
     def xmlrpc_new_task(self, resource_id, name):
@@ -258,10 +223,10 @@ class CPARPC(xmlrpc.XMLRPC):
         :returns: ID of the created task
         :rtype: string
         """
-        resource = self._check_resource_id(resource_id)
+        resource = self._obj_from_id(resource_id, model.Resource)
         task = model.Task(str(name))
         task_id = self._unique(task)
-        self._pycpa_tasks[task_id] = task
+        self._objects[task_id] = task
         resource.bind_task(task)
         return task_id
 
@@ -281,7 +246,7 @@ class CPARPC(xmlrpc.XMLRPC):
         :type value: Depends on attribute.
 
         """
-        task = self._check_task_id(task_id)
+        task = self._obj_from_id(task_id, model.Task)
         setattr(task, attribute, value)
         return 0
 
@@ -295,7 +260,7 @@ class CPARPC(xmlrpc.XMLRPC):
         :returns: Value of the attribute
         :rtype: Depends on attribute.
         """
-        return getattr(self._pycpa_tasks[task_id], attribute)
+        return getattr(self._objects[task_id], attribute)
 
     def xmlrpc_set_resource_parameter(self, resource_id, attribute, value):
         """ Set the attribute of a resource to value.
@@ -313,7 +278,7 @@ class CPARPC(xmlrpc.XMLRPC):
         :type value: Depends on attribute.
 
         """
-        resource = self._check_resource_id(resource_id)
+        resource = self._obj_from_id(resource_id, model.Resource)
         setattr(resource, attribute, value)
         return 0
 
@@ -328,7 +293,7 @@ class CPARPC(xmlrpc.XMLRPC):
         :rtype: Depends on attribute.
 
         """
-        return getattr(self._pycpa_resources[resource_id], attribute)
+        return getattr(self._objects[resource_id], attribute)
 
     def xmlrpc_link_task(self, task_id, target_id):
         """ Make task with target_id dependent of the task with task_id.
@@ -340,8 +305,8 @@ class CPARPC(xmlrpc.XMLRPC):
         :returns: 0
 
         """
-        task = self._check_task_id(task_id)
-        target = self._check_task_id(target_id)
+        task = self._obj_from_id(task_id, model.Task)
+        target = self._obj_from_id(target_id, model.Task)
         task.link_dependent_task(target)
         return 0
 
@@ -357,18 +322,18 @@ class CPARPC(xmlrpc.XMLRPC):
         :returns: ID of the created path
         :rtype: string
         """
-        system = self._check_system_id(system_id)
+        system = self._obj_from_id(system_id, model.System)
 
         tasks = []
         for t_id in task_ids:
-            t = self._check_task_id(t_id)
+            t = self._obj_from_id(t_id, model.Task)
             tasks.append(t)
 
         p = model.Path(name, tasks)
 
         system.bind_path(p)
         pid = self._unique(p)
-        self._pycpa_paths[pid] = p
+        self._objects[pid] = p
         return pid
 
     def xmlrpc_assign_pjd_event_model(self, task_id, period, jitter, min_dist):
@@ -385,7 +350,7 @@ class CPARPC(xmlrpc.XMLRPC):
         :returns: 0
 
         """
-        task = self._check_task_id(task_id)
+        task = self._obj_from_id(task_id, model.Task)
         em = None
         try:
             em = model.PJdEventModel(int(period), int(jitter), int(min_dist))
@@ -412,7 +377,7 @@ class CPARPC(xmlrpc.XMLRPC):
         :returns: 0
 
         """
-        task = self._check_task_id(task_id)
+        task = self._obj_from_id(task_id, model.Task)
         em = None
         try:
             em = model.CTEventModel(int(c), int(T), int(min_dist))
@@ -433,8 +398,8 @@ class CPARPC(xmlrpc.XMLRPC):
         :rtype: :py:class:`pycpa.analysis.TaskResult`
 
         """
-        results = self._check_results_id(results_id)
-        task = self._check_task_id(task_id)
+        results = self._obj_from_id(results_id, dict)
+        task = self._obj_from_id(task_id, model.Task)
         if task not in results:
             raise xmlrpc.Fault(INVALID_RESULTS, "no results for task")
 
@@ -448,7 +413,7 @@ class CPARPC(xmlrpc.XMLRPC):
         :returns: ID of a results object
         :rtype: string
         """
-        system = self._pycpa_systems[system_id]
+        system = self._obj_from_id(system_id, model.System)
         results = None
         for r in system.resources:
             if r.scheduler is None:
@@ -458,7 +423,7 @@ class CPARPC(xmlrpc.XMLRPC):
         try:
             results = analysis.analyze_system(system)
             rid = self._unique(results)
-            self._task_results[rid] = results
+            self._objects[rid] = results
         except analysis.NotSchedulableException as e:
             raise xmlrpc.Fault(NOT_SCHEDULABLE, "not schedulable")
         except Exception as e:
@@ -482,8 +447,8 @@ class CPARPC(xmlrpc.XMLRPC):
         """
         # TODO: add overheads?
 
-        path = self._check_path_id(path_id)
-        results = self._check_results_id(results_id)
+        path = self._obj_from_id(path_id, model.Path)
+        results = self._obj_from_id(results_id, dict)
         return path_analysis.end_to_end_latency(path, results, n)
 
     def xmlrpc_graph_system(self, system_id, filename):
@@ -501,7 +466,7 @@ class CPARPC(xmlrpc.XMLRPC):
         except ImportError:
             raise xmlrpc.Fault(GENERAL_ERROR, "graph not supported on this platform.")
 
-        s = self._check_system_id(system_id)
+        s = self._obj_from_id(system_id, model.System)
 
         graph.graph_system(s, filename)
         return 0
@@ -521,7 +486,7 @@ class CPARPC(xmlrpc.XMLRPC):
         :rtype: string
         """
 
-        s = self._check_system_id(system_id)
+        s = self._obj_from_id(system_id, model.System)
 
         if filename == '':
             filename = None
