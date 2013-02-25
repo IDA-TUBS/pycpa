@@ -51,7 +51,7 @@ def spp_test():
     t12.in_event_model = model.PJdEventModel(P=15, J=6)
 
     # plot the system graph to visualize the architecture
-    g = graph.graph_system(s, 'spp_graph.pdf')
+    g = graph.graph_system(s, 'spp_graph.pdf', dotout='spp_graph.dot')
 
     # perform the analysis
     print("Performing analysis")
