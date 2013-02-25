@@ -74,8 +74,8 @@ class dotgraph(object):
 
     def write(self, filename):
         f = open(filename, 'w')
-        self.dot_str += '}\n'
-        f.write(self.dot_str)
+        dot_str = self.dot_str + '}\n' # close graph
+        f.write(dot_str)
 
     def has_node(self, name):
         return name in self.node_strs
@@ -83,9 +83,21 @@ class dotgraph(object):
     def layout(self, l):
         pass
 
-    def draw(self, f):
-        raise NotImplementedError('Drawing not supported, '
-                                  'please install pygraphviz.')
+    def draw(self, path=None, format=None, prog='dot'):
+
+        import os
+        from subprocess import Popen, PIPE
+
+        # try to guess format from extension
+        if format is None and path is not None:
+            format=os.path.splitext(path)[-1].lower()[1:]
+
+        dot_str = self.dot_str + '}\n' # close graph
+        cmd = 'dot -T{fmt} -o {path}'.format(fmt=format, path=path)
+
+        p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE)
+        p.communicate(input=dot_str)
+
 
     def string(self):
         return self.dot_str
@@ -97,7 +109,8 @@ def graph_system(s, filename=None, layout='dot',
                  sched_param=False,
                  rankdir='LR',
                  show=False,
-                 dotout=None
+                 dotout=None,
+                 use_pygraphviz=False
                  ):
     """
     Return a graph of the system
@@ -118,14 +131,14 @@ def graph_system(s, filename=None, layout='dot',
     """
 
 
-    try:
+    if use_pygraphviz:
         import pygraphviz
         g = pygraphviz.AGraph(directed='true', compound='true',
                           rankdir=rankdir,
                           remincross='true',
                           ordering='out'
                           )
-    except ImportError:
+    else:
         g = dotgraph(directed='true', compound='true',
                     rankdir=rankdir,
                     remincross='true',
@@ -186,14 +199,12 @@ def graph_system(s, filename=None, layout='dot',
                 g.add_edge(str(t.in_event_model), t.name, constraint='True', style='dashed')
 
 
-    g.layout(layout)
-
     if filename is not None:
-        g.draw(filename)
+        g.draw(filename, prog='dot')
 
     if show:
         try:
-            g.draw(format='xlib')
+            g.draw(prog='dot', format='xlib')
         except IOError:
             pass
 
