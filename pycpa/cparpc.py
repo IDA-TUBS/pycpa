@@ -453,6 +453,8 @@ class CPARPC(xmlrpc.XMLRPC):
 
     def xmlrpc_graph_system(self, system_id, filename):
         """ Generate a graph of the system (in server directory).
+        It uses graphviz for plotting, so the 'dot' command must be in the PATH
+        of the server environment.
 
         :param system_id: ID of the system to analyze
         :type system_id: string
