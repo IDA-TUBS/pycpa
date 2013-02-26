@@ -93,7 +93,7 @@ class dotgraph(object):
             format=os.path.splitext(path)[-1].lower()[1:]
 
         dot_str = self.dot_str + '}\n' # close graph
-        cmd = 'dot -T{fmt} -o {path}'.format(fmt=format, path=path)
+        cmd = '{prog} -T{fmt} -o {path}'.format(prog=prog, fmt=format, path=path)
 
         p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE)
         p.communicate(input=dot_str)
