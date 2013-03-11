@@ -54,12 +54,12 @@ class dotgraph(object):
         return node_str
 
     def add_node(self, name, **kwargs):
-        node_str = '{name}'.format(name=name)
+        node_str = '"{name}"'.format(name=name)
         node_str += self._str_attr(kwargs) + ';\n'
         self.node_strs [name] = node_str
 
     def add_subgraph(self, nodes, name):
-        subgraph_str = 'subgraph {name}'.format(name=name)
+        subgraph_str = 'subgraph "{name}"'.format(name=name)
         subgraph_str += '{\n'
         for n in nodes:
             subgraph_str += '  ' + self.node_strs[n] + '\n'
