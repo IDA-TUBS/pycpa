@@ -31,7 +31,7 @@ import logging
 
 logger = logging.getLogger("xmlrpc")
 
-PYCPA_XMLRPC_VERSION = 3
+PYCPA_XMLRPC_VERSION = 4
 
 GENERAL_ERROR = 1
 INVALID_SCHEDULER = 2
@@ -150,6 +150,15 @@ class CPARPC(xmlrpc.XMLRPC):
         :rtype: integer
         """
         return PYCPA_XMLRPC_VERSION
+
+
+    def xmlrpc_clear_models(self):
+        """ Delete all models, i.e. all systems, resources, tasks, results etc.
+
+        :returns: 0
+        """
+        self._objects.clear()
+        return 0
 
     def xmlrpc_new_resource(self, system_id, name):
         """ Create a new resource with name and bind it to a system.
