@@ -19,6 +19,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import traceback
+
 from twisted.web import xmlrpc
 
 from pycpa import model
@@ -141,7 +143,7 @@ class CPARPC(xmlrpc.XMLRPC):
         s = model.System(name)
         sid = self._unique(s)
         self._objects[sid] = s
-        logger.debug("new system %s" % name)
+        logger.debug("{} = new_system('{}')".format(sid,name))
         return sid
 
     def xmlrpc_protocol(self):
@@ -158,6 +160,7 @@ class CPARPC(xmlrpc.XMLRPC):
         :returns: 0
         """
         self._objects.clear()
+        logger.debug("clear_models()")
         return 0
 
     def xmlrpc_new_resource(self, system_id, name):
@@ -173,10 +176,11 @@ class CPARPC(xmlrpc.XMLRPC):
         system = self._obj_from_id(system_id, model.System)
         name = str(name)
         r = model.Resource(name)
-        logger.debug("new resource %s" % name)
         system.bind_resource(r)
         rid = self._unique(r)
         self._objects[rid] = r
+        logger.debug("{} = new_resource({}, '{}')".format(rid, system_id,
+                                                             name))
         return rid
 
     def xmlrpc_assign_scheduler(self, resource_id, scheduler_string):
@@ -195,8 +199,8 @@ class CPARPC(xmlrpc.XMLRPC):
         if scheduler is None:
             logger.error("invalid scheduler %s selected" % (scheduler_string))
             raise xmlrpc.Fault(INVALID_SCHEDULER, "invalid scheduler")
-        logger.debug("assigned policy %s to resource %s" %
-                     (scheduler_string, resource.name))
+        logger.debug("assign_scheduler({}, '{}')".format(resource_id,
+                                                           scheduler_string))
         resource.scheduler = scheduler()
         return 0
 
@@ -237,6 +241,9 @@ class CPARPC(xmlrpc.XMLRPC):
         task_id = self._unique(task)
         self._objects[task_id] = task
         resource.bind_task(task)
+        logger.debug("{} = new_task({}, '{}')".format(task_id,
+                                                         resource_id,
+                                                         name))
         return task_id
 
     def xmlrpc_set_task_parameter(self, task_id, attribute, value):
@@ -257,6 +264,9 @@ class CPARPC(xmlrpc.XMLRPC):
         """
         task = self._obj_from_id(task_id, model.Task)
         setattr(task, attribute, value)
+        logger.debug("set_task_parameter({}, {}, {})".format(task_id,
+                                                         attribute,
+                                                         value))
         return 0
 
     def xmlrpc_get_task_parameter(self, task_id, attribute):
@@ -289,6 +299,9 @@ class CPARPC(xmlrpc.XMLRPC):
         """
         resource = self._obj_from_id(resource_id, model.Resource)
         setattr(resource, attribute, value)
+        logger.debug("set_resource_parameter({}, {}, {})".format(resource_id,
+                                                         attribute,
+                                                         value))
         return 0
 
     def xmlrpc_get_resource_parameter(self, resource_id, attribute):
@@ -317,6 +330,8 @@ class CPARPC(xmlrpc.XMLRPC):
         task = self._obj_from_id(task_id, model.Task)
         target = self._obj_from_id(target_id, model.Task)
         task.link_dependent_task(target)
+        logger.debug("link_task({}, {})".format(task_id,
+                                                  target_id))
         return 0
 
     def xmlrpc_new_path(self, system_id, name, task_ids):
@@ -343,6 +358,10 @@ class CPARPC(xmlrpc.XMLRPC):
         system.bind_path(p)
         pid = self._unique(p)
         self._objects[pid] = p
+        logger.debug("{} = new_path({}, '{}', {})".format(pid,
+                                                              system_id,
+                                                              name,
+                                                              task_ids))
         return pid
 
     def xmlrpc_assign_pjd_event_model(self, task_id, period, jitter, min_dist):
@@ -367,6 +386,8 @@ class CPARPC(xmlrpc.XMLRPC):
             raise xmlrpc.Fault(INVALID_EVENT_MODEL_DESC,
                                "invalid event model parametrization")
         task.in_event_model = em
+        logger.debug("assign_pjd_event_model({}, {}, {}, {})".
+                     format(task_id, period, jitter, min_dist))
         return 0
 
     def xmlrpc_assign_ct_event_model(self, task_id, c, T, min_dist):
@@ -394,6 +415,8 @@ class CPARPC(xmlrpc.XMLRPC):
             raise xmlrpc.Fault(INVALID_EVENT_MODEL_DESC,
                                "invalid event model parametrization")
         task.in_event_model = em
+        logger.debug("assign_pjd_event_model({}, {}, {}, {})".
+                     format(task_id, c, T, min_dist))
         return 0
 
     def xmlrpc_get_task_result(self, results_id, task_id):
@@ -429,6 +452,8 @@ class CPARPC(xmlrpc.XMLRPC):
                 raise xmlrpc.Fault(ILLEGAL_SYSTEM,
                                    "component %s has no scheduler assigned"
                                    % r.name)
+
+        logger.debug("analyzing...")
         try:
             results = analysis.analyze_system(system)
             rid = self._unique(results)
@@ -436,8 +461,10 @@ class CPARPC(xmlrpc.XMLRPC):
         except analysis.NotSchedulableException as e:
             raise xmlrpc.Fault(NOT_SCHEDULABLE, "not schedulable")
         except Exception as e:
-            # TODO: Log stack trace to server for debugging
+            # Print the exception plus traceback to server
+            traceback.print_exc()
             raise xmlrpc.Fault(GENERAL_ERROR, str(e))
+        logger.debug("{} = analyze_system({})".format(rid, system_id))
         return rid
 
     def xmlrpc_end_to_end_latency(self, path_id, results_id, n):
@@ -458,7 +485,10 @@ class CPARPC(xmlrpc.XMLRPC):
 
         path = self._obj_from_id(path_id, model.Path)
         results = self._obj_from_id(results_id, dict)
-        return path_analysis.end_to_end_latency(path, results, n)
+        latencies = path_analysis.end_to_end_latency(path, results, n)
+        logger.debug("{} = end_to_end_latency({}, {}, {})".format(latencies, path_id,
+                                                      results_id, n))
+        return latencies
 
     def xmlrpc_graph_system(self, system_id, filename):
         """ Generate a graph of the system (in server directory).
