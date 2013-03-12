@@ -419,7 +419,7 @@ class PJdEventModel (EventModel):
         self.J = J
         self.dmin = dmin
 
-        self.__description__ = "P=%g J=%g" % (P, J)
+        self.__description__ = "P={} J={} d={}".format(P, J, dmin)
         if early_arrival:
             raise(NotImplementedError)
         else:
