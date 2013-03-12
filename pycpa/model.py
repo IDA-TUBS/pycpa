@@ -832,8 +832,9 @@ class Resource (object):
                 logger.warn("cannot compute load for %s, skipping load "
                     "analysis for this resource" % (self.name))
                 return 0.
-            assert l < float("inf")
-            assert l >= 0.
+            assert l < float('inf'), "Load on resource {} is infinity"\
+                    .format(self.name)
+            assert l >= 0., "Load should be non-negative"
         return l
 
     def bind_task(self, t):
