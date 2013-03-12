@@ -390,9 +390,12 @@ class CPARPC(xmlrpc.XMLRPC):
             raise xmlrpc.Fault(INVALID_EVENT_MODEL_DESC,
                                "invalid event model parametrization")
         task.in_event_model = em
+
+        # casting to int in debug output so that it matches what our code
+        # actually does to the input
         logger.debug("{}assign_pjd_event_model({}, {}, {}, {})".
                      format(self.debug_prefix, task_id,
-                            period, jitter, min_dist))
+                            int(period), int(jitter), int(min_dist)))
         return 0
 
     def xmlrpc_assign_ct_event_model(self, task_id, c, T, min_dist):
