@@ -301,14 +301,15 @@ def analyze_task(task, task_results):
     """
 
     for t in task.resource.tasks:
-        assert(t.in_event_model is not None)
+        assert (t.in_event_model is not None), 'task must have event model'
 
-    assert(task.bcet <= task.wcet)
+    assert (task.bcet <= task.wcet), 'BCET must not be larger than WCET'
     task.resource.scheduler.compute_bcrt(task, task_results)
     task.resource.scheduler.compute_wcrt(task, task_results)
     task.resource.scheduler.compute_max_backlog(task, task_results)
 
-    assert(task_results[task].bcrt <= task_results[task].wcrt)
+    assert (task_results[task].bcrt <= task_results[task].wcrt),\
+            'BCRT must not be larger than WCRT'
 
 
 def out_event_model(task, task_results, dmin=0):
@@ -375,7 +376,7 @@ def _out_event_model_jitter(task, task_results, dmin=0):
         # ignore dmin if propagation is jitter only
         dmin = 0
 
-    assert resp_jitter >= 0
+    assert resp_jitter >= 0, 'response time jitter must be positive'
 
     # if True, a non-recursive (but less accurate) computation is used
     nonrecursive = True
