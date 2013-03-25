@@ -33,7 +33,7 @@ import logging
 
 logger = logging.getLogger("xmlrpc")
 
-PYCPA_XMLRPC_VERSION = 5
+PYCPA_XMLRPC_VERSION = 6
 
 GENERAL_ERROR = 1
 INVALID_SCHEDULER = 2
@@ -221,6 +221,45 @@ class CPARPC(xmlrpc.XMLRPC):
 
         return self.scheduling_policies.keys()
 
+
+    def xmlrpc_set_attribute(self, obj_id, attribute, value):
+        ''' Set the attribute of the object to value.
+
+        This method can be used to set any attribute
+        of any previously created object.,
+        However, each scheduler or analysis expects certain attributes
+        that must be set and ignores all others.
+        See scheduler documentation for details
+        (e.g. :py:mod:`pycpa.schedulers`).
+
+        :param obj_id: ID of the task to set the parameter for.
+        :type obj_id: string
+        :param attribute: Attribute to set.
+        :type attribute: string.
+        :param value: Value to set the attribute to
+        :type value: Depends on attribute.
+        :returns: 0
+        '''
+        obj = self._obj_from_id(obj_id)
+        setattr(obj, attribute, value)
+        logger.debug("{}set_attribute({}, {}, {})"
+                     .format(self.debug_prefix, obj_id, attribute, value))
+        return 0
+
+
+    def xmlrpc_get_attribute(self, obj_id, attribute):
+        """ Return the attribute of a task.
+
+        :param obj_id: ID of the task to get the parameter from.
+        :type obj_id: string
+        :param attribute: Attribute to get.
+        :type attribute: string.
+        :returns: Value of the attribute
+        :rtype: Depends on attribute.
+        """
+        return getattr(self._objects[obj_id], attribute)
+
+
     def xmlrpc_tasks_by_name(self, system_id, name):
         """
         :returns: a list of tasks of system_id matching name
@@ -269,6 +308,8 @@ class CPARPC(xmlrpc.XMLRPC):
         :type value: Depends on attribute.
 
         """
+        logger.warn("Method set_task_parameter() is deprecated,"
+                    " use set_attribute() instead!")
         task = self._obj_from_id(task_id, model.Task)
         setattr(task, attribute, value)
         logger.debug("{}set_task_parameter({}, {}, {})"
@@ -285,6 +326,8 @@ class CPARPC(xmlrpc.XMLRPC):
         :returns: Value of the attribute
         :rtype: Depends on attribute.
         """
+        logger.warn("Method get_task_parameter() is deprecated,"
+                    " use get_attribute() instead!")
         return getattr(self._objects[task_id], attribute)
 
     def xmlrpc_set_resource_parameter(self, resource_id, attribute, value):
@@ -303,6 +346,8 @@ class CPARPC(xmlrpc.XMLRPC):
         :type value: Depends on attribute.
 
         """
+        logger.warn("Method set_resource_parameter() is deprecated,"
+                    " use set_attribute() instead!")
         resource = self._obj_from_id(resource_id, model.Resource)
         setattr(resource, attribute, value)
         logger.debug("{}set_resource_parameter({}, {}, {})"
@@ -320,6 +365,8 @@ class CPARPC(xmlrpc.XMLRPC):
         :rtype: Depends on attribute.
 
         """
+        logger.warn("Method get_resource_parameter() is deprecated,"
+                    " use get_attribute() instead!")
         return getattr(self._objects[resource_id], attribute)
 
     def xmlrpc_link_task(self, task_id, target_id):
