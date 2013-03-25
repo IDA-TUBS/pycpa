@@ -25,18 +25,19 @@ from . import options
 from . import model
 
 
-def end_to_end_latency(path, task_results, n=1 , task_overhead=(0, 0),
-                       path_overhead=(0, 0), **kwargs):
+def end_to_end_latency(path, task_results, n=1 , task_overhead=0,
+                       path_overhead=0, **kwargs):
     """ Computes the worst-/best-case e2e latency for n tokens to pass the path.
+    The constant path.overhead is added to the best- and worst-case latencies.
 
     :param path: the path
     :type path: model.Path
     :param n:  amount of events
     :type n: integer
     :param task_overhead: A constant task_overhead is added once per task to both min and max latency
-    :type task_overhead: tuple (best case overhead, worst-case overhead)
+    :type task_overhead: integer
     :param path_overhead:  A constant path_overhead is added once per path to both min and max latency
-    :type path_overhead: tuple (best case overhead, worst-case overhead)
+    :type path_overhead: integer
     :rtype: tuple (best-case latency, worst-case latency)
     """
 
@@ -51,12 +52,12 @@ def end_to_end_latency(path, task_results, n=1 , task_overhead=(0, 0),
         # implcitly check if t is a junction
         if t in task_results:
             # add per-task overheads
-            lmin += task_overhead[0]
-            lmax += task_overhead[1]
+            lmin += task_overhead
+            lmax += task_overhead
 
     # add per-path overhead
-    lmin += path_overhead[0]
-    lmax += path_overhead[1]
+    lmin += path_overhead + path.overhead
+    lmax += path_overhead + path.overhead
 
     return (lmin, lmax)
 

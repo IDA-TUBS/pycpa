@@ -895,6 +895,9 @@ class Path(object):
         # # Name of Path
         self.name = name
 
+        ## Constant overhead to add to the latency of the path
+        self.overhead = 0
+
     def __link_tasks(self, tasks):
         """ linking all tasks along a path"""
         assert len(tasks) > 0
