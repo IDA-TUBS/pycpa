@@ -11,7 +11,7 @@
 
 
 __author__ = "Jonas Diemer, Philip Axer"
-__copyright__ = "Copyright (C) 2010-2012, TU Braunschweig, Germany. All rights reserved."
+__copyright__ = "Copyright (C) 2010-2013, TU Braunschweig, Germany. All rights reserved."
 
 __version__ = "research"
 
