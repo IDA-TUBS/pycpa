@@ -205,7 +205,7 @@ class CPARPC(xmlrpc.XMLRPC):
         resource = self._obj_from_id(resource_id, model.Resource)
         scheduler = self.scheduling_policies.get(scheduler_string, None)
         if scheduler is None:
-            logger.error("invalid scheduler %s selected" % (scheduler_string))
+            logger.error("invalid scheduler %s selected", scheduler_string)
             raise xmlrpc.Fault(INVALID_SCHEDULER, "invalid scheduler")
         logger.debug("{}assign_scheduler({}, '{}')"
                      .format(self.debug_prefix, resource_id, scheduler_string))
@@ -240,6 +240,10 @@ class CPARPC(xmlrpc.XMLRPC):
         :type value: Depends on attribute.
         :returns: 0
         '''
+        if attribute[0] == '_':
+            logger.error('private attributes can not be set')
+            raise xmlrpc.Fault(GENERAL_ERROR,
+                               'private attributes can not be set')
         obj = self._obj_from_id(obj_id)
         setattr(obj, attribute, value)
         logger.debug("{}set_attribute({}, {}, {})"
