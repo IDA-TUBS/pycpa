@@ -16,7 +16,6 @@ Simple SPP example
 from pycpa import model
 from pycpa import analysis
 from pycpa import schedulers
-from pycpa import graph
 
 
 def test_spp():

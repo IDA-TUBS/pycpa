@@ -28,7 +28,7 @@ def edf_test():
 
     # add two resources (CPUs) to the system
     # and register the static priority preemptive scheduler
-    r1 = s.bind_resource(model.Resource("R1", schedulers.EDFPScheduler()))
+    r1 = s.bind_resource(model.Resource("R1", schedulers.EDFScheduler()))
     # r2 = s.bind_resource(model.Resource("R2", edf.EDFPScheduler()))
 
     # create and bind tasks to r1
