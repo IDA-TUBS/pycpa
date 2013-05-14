@@ -166,6 +166,7 @@ class FIFOScheduler(analysis.Scheduler):
             details_dict['release time'] = a
             details_dict['total window'] = w_max
             details_dict['busy time'] = q_max
+            details_dict['checked_candidates'] = checked_candidates
             return details_dict
 
         return q_max
@@ -200,6 +201,7 @@ class FIFOScheduler(analysis.Scheduler):
             details_dict['release time'] = a
             details_dict['total window'] = w_max
             details_dict['busy time'] = b_max
+            details_dict['checked_candidates'] = checked_candidates
             return details_dict
 
         return b_max
@@ -289,6 +291,7 @@ class EDFPScheduler(EDFNPScheduler):
 
     def __init__(self):
         EDFNPScheduler.__init__(self)
+
 
     def _b_plus_candidate(self, task, q, release_time):
         """ Returns the multiple event busy time of q events of the given task
