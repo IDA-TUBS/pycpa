@@ -387,10 +387,9 @@ class PJdEventModel (EventModel):
     """ A periodic, jitter, min-distance event model.
     """
 
-    def __init__(self, P=0, J=0, dmin=0, name='min', cache=None):
-        """ CTOR
-        If called without parameters, a maximal event model (unbounded amount
-        of activations) is created
+    def __init__(self, P=0, J=0, dmin=0, phi=0, name='min', cache=None):
+        """ Periodic, Jitter, min. distance event model. Offset can be supplied
+        but is not evaluated by all analyses.
         """
         EventModel.__init__(self, name, cache)
 
@@ -403,7 +402,7 @@ class PJdEventModel (EventModel):
         self.dmin = dmin
 
         # offset for some context sensitive analyses
-        self.phi = 0
+        self.phi = phi
 
     def set_PJd(self, P, J=0, dmin=0, early_arrival=False):
         """ Sets the event model to a periodic activation
