@@ -16,7 +16,6 @@ Simple EDF example, taken from Spuri1996
 from pycpa import model
 from pycpa import analysis
 from pycpa import schedulers
-from pycpa import graph
 from pycpa import options
 
 def edf_test():
@@ -28,7 +27,7 @@ def edf_test():
 
     # add two resources (CPUs) to the system
     # and register the static priority preemptive scheduler
-    r1 = s.bind_resource(model.Resource("R1", schedulers.EDFScheduler()))
+    r1 = s.bind_resource(model.Resource("R1", schedulers.EDFPScheduler()))
     # r2 = s.bind_resource(model.Resource("R2", edf.EDFPScheduler()))
 
     # create and bind tasks to r1
@@ -50,9 +49,6 @@ def edf_test():
     t2.in_event_model = model.PJdEventModel(P=6, J=0)
     t3.in_event_model = model.PJdEventModel(P=8, J=0)
     t4.in_event_model = model.PJdEventModel(P=16, J=0)
-
-    # plot the system graph to visualize the architecture
-    g = graph.graph_system(s, 'edf_graph.pdf')
 
     # perform the analysis
     print("Performing analysis")
