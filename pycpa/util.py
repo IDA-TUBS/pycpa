@@ -25,6 +25,7 @@ import logging
 import random
 import math
 import itertools
+import functools
 from collections import deque
 
 logger = logging.getLogger("pycpa")
@@ -143,7 +144,7 @@ def dijkstra(source):
                 Q.add(v)
     return dist
 
-def additive_extension(additive_func, q, q_max):
+def additive_extension(additive_func, q, q_max, cache=None, cache_offset=1):
     """ Additive extension for event models.
     Any sub- or super- additive function additive_func valid in the domain q \in [0, q_max]
     is extended and the approximited value f(q) is returned.
@@ -151,15 +152,23 @@ def additive_extension(additive_func, q, q_max):
     thus if you supply a delta function to additive_func, note to add 1 and supply q-1.
     e.g. util.additive_extension(lambda x: self.delta_min(x + 1), n - 1, q_max)
     """
-    if q <= q_max:
-        return additive_func(q)
-    elif q == float('inf'):
-        return float('inf')
-    else:
-        div = q / q_max
-        rem = q % q_max
-        return div * additive_func(q_max) + additive_func(rem)
+    if cache is None:
+        cache = dict()
+    assert q_max > 0
+    d  = cache.get(q + cache_offset, None)  # cache is in delta domain (thus +1)
+    if d is None:
+        if q <= q_max:
+            d = additive_func(q)
 
+        elif q == float('inf'):
+            d = float('inf')
+        else:
+            div = q // q_max
+            rem = q % q_max
+            d = div * additive_func(q_max) + additive_func(rem)
+
+    cache[q] = d
+    return d
 
 def recursive_max_additive(additive_func, q, q_max, cache=None, cache_offset=1):
     """ Sub-additive extension for event models.
@@ -297,12 +306,12 @@ def lcm(a, b):
 
 def GCD(terms):
     """ Return gcd of a list of numbers."""
-    return reduce(fractions.gcd, terms)
+    return functools.reduce(fractions.gcd, terms)
 
 
 def LCM(terms):
     """Return lcm of a list of numbers."""
-    return reduce(lcm, terms)
+    return functools.reduce(lcm, terms)
 
 
 def combinations_with_replacement(iterable, r):
