@@ -35,19 +35,29 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-# Try to determine the repository version from the file pycpa/VERSION
-# This file is best created by an post-update hook, so add this to the
-# .hg/hgrc:
-# [hooks]
-# post-update = hg id --id > pycpa/VERSION
 
-import os
-path = os.path.dirname(__file__)
-try:
-    f = open(path + '/VERSION')
-    __version__ = "Version " + f.readline()
-except IOError:
-    __version__ = "Research Version\n"
+def get_module_version():
+    ''' Try to determine the repository version from the VERSION in the
+    callers (!) package (i.e. path of the callers .py file)
+
+    This file is best created by an post-update hook, so for the package,
+    add this to the .hg/hgrc:
+    [hooks]
+    post-update = hg id --id > pycpa/VERSION
+    '''
+    import os
+    import sys
+    caller = sys._getframe(1)  # Obtain calling frame
+    path = os.path.dirname(caller.f_globals['__file__'])
+    try:
+        f = open(path + '/VERSION')
+        v = "Version " + f.readline()
+    except IOError:
+        v = "Development Version\n"
+
+    return v
+
+__version__ = get_module_version()
 
 
 __all__ = ["model", "analysis", "path_analysis", "options", "graph", "cparpc"]
