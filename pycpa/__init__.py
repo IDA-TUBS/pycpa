@@ -35,6 +35,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
+# Try to determine the repository version from the file pycpa/VERSION
+# This file is best created by an post-update hook, so add this to the
+# .hg/hgrc:
+# [hooks]
+# post-update = hg id --id > pycpa/VERSION
+
 import os
 path = os.path.dirname(__file__)
 try:
