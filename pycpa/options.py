@@ -32,7 +32,7 @@ import argparse
 import logging
 import sys
 
-from . import __license_text__
+from . import __license_text__, __version__
 
 parser = argparse.ArgumentParser(description='Scheduling Analysis')
 parser.add_argument('--max_iterations', type=int,
@@ -57,7 +57,7 @@ parser.add_argument('--verbose', '-v', action='store_true',
 
 
 welcome = "pyCPA - Compositional Performance Analysis in Python.\n\n" \
-+ __license_text__
++ __version__ + __license_text__
 
 _opts = None
 _opts_dict = None

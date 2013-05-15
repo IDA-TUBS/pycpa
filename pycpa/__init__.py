@@ -13,8 +13,6 @@
 __author__ = "Jonas Diemer, Philip Axer"
 __copyright__ = "Copyright (C) 2010-2013, TU Braunschweig, Germany. All rights reserved."
 
-__version__ = "research"
-
 __license__ = "MIT"
 __license_text__ = __copyright__ + """
 
@@ -36,5 +34,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
+
+import os
+path = os.path.dirname(__file__)
+try:
+    f = open(path + '/VERSION')
+    __version__ = "Version " + f.readline()
+except IOError:
+    __version__ = "Research Version\n"
+
 
 __all__ = ["model", "analysis", "path_analysis", "options", "graph", "cparpc"]
