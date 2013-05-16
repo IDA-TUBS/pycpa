@@ -57,7 +57,7 @@ parser.add_argument('--verbose', '-v', action='store_true',
 
 
 welcome = "pyCPA - Compositional Performance Analysis in Python.\n\n" \
-+ __version__ + __license_text__
++ 'Version ' + __version__ + '\n' + __license_text__
 
 _opts = None
 _opts_dict = None
