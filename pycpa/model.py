@@ -40,9 +40,9 @@ def _warn_float(value, reason=""):
     """ Prints a warning with reason if value is float.
     """
     if type(value) == float:
-        warnings.warn("You are using floats, "
-                      "this may yield non-pessimistic results (" + reason +
-                      ")", UserWarning)
+        warnings.warn("You are using floats, " +
+                      "this may yield non-pessimistic results (" +
+                      reason + ")", UserWarning)
 
 
 class ConstraintsManager(object):
@@ -124,8 +124,8 @@ class EventModel (object):
         self.deltaplus_func = lambda x: 0
 
         # # Event model eta_plus-minus function (internal)
-        self.deltamin_func = lambda x: float(
-            "inf")  # minimal model: no activation
+        # minimal model: no activation
+        self.deltamin_func = lambda x: float( "inf")
 
         # # String description of event model
         self.__description__ = name
