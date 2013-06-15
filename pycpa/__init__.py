@@ -38,3 +38,4 @@ THE SOFTWARE.
 __all__ = ["model", "analysis", "path_analysis", "options", "graph", "cparpc"]
 
 __version__ = 'devel'
+__version__ = 'af758307432d'

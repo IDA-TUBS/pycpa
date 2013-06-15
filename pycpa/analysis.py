@@ -384,11 +384,13 @@ def _out_event_model_jitter(task, task_results, dmin=0):
         em.deltamin_func = lambda n: max(
             task.in_event_model.delta_min(n) - resp_jitter, (n - 1) * dmin)
     else:
+        # TODO: This can be simplified, because delta_min(1) is supposed to
+        # return 0
         em.deltamin_func = lambda n: \
-            n == 2 and max(task.in_event_model.delta_min(2)
-                           - resp_jitter, dmin) or max(
-                               task.in_event_model.delta_min(n) - resp_jitter,
-                               em.delta_min(n - 1) + dmin)
+                max(task.in_event_model.delta_min(2)
+                    - resp_jitter, dmin) if n == 2 else \
+                max(task.in_event_model.delta_min(n) - resp_jitter,
+                    em.delta_min(n - 1) + dmin)
 
     em.deltaplus_func = lambda n: task.in_event_model.delta_plus(
         n) + resp_jitter
