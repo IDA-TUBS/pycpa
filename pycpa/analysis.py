@@ -379,7 +379,7 @@ def _out_event_model_jitter(task, task_results, dmin=0):
     assert resp_jitter >= 0, 'response time jitter must be positive'
 
     # if True, a non-recursive (but less accurate) computation is used
-    nonrecursive = True
+    nonrecursive = True  # TODO: This should be an option
     if nonrecursive:
         em.deltamin_func = lambda n: max(
             task.in_event_model.delta_min(n) - resp_jitter, (n - 1) * dmin)
