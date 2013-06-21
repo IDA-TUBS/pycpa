@@ -246,7 +246,7 @@ class CPARPC(xmlrpc.XMLRPC):
                                'private attributes can not be set')
         obj = self._obj_from_id(obj_id)
         setattr(obj, attribute, value)
-        logger.debug("{}set_attribute({}, {}, {})"
+        logger.debug("{}set_attribute({}, '{}', {})"
                      .format(self.debug_prefix, obj_id, attribute, value))
         return 0
 
@@ -337,9 +337,9 @@ class CPARPC(xmlrpc.XMLRPC):
         system.bind_path(p)
         pid = self._unique(p)
         self._objects[pid] = p
-        logger.debug("{} = {}new_path({}, '{}', {})"
+        logger.debug("{} = {}new_path({}, '{}', [{}])"
                      .format(pid, self.debug_prefix,
-                             system_id, name, task_ids))
+                             system_id, name, ", ".join(task_ids)))
         return pid
 
     def xmlrpc_assign_pjd_event_model(self, task_id, period, jitter, min_dist):
@@ -441,7 +441,7 @@ class CPARPC(xmlrpc.XMLRPC):
             rid = self._unique(results)
             self._objects[rid] = results
         except analysis.NotSchedulableException as e:
-            raise xmlrpc.Fault(NOT_SCHEDULABLE, "not schedulable")
+            raise xmlrpc.Fault(NOT_SCHEDULABLE, "not schedulable: %s" % (str(e)))
         except Exception as e:
             # Print the exception plus traceback to server
             traceback.print_exc()
