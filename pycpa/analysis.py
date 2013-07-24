@@ -331,6 +331,8 @@ def out_event_model(task, task_results, dmin=0):
         _out_event_model = _out_event_model_busy_window
     elif  method == 'jitter_dmin' or method == 'jitter':
         _out_event_model = _out_event_model_jitter
+    elif method == 'jitter_bmin':
+        _out_event_model = _out_event_model_jitter_bmin
     else:
         raise NotImplementedError
 
@@ -395,6 +397,29 @@ def _out_event_model_jitter(task, task_results, dmin=0):
         str(resp_jitter) + ",dmin=" + str(dmin)
     return em
 
+def _out_event_model_jitter_bmin(task, task_results, dmin):
+    """ Derive an output event model from response time jitter,
+    the b_min as well as
+    the in_event_model (used as reference).
+
+    Uses a reference to task.deltamin_func
+    """
+    em = model.EventModel()
+    resp_jitter = task_results[task].wcrt - task_results[task].bcrt
+
+    assert resp_jitter >= 0, 'response time jitter must be positive'
+    bmin = lambda n: max(task.resource.scheduler.b_min(task, n-1),
+                         (n-1)*dmin)
+
+    em.deltamin_func = lambda n: max(
+        task.in_event_model.delta_min(n) - resp_jitter, bmin(n))
+
+    em.deltaplus_func = lambda n: task.in_event_model.delta_plus(n) + \
+            resp_jitter
+
+    em.__description__ = task.in_event_model.__description__ + "+J=" + \
+        str(resp_jitter) + ",dmin=" + str(dmin)
+    return em
 
 def _out_event_model_busy_window(task, task_results, dmin=0):
     """ Derive an output event model from busy window
