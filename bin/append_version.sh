@@ -10,4 +10,4 @@ else
     module="$1"
 fi
 
-hg tip --template "__version__ = '{node|short}'\n" >> $module/__init__.py
+echo -e "__version__ = '`hg id -i`'\n" >> $module/__init__.py
