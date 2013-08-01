@@ -171,7 +171,7 @@ class CPARPC(xmlrpc.XMLRPC):
         logger.debug("{}clear_models()".format(self.debug_prefix))
         return 0
 
-    def xmlrpc_new_resource(self, system_id, name):
+    def xmlrpc_new_resource(self, system_id, name, attributes={}):
         """ Create a new resource with name and bind it to a system.
 
         :param system_id: ID of the system
@@ -189,6 +189,9 @@ class CPARPC(xmlrpc.XMLRPC):
         self._objects[rid] = r
         logger.debug("{} = {}new_resource({}, '{}')"
                      .format(rid, self.debug_prefix, system_id, name))
+
+        for k,v in attributes.items():
+            self.xmlrpc_set_attribute(rid, k, v)
         return rid
 
     def xmlrpc_assign_scheduler(self, resource_id, scheduler_string):
@@ -277,7 +280,7 @@ class CPARPC(xmlrpc.XMLRPC):
         return [task_id for task_id, task in self._objects
                 if task in system_tasks and task.name == name]
 
-    def xmlrpc_new_task(self, resource_id, name):
+    def xmlrpc_new_task(self, resource_id, name, attributes={}):
         """ Create a new task and bind it to a ressource.
 
         :param resource_id: ID of the resource
@@ -294,6 +297,8 @@ class CPARPC(xmlrpc.XMLRPC):
         resource.bind_task(task)
         logger.debug("{} = {}new_task({}, '{}')"
                      .format(task_id, self.debug_prefix, resource_id, name))
+        for k,v in attributes.items():
+            self.xmlrpc_set_attribute(task_id, k, v)
         return task_id
 
     def xmlrpc_link_task(self, task_id, target_id):
@@ -313,7 +318,7 @@ class CPARPC(xmlrpc.XMLRPC):
                      .format(self.debug_prefix, task_id, target_id))
         return 0
 
-    def xmlrpc_new_path(self, system_id, name, task_ids):
+    def xmlrpc_new_path(self, system_id, name, task_ids, attributes={}):
         """ Adds a path consisting of a list of tasks to the system.
 
         :param system_id: ID of the system
@@ -340,6 +345,8 @@ class CPARPC(xmlrpc.XMLRPC):
         logger.debug("{} = {}new_path({}, '{}', [{}])"
                      .format(pid, self.debug_prefix,
                              system_id, name, ", ".join(task_ids)))
+        for k,v in attributes.items():
+            self.xmlrpc_set_attribute(pid, k, v)
         return pid
 
     def xmlrpc_assign_pjd_event_model(self, task_id, period, jitter, min_dist):
