@@ -34,6 +34,13 @@ import sys
 
 from . import __license_text__, __version__
 
+propagation_methods = sorted([b'jitter_offset',
+                       b'busy_window',
+                       b'jitter_dmin',
+                       b'jitter',
+                       b'jitter_bmin',
+                       b'optimal'])
+
 parser = argparse.ArgumentParser(description='Scheduling Analysis')
 parser.add_argument('--max_iterations', type=int,
                     default=MAX_ITERATIONS,
@@ -49,8 +56,8 @@ parser.add_argument('--check_violations', action='store_true',
                     help='check for constraint violations during analysis')
 parser.add_argument('--show', action='store_true',
                     help='Show plots (interactive).')
-parser.add_argument('--propagation', type=str, default='busy_window',
-                    help='Event model propagation method (jitter, jitter_dmin, jitter_offset, busy_window). default: busy_window')
+parser.add_argument('--propagation', choices=propagation_methods, default='busy_window',
+                    help='Event model propagation method')
 parser.add_argument('--verbose', '-v', action='store_true',
                     help='be more talkative')
 

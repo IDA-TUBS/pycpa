@@ -337,11 +337,34 @@ def out_event_model(task, task_results, dmin=0):
         _out_event_model = _out_event_model_jitter
     elif method == 'jitter_bmin':
         _out_event_model = _out_event_model_jitter_bmin
+    elif method == 'optimal':
+        _out_event_model =_optimal_event_model
     else:
         raise NotImplementedError
 
     return _out_event_model(task, task_results, dmin)
 
+
+def _optimal_event_model(task, task_results, dmin=0):
+    """ Optimal event model based on jitter and busy_window
+    propagation.
+    For some schedulers, such as FIFO and EDF neither busy_window
+    nor jitter propagation is optimal. This will
+    try both and take choses the best result.
+    """
+    em = copy.copy(task.in_event_model)
+    em_busy_window = _out_event_model_busy_window(task, task_results, dmin)
+    em_jitter = _out_event_model_jitter_bmin(task, task_results, dmin)
+
+    # pick max among jitter and busy window
+    em.deltamin_func = lambda n: max(em_busy_window.deltamin_func(n),
+                                     em_jitter.deltamin_func(n))
+    # pick min among jitter and busy window
+    em.deltaplus_func = lambda n: min(em_busy_window.deltaplus_func(n),
+                                      em_jitter.deltaplus_func(n))
+    # we cannot provide and meaningful desc
+    em.__description__ = task.in_event_model.__description__ + "++"
+    return em
 
 def _out_event_model_jitter_offset(task, task_results, dmin=0):
     """ Derive an output event model including offset from response time jitter
