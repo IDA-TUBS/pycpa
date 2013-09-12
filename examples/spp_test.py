@@ -19,11 +19,8 @@ from pycpa import schedulers
 from pycpa import graph
 from pycpa import options
 
-
-
-
 def spp_test():
-
+    # init pycpa and trigger command line parsing
     options.init_pycpa()
 
     # generate an new system
