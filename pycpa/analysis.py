@@ -172,7 +172,7 @@ class Scheduler(object):
             return True
         return False
 
-    def compute_wcrt(self, task, task_results):
+    def compute_wcrt(self, task, task_results=None):
         """ Compute the worst-case response time of Task
 
         .. warning::
@@ -206,11 +206,13 @@ class Scheduler(object):
         wcrt = 0
 
         b_wcrt = dict()  # store details of busy window leading to wcrt
-        task_results[task].busy_times = [0]  # busy time of 0 activations
+        if task_results:
+            task_results[task].busy_times = [0]  # busy time of 0 activations
         self.b_plus(task, 1, details=b_wcrt)
         while True:
             w = self.b_plus(task, q)
-            task_results[task].busy_times.append(w)
+            if task_results:
+                task_results[task].busy_times.append(w)
 
             current_response = w - task.in_event_model.delta_min(q)
             # logger.debug("%s window(q=%f):%d, response: %d" % (task.name, q,
@@ -241,21 +243,23 @@ class Scheduler(object):
                                               "tasks (likely) not schedulable!"
                                               % task.name)
                 # return  float("inf")  #-1
-        task_results[task].q_wcrt = q_wcrt
-        task_results[task].wcrt = wcrt
-        task_results[task].b_wcrt = b_wcrt
+        if task_results:
+            task_results[task].q_wcrt = q_wcrt
+            task_results[task].wcrt = wcrt
+            task_results[task].b_wcrt = b_wcrt
         # logger.debug(task.name + " busy times: " +
         # str(task_results[task].busy_times))
         return wcrt
 
-    def compute_bcrt(self, task, task_results):
+    def compute_bcrt(self, task, task_results=None):
         """ Return the best-case response time for q activations of a task.
         Convenience function which calls the minimum busy-time.
         The bcrt is also stored in task_results.
 
         """
         bcrt = self.b_min(task, 1)
-        task_results[task].bcrt = bcrt
+        if task_results:
+            task_results[task].bcrt = bcrt
         return bcrt
 
     def compute_service(self, task, t):
@@ -333,11 +337,34 @@ def out_event_model(task, task_results, dmin=0):
         _out_event_model = _out_event_model_jitter
     elif method == 'jitter_bmin':
         _out_event_model = _out_event_model_jitter_bmin
+    elif method == 'optimal':
+        _out_event_model =_optimal_event_model
     else:
         raise NotImplementedError
 
     return _out_event_model(task, task_results, dmin)
 
+
+def _optimal_event_model(task, task_results, dmin=0):
+    """ Optimal event model based on jitter and busy_window
+    propagation.
+    For some schedulers, such as FIFO and EDF neither busy_window
+    nor jitter propagation is optimal. This will
+    try both and take choses the best result.
+    """
+    em = copy.copy(task.in_event_model)
+    em_busy_window = _out_event_model_busy_window(task, task_results, dmin)
+    em_jitter = _out_event_model_jitter_bmin(task, task_results, dmin)
+
+    # pick max among jitter and busy window
+    em.deltamin_func = lambda n: max(em_busy_window.deltamin_func(n),
+                                     em_jitter.deltamin_func(n))
+    # pick min among jitter and busy window
+    em.deltaplus_func = lambda n: min(em_busy_window.deltaplus_func(n),
+                                      em_jitter.deltaplus_func(n))
+    # we cannot provide and meaningful desc
+    em.__description__ = task.in_event_model.__description__ + "++"
+    return em
 
 def _out_event_model_jitter_offset(task, task_results, dmin=0):
     """ Derive an output event model including offset from response time jitter
@@ -634,7 +661,7 @@ class GlobalAnalysisState(object):
 
         uninizialized = deque(self.dirtyTasks)
         while len(uninizialized) > 0:
-            # if there in no task with an valid event event model, then the
+            # if there in no task with an valid event model, then the
             # app-graph is
             # underspecified.
             appgraph_well_formed = False

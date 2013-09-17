@@ -43,7 +43,7 @@ Before we actually start with the program, we import all pycpa modules which are
 
 .. literalinclude:: ../examples/spp_test.py
    :language: python
-   :lines: 16-23
+   :lines: 16-20
    
 The interesting module are :py:mod:`pycpa.spp` which contains scheduler specific algorithms,
 :py:mod:`pycpa.graph` which is used to plot a task graph of this example and :py:mod:`pycpa.options`
