@@ -313,7 +313,8 @@ def analyze_task(task, task_results):
     task.resource.scheduler.compute_max_backlog(task, task_results)
 
     assert (task_results[task].bcrt <= task_results[task].wcrt),\
-            'BCRT must not be larger than WCRT'
+            'BCRT (%d) must not be larger than WCRT (%d)' % \
+            (task_results[task].bcrt, task_results[task].wcrt)
 
 
 def out_event_model(task, task_results, dmin=0):
