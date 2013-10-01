@@ -17,7 +17,7 @@ try:
     import matplotlib
     matplotlib.use('Agg')
 except ImportError:
-    print "matplotlib not available"
+    print ("matplotlib not available")
     # exit gracefully, so unittesting works on
     # machines without matplotlib
     exit(0)

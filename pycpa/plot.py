@@ -28,7 +28,7 @@ try:
     from matplotlib import patches
     from matplotlib.collections import PatchCollection
 except ImportError:
-    print "matplotlib not available, plotting disabled"
+    print ("matplotlib not available, plotting disabled")
 
 import math
 
