@@ -13,9 +13,14 @@ Description
 Simple Gantt example
 """
 
-
-import matplotlib
-matplotlib.use('Agg')
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+except ImportError:
+    print ("matplotlib not available")
+    # exit gracefully, so unittesting works on
+    # machines without matplotlib
+    exit(0)
 
 from pycpa import schedulers
 from pycpa import model

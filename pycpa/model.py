@@ -561,9 +561,14 @@ class TraceEventModel (LimitedDeltaEventModel):
 
 
         # import numy only when needed
-        import numpy as np
-        trace = np.array(trace_points)
-        q_max = trace.size
+        try:
+            import numpy as np
+            trace = np.array(trace_points)
+            q_max = trace.size
+        except ImportError:
+            trace = trace_points
+            q_max  = len(trace_points)
+
 
         def raw_deltamin_func(n):
             """ raw trace deltamin_func, only valid in the interval [0,q_max]
@@ -573,7 +578,6 @@ class TraceEventModel (LimitedDeltaEventModel):
             d = float('inf')
             for q in range(0, q_max - n + 1):
                 seq = trace[q:q + n ]
-                assert seq.size == n
                 d_new = seq[-1] - seq[0]
                 assert d_new >= 0
                 d = min(d_new, d)
@@ -588,7 +592,6 @@ class TraceEventModel (LimitedDeltaEventModel):
             d = 0
             for q in range(0, q_max - n + 1):
                 seq = trace[q:q + n ]
-                assert seq.size == n
                 d_new = seq[-1] - seq[0]
                 assert d_new >= 0
                 d = max(d_new, d)
