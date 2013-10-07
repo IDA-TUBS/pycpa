@@ -14,8 +14,6 @@ Simple SPP example
 """
 
 import logging
-from matplotlib import pyplot
-
 
 from pycpa import model
 from pycpa import analysis
@@ -55,8 +53,12 @@ def simple_test():
     # add constraints to task t12
     s.constraints.add_wcrt_constraint(t12, 90)
 
-    # plot the system graph to visualize the architecture
-    g = graph.graph_system(s, 'simple_graph.pdf')
+    try:
+        # plot the system graph to visualize the architecture
+        g = graph.graph_system(s, 'simple_graph.pdf')
+    except Exception:
+        # gracefully pass for machines without matplotlib
+        pass
 
     # perform the analysis
     print("Performing analysis")

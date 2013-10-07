@@ -13,8 +13,12 @@ Description
 Plot an event model.
 """
 
-import matplotlib
-matplotlib.use('Agg')
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+except ImportError:
+    print "matplotlib not available"
+    exit(0)
 
 from pycpa import model
 from pycpa import plot

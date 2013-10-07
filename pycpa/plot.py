@@ -22,11 +22,13 @@ from __future__ import unicode_literals
 from __future__ import division
 
 
-
-from matplotlib import ticker
-from matplotlib import pyplot
-from matplotlib import patches
-from matplotlib.collections import PatchCollection
+try:
+    from matplotlib import ticker
+    from matplotlib import pyplot
+    from matplotlib import patches
+    from matplotlib.collections import PatchCollection
+except ImportError:
+    print ("matplotlib not available, plotting disabled")
 
 import math
 
