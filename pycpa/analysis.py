@@ -483,9 +483,11 @@ class BusyWindowPropagationEventModel(model.EventModel):
         min_k = 1  # k \elem N+
         bcrt = self.task_result.bcrt
 
-        if max_k == 0:
+        if max_k <= 1:
             # if this task has not been analysed, propagate input event model
             return self.task.in_event_model.delta_min(n)
+
+        assert max_k > min_k
 
         return max((n - 1) * self.dmin,
             min([self.task.in_event_model.delta_min(n + k - 1) - busy_times[k]
@@ -498,9 +500,11 @@ class BusyWindowPropagationEventModel(model.EventModel):
         min_k = 1  # k \elem N+
         bcrt = self.task_result.bcrt
 
-        if max_k == 0:
+        if max_k <= 1:
             # if this task has not been analysed, propagate input event model
             return self.task.in_event_model.delta_min(n)
+
+        assert max_k > min_k
 
         return max([self.task.in_event_model.delta_plus(n - k + 1) + busy_times[k]
              for k in range(min_k, max_k)]) - bcrt
