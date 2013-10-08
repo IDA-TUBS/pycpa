@@ -100,7 +100,7 @@ class EventModel (object):
     :math:`\Delta t`.
     """
 
-    def __init__(self, name='min', cache=None):
+    def __init__(self, name='min'):
         """ CTOR
         If called without parameters, a maximal event model (unbounded amount
         of activations) is created
@@ -119,18 +119,18 @@ class EventModel (object):
         self.eta_min_closed_cache = dict()
         self.eta_plus_closed_cache = dict()
 
-        # # Event model eta_plus-plus function (internal)
-        # maximal model: unlimited activations
-        self.deltaplus_func = lambda x: 0
-
-        # # Event model eta_plus-minus function (internal)
-        # minimal model: no activation
-        self.deltamin_func = lambda x: float( "inf")
-
         # # String description of event model
         self.__description__ = name
 
+    def deltamin_func(self, n):
+        # # Event model delta function (internal)
+        # maximal model: unlimited activations
+        return 0
 
+    def deltaplus_func(self, n):
+        # # Event model delta function (internal)
+        # minimal model: no activation
+        return float("inf")
 
     @staticmethod
     def delta_min_from_eta_plus(etaplus_func):
@@ -387,11 +387,11 @@ class PJdEventModel (EventModel):
     """ A periodic, jitter, min-distance event model.
     """
 
-    def __init__(self, P=0, J=0, dmin=0, phi=0, name='min', cache=None):
+    def __init__(self, P=0, J=0, dmin=0, phi=0, name='min'):
         """ Periodic, Jitter, min. distance event model. Offset can be supplied
         but is not evaluated by all analyses.
         """
-        EventModel.__init__(self, name, cache)
+        EventModel.__init__(self, name)
 
         # setup event model
         self.set_PJd(P, J, dmin)
@@ -421,17 +421,20 @@ class PJdEventModel (EventModel):
         self.__description__ = "P={} J={} d={}".format(P, J, dmin)
         if early_arrival:
             raise(NotImplementedError)
-        else:
-            self.deltaplus_func = lambda n: (n - 1) * P + J
-            self.deltamin_func = lambda n: max((n - 1) * dmin, (n - 1) * P - J)
+
+    def deltaplus_func(self, n):
+        return (n - 1) * self.P + self.J
+
+    def deltamin_func(self, n):
+        return max((n - 1) * self.dmin, (n - 1) * self.P - self.J)
 
 
 class CTEventModel (EventModel):
     """ c events every T time event model.
     """
-    def __init__(self, c, T, dmin=1, name='min', cache=None):
+    def __init__(self, c, T, dmin=1, name='min'):
 
-        EventModel.__init__(self, name, cache)
+        EventModel.__init__(self, name)
 
         self.set_c_in_T(c, T, dmin)
         self.c = c
@@ -446,19 +449,21 @@ class CTEventModel (EventModel):
          Cf. Equation 1 in [Diemer2010]_.
         """
         self.__description__ = "%d every %d, dmin=%d" % (c, T, dmin)
-        if c == 0 or T >= INFINITY:
-            self.deltamin_func = lambda n: 0
+        self.c = c
+        self.T = T
+        self.dmin = dmin
+
+    def deltamin_func(self, n):
+        if self.c == 0 or self.T >= INFINITY:
+            return 0
+        if n == INFINITY:
+            return INFINITY
         else:
-            def c_in_T_deltamin_func(n):
-                if n == INFINITY:
-                    return INFINITY
-                else:
-                    return (n - 1) * dmin + int(math.floor(float(n - 1) / c)
-                            * (T - c * dmin))
+            return (n - 1) * self.dmin + int(math.floor(float(n - 1) / self.c)
+                    * (self.T - self.c * self.dmin))
 
-            self.deltamin_func = c_in_T_deltamin_func
-
-        self.deltaplus_func = lambda n: INFINITY
+    def deltaplus_func(self, n):
+        return INFINITY
 
 
 class LimitedDeltaEventModel(EventModel):
@@ -471,9 +476,9 @@ class LimitedDeltaEventModel(EventModel):
             limit_q_plus=float('inf'),
             min_additive=util.recursive_min_additive,
             max_additive=util.recursive_max_additive,
-            name='min', cache=None):
+            name='min'):
 
-        EventModel.__init__(self, name, cache)
+        EventModel.__init__(self, name)
 
         self.set_limited_delta(limited_delta_min_func, limited_delta_plus_func, limit_q_min, limit_q_plus, min_additive, max_additive)
 
@@ -496,40 +501,44 @@ class LimitedDeltaEventModel(EventModel):
         lambda x: limited_delta_min_list[x]
         """
         self.__description__ = "ltd. direct"
+        self.max_additive = max_additive
+        self.min_additive = min_additive
+        self.limited_delta_min_func = limited_delta_min_func
+        self.limited_delta_plus_func = limited_delta_plus_func
+        self.limit_q_min = limit_q_min
+        self.limit_q_plus = limit_q_plus
+
+    def deltamin_func(self, n):
+        if n == float("inf"):
+            return float("inf")
+        elif n > self.limit_q_min:  # return additive extension  if necessary
+            q_max = self.limit_q_min - 1
+            ret = self.max_additive(lambda x: self.delta_min(x + 1),
+                    n - 1, q_max, self.delta_min_cache)
+            return ret
+        else:
+            return self.limited_delta_min_func(n)
+
+    def deltaplus_func(self, n):
+        if n == float("inf"):
+            return float("inf")
+        elif n > self.limit_q_plus:  # return additive extension  if necessary
+            q_max = self.limit_q_plus - 1
+            ret = self.min_additive(lambda x: self.delta_plus(x + 1),
+                    n - 1, q_max, self.delta_plus_cache)
+            return ret
+        else:
+            return self.limited_delta_plus_func(n)
 
 
-        def delta_min_func(n):
-            if n == float("inf"):
-                return float("inf")
-            elif n > limit_q_min:  # return additive extension  if necessary
-                q_max = limit_q_min - 1
-                ret = max_additive(lambda x: self.delta_min(x + 1),
-                        n - 1, q_max, self.delta_min_cache)
-                return ret
-            else:
-                return limited_delta_min_func(n)
-
-        def delta_plus_func(n):
-            if n == float("inf"):
-                return float("inf")
-            elif n > limit_q_plus:  # return additive extension  if necessary
-                q_max = limit_q_plus - 1
-                ret = min_additive(lambda x: self.delta_plus(x + 1),
-                        n - 1, q_max, self.delta_plus_cache)
-                return ret
-            else:
-                return limited_delta_plus_func(n)
-
-        self.deltaplus_func = delta_plus_func
-        self.deltamin_func = delta_min_func
 
 
 class TraceEventModel (LimitedDeltaEventModel):
     def __init__(self, trace_points=[], min_sample_size=20,
                  min_additive=util.recursive_min_additive,
                  max_additive=util.recursive_max_additive,
-                 name='min', cache=None):
-        LimitedDeltaEventModel.__init__(self, name=name, cache=cache)
+                 name='min'):
+        LimitedDeltaEventModel.__init__(self, name=name)
 
         self.trace_points = trace_points
         self.min_sample_size = min_sample_size
@@ -560,15 +569,8 @@ class TraceEventModel (LimitedDeltaEventModel):
                 break
 
 
-        # import numy only when needed
-        try:
-            import numpy as np
-            trace = np.array(trace_points)
-            q_max = trace.size
-        except ImportError:
-            trace = trace_points
-            q_max  = len(trace_points)
-
+        trace = trace_points
+        q_max  = len(trace_points)
 
         def raw_deltamin_func(n):
             """ raw trace deltamin_func, only valid in the interval [0,q_max]

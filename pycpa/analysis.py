@@ -317,7 +317,7 @@ def analyze_task(task, task_results):
             (task_results[task].bcrt, task_results[task].wcrt)
 
 
-def out_event_model(task, task_results, dmin=0):
+def out_event_model(task, task_results):
     """ Wrapper to call the actual out_event_model_*,
     which computes the output event model of a task.
     See Chapter 4 in [Richter2005]_ for an overview.
@@ -325,70 +325,25 @@ def out_event_model(task, task_results, dmin=0):
     # if there is no valid input model, there is no valid output model
     if task.in_event_model is None:
         return None
-    if dmin < task_results[task].bcrt:
-        # dmin is at least the best-case response time
-        dmin = task_results[task].bcrt
 
     method = options.get_opt('propagation')
     if method == 'jitter_offset':
-        _out_event_model = _out_event_model_jitter_offset
+        OutEventModelClass = JitterOffsetPropagationEventModel
     elif method == 'busy_window':
-        _out_event_model = _out_event_model_busy_window
+        OutEventModelClass = BusyWindowPropagationEventModel
     elif  method == 'jitter_dmin' or method == 'jitter':
-        _out_event_model = _out_event_model_jitter
+        OutEventModelClass = JitterPropagationEventModel
     elif method == 'jitter_bmin':
-        _out_event_model = _out_event_model_jitter_bmin
+        OutEventModelClass = JitterBminPropagationEventModel
     elif method == 'optimal':
-        _out_event_model =_optimal_event_model
+        OutEventModelClass = OptimalPropagationEventModel
     else:
         raise NotImplementedError
 
-    return _out_event_model(task, task_results, dmin)
+    return OutEventModelClass(task, task_results)
 
 
-def _optimal_event_model(task, task_results, dmin=0):
-    """ Optimal event model based on jitter and busy_window
-    propagation.
-    For some schedulers, such as FIFO and EDF neither busy_window
-    nor jitter propagation is optimal. This will
-    try both and take choses the best result.
-    """
-    em = copy.copy(task.in_event_model)
-    em_busy_window = _out_event_model_busy_window(task, task_results, dmin)
-    em_jitter = _out_event_model_jitter_bmin(task, task_results, dmin)
-
-    # pick max among jitter and busy window
-    em.deltamin_func = lambda n: max(em_busy_window.deltamin_func(n),
-                                     em_jitter.deltamin_func(n))
-    # pick min among jitter and busy window
-    em.deltaplus_func = lambda n: min(em_busy_window.deltaplus_func(n),
-                                      em_jitter.deltaplus_func(n))
-    # we cannot provide and meaningful desc
-    em.__description__ = task.in_event_model.__description__ + "++"
-    return em
-
-def _out_event_model_jitter_offset(task, task_results, dmin=0):
-    """ Derive an output event model including offset from response time jitter
-    and in_event_model (used as reference).
-    """
-
-    em = copy.copy(task.in_event_model)
-    resp_jitter = task_results[task].wcrt - task_results[task].bcrt
-
-    em.J += resp_jitter
-    em.phi += task.bcet
-    em.deltamin_func = lambda n: max(
-        task.in_event_model.delta_min(n) - resp_jitter, (n - 1) * dmin)
-
-    em.deltaplus_func = lambda n: task.in_event_model.delta_plus(
-        n) + resp_jitter
-
-    em.__description__ = task.in_event_model.__description__ + "+J=" + \
-        str(resp_jitter) + ",O=" + str(em.phi)
-    return em
-
-
-def _out_event_model_jitter(task, task_results, dmin=0):
+class JitterPropagationEventModel(model.EventModel):
     """ Derive an output event model from response time jitter
      and in_event_model (used as reference).
 
@@ -399,91 +354,182 @@ def _out_event_model_jitter(task, task_results, dmin=0):
 
     Uses a reference to task.deltamin_func
     """
-    em = model.EventModel()
-    resp_jitter = task_results[task].wcrt - task_results[task].bcrt
+    def __init__(self, task, task_results, nonrecursive=True):
+        self.task = task
+        self.resp_jitter = task_results[task].wcrt - task_results[task].bcrt
+        self.dmin = task_results[task].bcrt
+        self.nonrecursive = nonrecursive
 
-    if options.get_opt('propagation') == 'jitter':
-        # ignore dmin if propagation is jitter only
-        dmin = 0
+        name = task.in_event_model.__description__ + "+J=" + \
+            str(self.resp_jitter) + ",dmin=" + str(self.dmin)
 
-    assert resp_jitter >= 0, 'response time jitter must be positive'
+        model.EventModel.__init__(self,name)
 
-    # if True, a non-recursive (but less accurate) computation is used
-    nonrecursive = True  # TODO: This should be an option
-    if nonrecursive:
-        em.deltamin_func = lambda n: max(
-            task.in_event_model.delta_min(n) - resp_jitter, (n - 1) * dmin)
-    else:
-        em.deltamin_func = lambda n: \
-                max(task.in_event_model.delta_min(n) - resp_jitter,
-                    em.delta_min(n - 1) + dmin)
+        if options.get_opt('propagation') == 'jitter':
+            # ignore dmin if propagation is jitter only
+            self.dmin = 0
+        else:
+            self.dmin = task.bcet
 
-    em.deltaplus_func = lambda n: task.in_event_model.delta_plus(
-        n) + resp_jitter
+        assert self.resp_jitter >= 0, 'response time jitter must be positive'
 
-    em.__description__ = task.in_event_model.__description__ + "+J=" + \
-        str(resp_jitter) + ",dmin=" + str(dmin)
-    return em
 
-def _out_event_model_jitter_bmin(task, task_results, dmin):
+    def deltamin_func(self, n):
+        if self.nonrecursive:
+            return max(self.task.in_event_model.delta_min(n) - self.resp_jitter,
+                    (n - 1) * self.dmin)
+        else:
+            return max(self.task.in_event_model.delta_min(n) - self.resp_jitter,
+                        self.delta_min(n - 1) + dmin)
+
+    def deltaplus_func(self, n):
+        return self.task.in_event_model.delta_plus(n) + resp_jitter
+
+
+class JitterOffsetPropagationEventModel(model.EventModel):
+    """ Derive an output event model from response time jitter
+     and in_event_model (used as reference).
+
+    This corresponds to Equations 1 (non-recursive) and
+    2 (recursive from [Schliecker2009]_
+    This is equivalent to Equation 5 in [Henia2005]
+    or Equation 4.6 in [Richter2005]_.
+
+    Uses a reference to task.deltamin_func
+    """
+    def __init__(self, task, task_results,nonrecursive=True):
+
+        self.phi = task.in_event_model.phi + task.bcet
+        self.task = task
+        self.resp_jitter = task_results[task].wcrt - task_results[task].bcrt
+        self.J = task.in_event_model.J + self.resp_jitter
+        self.dmin = task_results[task].bcrt
+
+        name = task.in_event_model.__description__ + "+J=" + \
+        str(resp_jitter) + ",O=" + str(em.phi)
+
+        model.EventModel.__init__(self,name)
+
+
+        assert self.resp_jitter >= 0, 'response time jitter must be positive'
+
+    def deltamin_func(self, n):
+        return max(self.task.in_event_model.delta_min(n) - self.resp_jitter,
+                    (n - 1) * self.dmin)
+
+    def deltaplus_func(self, n):
+        return self.task.in_event_model.delta_plus(n) + resp_jitter
+
+class JitterBminPropagationEventModel(model.EventModel):
     """ Derive an output event model from response time jitter,
     the b_min as well as
     the in_event_model (used as reference).
 
     Uses a reference to task.deltamin_func
     """
-    em = model.EventModel()
-    resp_jitter = task_results[task].wcrt - task_results[task].bcrt
 
-    assert resp_jitter >= 0, 'response time jitter must be positive'
-    bmin = lambda n: max(task.resource.scheduler.b_min(task, n-1),
-                         (n-1)*dmin)
+    def __init__(self, task, task_results,nonrecursive=True):
 
-    em.deltamin_func = lambda n: max(
-        task.in_event_model.delta_min(n) - resp_jitter, bmin(n))
+        self.task = task
+        self.resp_jitter = task_results[task].wcrt - task_results[task].bcrt
+        self.nonrecursive = nonrecursive
+        self.dmin = task_results[task].bcrt
 
-    em.deltaplus_func = lambda n: task.in_event_model.delta_plus(n) + \
-            resp_jitter
+       # set proper name
+        name = task.in_event_model.__description__ + "+J=" + \
+        str(self.resp_jitter) + ",dmin=" + str(self.dmin)
 
-    em.__description__ = task.in_event_model.__description__ + "+J=" + \
-        str(resp_jitter) + ",dmin=" + str(dmin)
-    return em
+        model.EventModel.__init__(self,name)
+        assert self.resp_jitter >= 0, 'response time jitter must be positive'
 
-def _out_event_model_busy_window(task, task_results, dmin=0):
+
+    def bmin(self, n):
+        """ minimum production time for n events at the output"""
+        return max(self.task.resource.scheduler.b_min(self.task, n-1),
+                         (n-1)*self.dmin)
+
+    def deltamin_func(self, n):
+        if self.nonrecursive:
+            return max(self.task.in_event_model.delta_min(n) - self.resp_jitter,
+                    self.bmin(n))
+        else:
+            return max(self.task.in_event_model.delta_min(n) - self.resp_jitter,
+                        self.delta_min(n - 1) + self.dmin, self.bmin(n))
+
+    def deltaplus_func(self, n):
+        return self.task.in_event_model.delta_plus(n) + resp_jitter
+
+class BusyWindowPropagationEventModel(model.EventModel):
     """ Derive an output event model from busy window
      and in_event_model (used as reference).
     Gives better results than _out_event_model_jitter.
 
     This results from Theorems 1, 2 and 3 from [Schliecker2008]_.
     """
-    em = model.EventModel()
-    # copy, because task.busy_times changes!
-    busy_times = task_results[task].busy_times
-    max_k = len(busy_times)
-    min_k = 1  # k \elem N+
 
-    # there was no analysis yet, _propagate input model
-    if max_k == 0:
-        return copy.copy(task.in_event_model)
+    def __init__(self, task, task_results, nonrecursive=True):
+        # set proper name
+        name = task.in_event_model.__description__ + "++"
 
-    assert max_k > min_k
+        model.EventModel.__init__(self,name)
 
-    em.deltamin_func = lambda n: \
-        max((n - 1) * dmin,
-            min([task.in_event_model.delta_min(n + k - 1) - busy_times[k]
+        self.task = task
+        self.dmin = task_results[task].bcrt
+        self.task_result = task_results[task]
+
+    def deltamin_func(self, n):
+        busy_times = self.task_result.busy_times
+        max_k = len(busy_times)
+        min_k = 1  # k \elem N+
+        bcrt = self.task_result.bcrt
+
+        if max_k == 0:
+            # if this task has not been analysed, propagate input event model
+            return self.task.in_event_model.delta_min(n)
+
+        return max((n - 1) * self.dmin,
+            min([self.task.in_event_model.delta_min(n + k - 1) - busy_times[k]
                  for k in range(min_k, max_k)])
-            + copy.copy(task_results[task].bcrt)
-            )
+            + bcrt)
 
-    # delta plus
-    em.deltaplus_func = lambda n: \
-        max([task.in_event_model.delta_plus(n - k + 1) + busy_times[k]
-             for k in range(min_k, max_k)]) \
-        - copy.copy(task_results[task].bcrt)
+    def deltaplus_func(self, n):
+        busy_times = self.task_result.busy_times
+        max_k = len(busy_times)
+        min_k = 1  # k \elem N+
+        bcrt = self.task_result.bcrt
 
-    em.__description__ = task.in_event_model.__description__ + "++"
-    return em
+        if max_k == 0:
+            # if this task has not been analysed, propagate input event model
+            return self.task.in_event_model.delta_min(n)
 
+        return max([self.task.in_event_model.delta_plus(n - k + 1) + busy_times[k]
+             for k in range(min_k, max_k)]) - bcrt
+
+class OptimalPropagationEventModel(JitterBminPropagationEventModel,
+                                   BusyWindowPropagationEventModel):
+    """ Optimal event model based on jitter and busy_window
+    propagation.
+    For some schedulers, such as FIFO and EDF neither busy_window
+    nor jitter propagation is optimal. This will
+    try both and take choses the best result.
+    """
+    def __init__(self, task, task_results, nonrecursive=True):
+        self.task = task
+        self.task_result = task_results[task]
+        self.dmin = task_results[task].bcrt
+        self.resp_jitter = task_results[task].wcrt - task_results[task].bcrt
+        self.nonrecursive = nonrecursive
+
+        name = task.in_event_model.__description__ + "++"
+        model.EventModel.__init__(self,name)
+
+    def deltamin_func(self, n):
+        return max(JitterBminPropagationEventModel.deltamin_func(self, n),
+                BusyWindowPropagationEventModel.deltamin_func(self, n))
+
+    def deltaplus_func(self, n):
+        return min(JitterBminPropagationEventModel.deltaplus_func(self, n),
+                BusyWindowPropagationEventModel.deltaplus_func(self, n))
 
 def _out_event_model_junction(junction, task_results, non_cycle_prev):
     """ Calculate the output event model for this junction.
