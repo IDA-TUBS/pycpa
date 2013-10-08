@@ -403,10 +403,11 @@ class JitterOffsetPropagationEventModel(model.EventModel):
         self.task = task
         self.resp_jitter = task_results[task].wcrt - task_results[task].bcrt
         self.J = task.in_event_model.J + self.resp_jitter
+        self.P = task.in_event_model.P
         self.dmin = task_results[task].bcrt
 
         name = task.in_event_model.__description__ + "+J=" + \
-        str(resp_jitter) + ",O=" + str(em.phi)
+        str(self.resp_jitter) + ",O=" + str(self.phi)
 
         model.EventModel.__init__(self,name)
 
@@ -418,7 +419,7 @@ class JitterOffsetPropagationEventModel(model.EventModel):
                     (n - 1) * self.dmin)
 
     def deltaplus_func(self, n):
-        return self.task.in_event_model.delta_plus(n) + resp_jitter
+        return self.task.in_event_model.delta_plus(n) + self.resp_jitter
 
 class JitterBminPropagationEventModel(model.EventModel):
     """ Derive an output event model from response time jitter,
