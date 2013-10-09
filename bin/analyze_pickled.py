@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 """
 | Copyright (C) 2013 Philip Axer
 | TU Braunschweig, Germany
@@ -37,10 +38,23 @@ def main():
 
     # read the last argument without the help of argparse
     # since argparse is not initialized yet!
-    filename = sys.argv[-1]
+    if len(sys.argv) < 3:
+        print ("Please specify a filename!")
+        print ("Format: analyze_pickled.py [optinal pycpa parameters] --file FILENAME ")
+        exit(1)
 
-    with open(filename, 'r') as f:
-        s = pickle.load(f)
+    filename = sys.argv[-1]
+    print("Loading: %s" % filename)
+
+    try:
+        with open(filename, 'rb') as f:
+            s = pickle.load(f)
+    except IOError as e:
+        print e
+        exit(1)
+
+    print ("DONE")
+    print ("... handing over to the pycpa kernel\n\n\n")
 
     # init pycpa and trigger command line parsing
     # this must be done late, as the modules dynamically loaded
