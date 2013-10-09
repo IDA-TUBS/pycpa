@@ -23,6 +23,16 @@ import traceback
 
 from twisted.web import xmlrpc
 
+try:
+    import cPickle as pickle
+except ImportError:
+    # import default pickle
+    # bump up the recursion limit to prevent
+    # RuntimeException during pickling
+    import pickle
+    import sys
+    sys.setrecursionlimit(10000)
+
 from pycpa import model
 from pycpa import schedulers
 from pycpa import analysis
@@ -426,6 +436,23 @@ class CPARPC(xmlrpc.XMLRPC):
 
         return results[task]
 
+    def xmlrpc_pickle_system(self, system_id):
+        """ Pickle the pycpa system on the server-side
+
+        :param system_id: ID of the system to analyze
+        :type system_id: string
+        :returns: 0 on sucess
+        """
+        system = self._obj_from_id(system_id, model.System)
+        try:
+            with open('data.pkl', 'wb') as f:
+                pickle.dump(system, f)
+        except RuntimeError:
+            raise xmlrpc.Fault(GENERAL_ERROR,
+                               "Error during pickle")
+        return 0
+
+
     def xmlrpc_analyze_system(self, system_id):
         """ Analyze system and return a result id.
 
@@ -435,6 +462,7 @@ class CPARPC(xmlrpc.XMLRPC):
         :rtype: string
         """
         system = self._obj_from_id(system_id, model.System)
+
         results = None
         for r in system.resources:
             if r.scheduler is None:
