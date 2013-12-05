@@ -237,7 +237,7 @@ class SPPSchedulerRoundRobin(SPPScheduler):
     """ SPP scheduler with non-preemptive round-robin policy for equal priorities
     """
 
-    def b_plus(self, task, q):
+    def b_plus(self, task, q, details=None):
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 
@@ -282,6 +282,7 @@ class TDMAScheduler(analysis.Scheduler):
             t_tdma += tj.scheduling_parameter
 
         w = q * task.wcet + math.ceil(float(q * task.wcet) / task.scheduling_parameter) * (t_tdma - task.scheduling_parameter)
+        w = int(w)
 
         assert(w >= q * task.wcet)
 

@@ -33,7 +33,7 @@ from . import options
 from . import util
 from . import path_analysis
 
-logger = logging.getLogger("pycpa")
+logger = logging.getLogger(__name__)
 
 
 class NotSchedulableException(Exception):

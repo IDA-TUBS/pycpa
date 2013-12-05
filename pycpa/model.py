@@ -33,7 +33,7 @@ from . import util
 
 INFINITY = float('inf')
 
-logger = logging.getLogger("pycpa")
+logger = logging.getLogger(__name__)
 
 
 def _warn_float(value, reason=""):
@@ -1009,7 +1009,7 @@ class System(object):
             subgraphs.append(reachable)
             unreachable = unreachable - reachable
 
-        logger.info("Application graph consists of %d disjoint subgraphs:" %
+        logger.warning("Application graph consists of %d disjoint subgraphs:" %
                     len(subgraphs))
 
         idx = 0

@@ -81,7 +81,13 @@ def end_to_end_latency_classic(path, task_results, n=1, injection_rate='max'):
 
     lmax = 0
     lmin = 0
-    for t in path.tasks:
+
+    # check if path is a list of Tasks or a Path object
+    tasks = path
+    if isinstance(path, model.Path):
+        tasks = path.tasks
+
+    for t in tasks:
         # implcitly check if t is a junction
         if t in task_results:
             # sum up best- and worst-case response times
@@ -90,14 +96,14 @@ def end_to_end_latency_classic(path, task_results, n=1, injection_rate='max'):
 
     if injection_rate == 'max':
         # add the eastliest possible release of event n
-        lmax += path.tasks[0].in_event_model.delta_min(n)
+        lmax += tasks[0].in_event_model.delta_min(n)
 
     elif injection_rate == 'min':
         # add the latest possible release of event n
-        lmax += path.tasks[0].in_event_model.delta_plus(n)
+        lmax += tasks[0].in_event_model.delta_plus(n)
 
     # add the earliest possible release of event n
-    lmin += path.tasks[0].in_event_model.delta_min(n)
+    lmin += tasks[0].in_event_model.delta_min(n)
 
     return lmin, lmax
 

@@ -60,6 +60,8 @@ parser.add_argument('--propagation', choices=propagation_methods, default='busy_
                     help='Event model propagation method')
 parser.add_argument('--verbose', '-v', action='store_true',
                     help='be more talkative')
+parser.add_argument('--debug', '-d', action='store_true',
+                    help='print debug messages')
 
 
 
@@ -155,9 +157,14 @@ def init_pycpa(implicit=False):
         pprintTable(sys.stdout, table)
         print("\n\n")
     # set up the general logging object
-    if get_opt('verbose') == True:
-        logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
+
+    log_format = "%(levelname)s: %(message)s"
+    if get_opt('debug'):
+        logging.basicConfig(level=logging.DEBUG, format=log_format)
+    elif get_opt('verbose'):
+        logging.basicConfig(level=logging.INFO, format=log_format)
     else:
-        logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
+        logging.basicConfig(level=logging.WARNING, format=log_format)
+
 
 
