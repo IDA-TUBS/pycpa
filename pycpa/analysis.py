@@ -127,8 +127,9 @@ class JunctionStrategy(object):
         """ Helper function, reloads input event models of junction from tasks in non_cycle_prev"""
         junction.in_event_models = set()
         for t in non_cycle_prev:
-            if out_event_model(t, task_results) is not None:
-                junction.in_event_models.add(out_event_model(t, task_results))
+            out = out_event_model(t, task_results)
+            if out is not None:
+                junction.in_event_models.add(out)
 
     def __repr__(self):
         return self.name + " junction"
@@ -412,7 +413,7 @@ class JitterPropagationEventModel(model.EventModel):
         name = task.in_event_model.__description__ + "+J=" + \
             str(self.resp_jitter) + ",dmin=" + str(self.dmin)
 
-        model.EventModel.__init__(self,name)
+        model.EventModel.__init__(self,name,task.in_event_model.container)
 
         if options.get_opt('propagation') == 'jitter':
             # ignore dmin if propagation is jitter only
@@ -458,7 +459,7 @@ class JitterOffsetPropagationEventModel(model.EventModel):
         name = task.in_event_model.__description__ + "+J=" + \
         str(self.resp_jitter) + ",O=" + str(self.phi)
 
-        model.EventModel.__init__(self,name)
+        model.EventModel.__init__(self,name,task.in_event_model.container)
 
 
         assert self.resp_jitter >= 0, 'response time jitter must be positive'
@@ -489,7 +490,7 @@ class JitterBminPropagationEventModel(model.EventModel):
         name = task.in_event_model.__description__ + "+J=" + \
         str(self.resp_jitter) + ",dmin=" + str(self.dmin)
 
-        model.EventModel.__init__(self,name)
+        model.EventModel.__init__(self,name,task.in_event_model.container)
         assert self.resp_jitter >= 0, 'response time jitter must be positive'
 
 
@@ -521,7 +522,7 @@ class BusyWindowPropagationEventModel(model.EventModel):
         # set proper name
         name = task.in_event_model.__description__ + "++"
 
-        model.EventModel.__init__(self,name)
+        model.EventModel.__init__(self,name,task.in_event_model.container)
 
         self.task = task
         self.dmin = task_results[task].bcrt
@@ -575,7 +576,7 @@ class OptimalPropagationEventModel(JitterBminPropagationEventModel,
         self.nonrecursive = nonrecursive
 
         name = task.in_event_model.__description__ + "++"
-        model.EventModel.__init__(self,name)
+        model.EventModel.__init__(self,name,task.in_event_model.container)
 
     def deltamin_func(self, n):
         return max(JitterBminPropagationEventModel.deltamin_func(self, n),
@@ -603,7 +604,7 @@ def _propagate(task, task_results):
         if isinstance(t, model.Task):
             # print("propagating to " + str(t) + "l=", out_event_model(task,
             # task_results).load())
-            t.in_event_model = out_event_model(task, task_results)
+            t.in_event_model = out_event_model(task, task_results, t)
         elif isinstance(t, model.Junction):
             t.strategy.propagate(t, task_results)
         else:

@@ -100,7 +100,7 @@ class EventModel (object):
     :math:`\Delta t`.
     """
 
-    def __init__(self, name='min'):
+    def __init__(self, name='min', container=dict()):
         """ CTOR
         If called without parameters, a maximal event model (unbounded amount
         of activations) is created
@@ -118,6 +118,11 @@ class EventModel (object):
 
         self.eta_min_closed_cache = dict()
         self.eta_plus_closed_cache = dict()
+
+        # # Takes arbitrary objects that will be propagated along
+        # with the event model. 
+        # Remark: propagation stops at junctions (for now)
+        self.container = container
 
         # # String description of event model
         self.__description__ = name
