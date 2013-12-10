@@ -275,3 +275,4 @@ class SymtaLoader14(object):
 class SymtaWriter(object):
     """ not implemented """
     pass
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

@@ -177,3 +177,4 @@ def end_to_end_latency_improved(path, task_results, n=1):
     lmin += path.tasks[0].in_event_model.delta_min(n)
 
     return lmin, lmax
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

@@ -1021,3 +1021,4 @@ def _check_load_constrains(constraints, task_results):
         if resource.load() > load:
             violations.append(resource)
     return violations
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

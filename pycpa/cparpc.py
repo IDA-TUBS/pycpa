@@ -554,3 +554,4 @@ class CPARPC(xmlrpc.XMLRPC):
         g = graph.graph_system(s, dotout=filename)
         return g.string()
 
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

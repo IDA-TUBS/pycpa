@@ -213,3 +213,4 @@ def graph_system(s, filename=None, layout='dot',
 
     return g
 
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

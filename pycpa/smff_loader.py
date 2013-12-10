@@ -470,3 +470,4 @@ class SMFFLoader(object):
         data = self.xml_root.toxml()
         f.write(data)
         f.close()
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

@@ -1020,3 +1020,4 @@ class System(object):
                 logger.info("\t%s" % task)
 
         return subgraphs
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

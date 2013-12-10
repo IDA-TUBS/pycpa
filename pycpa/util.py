@@ -331,3 +331,4 @@ def combinations_with_replacement(iterable, r):
             return
         indices[i:] = [indices[i] + 1] * (r - i)
         yield tuple(pool[i] for i in indices)
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
