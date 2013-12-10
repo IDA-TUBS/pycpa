@@ -615,13 +615,13 @@ class Junction (object):
         See Chapter 4 in [Jersak2005]_ for definitions and details.
     """
 
-    def __init__(self, name="unknown", mode='and'):
+    def __init__(self, name="unknown", strategy=None):
         """ CTOR """
         # # Name
         self.name = name
 
-        # # Semantics of the event concatenation
-        self._mode = mode
+        # # Strategy for the model propagation
+        self.strategy = strategy
 
         # # Set of input tasks
         self.prev_tasks = set()
@@ -640,20 +640,13 @@ class Junction (object):
         self.bcet = 0
         self.wcet = 0
 
+    @property
+    def mode(self):
+        return str(self.strategy)
+
     def invalidate_event_model_cache(self):
         for t in self.next_tasks:
             t.invalidate_event_model_cache()
-
-    @property
-    def mode(self):
-        return self._mode
-
-    @mode.setter
-    def mode(self, mode):
-        if mode == "and" or mode == "or":
-            self._mode = mode
-        else:
-            raise TypeError(str(mode) + " is not a supported mode")
 
     def link_dependent_task(self, task):
         task.prev_task = self
@@ -664,7 +657,7 @@ class Junction (object):
         self.out_event_model = None
 
     def __repr__(self):
-        return self.name + " " + self.mode + " junction"
+        return self.name + " " + str(self.strategy) + " junction"
 
 
 class Task (object):

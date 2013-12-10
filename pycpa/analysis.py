@@ -85,6 +85,55 @@ class TaskResult(object):
         return s[:-2]
 
 
+class JunctionStrategy(object):
+    """ This class encapsulates the junction-specific analysis """
+
+    def __init__(self):
+        self.name = None
+        pass
+
+    def propagate(self, junction, task_results):
+        """ Propagate event model over a junction """
+        # cut function cycles
+        propagate_tasks = copy.copy(junction.prev_tasks)
+
+        # find potential functional cycles in the app-graph
+        # _propagate tasks are all previous input tasks without cycles
+        subgraph = util.breadth_first_search(junction)
+        for prev in junction.prev_tasks:
+            if prev in subgraph:
+                propagate_tasks.remove(prev)
+
+        if len(propagate_tasks) == 0:
+            raise NotSchedulableException("AND Junction %s "
+                                          "consists only of a functional"
+                                          " cycle without further stimulus"
+                                          % junction)
+
+        # check if we can reuse the existing output event model
+        for t in propagate_tasks:
+            if out_event_model(t, task_results) not in junction.in_event_models:
+                self.reload_in_event_models(junction, task_results, propagate_tasks)
+                new_output_event_model = self.calculate_out_event_model(junction)
+                # _assert_event_model_conservativeness(junction.out_event_model,
+                # new_output_event_model)
+                junction.out_event_model = new_output_event_model
+                break
+
+        for t in junction.next_tasks:
+            t.in_event_model = junction.out_event_model
+
+    def reload_in_event_models(self, junction, task_results, non_cycle_prev):
+        """ Helper function, reloads input event models of junction from tasks in non_cycle_prev"""
+        junction.in_event_models = set()
+        for t in non_cycle_prev:
+            if out_event_model(t, task_results) is not None:
+                junction.in_event_models.add(out_event_model(t, task_results))
+
+    def __repr__(self):
+        return self.name + " junction"
+
+
 class Scheduler(object):
     """ This class encapsulates the scheduler-specific analysis """
 
@@ -536,47 +585,6 @@ class OptimalPropagationEventModel(JitterBminPropagationEventModel,
         return min(JitterBminPropagationEventModel.deltaplus_func(self, n),
                 BusyWindowPropagationEventModel.deltaplus_func(self, n))
 
-def _out_event_model_junction(junction, task_results, non_cycle_prev):
-    """ Calculate the output event model for this junction.
-    Actually a wrapper to .._or and .._and."""
-    junction.in_event_models = set()
-    for t in non_cycle_prev:
-        if out_event_model(t, task_results) is not None:
-            junction.in_event_models.add(out_event_model(t, task_results))
-
-    if len(junction.in_event_models) == 0:
-        return None
-
-    em = None
-    if junction.mode == 'and':
-        em = _out_event_model_junction_and(junction)
-    else:
-        em = _out_event_model_junction_or(junction)
-    return em
-
-
-def _out_event_model_junction_or(junction):
-    """ Compute output event models for an OR junction.
-    This corresponds to Section 4.2, Equations 4.11 and 4.12 in [Jersak2005]_.
-    """
-    raise NotImplementedError("OR not implemented")
-
-
-def _out_event_model_junction_and(junction):
-    """ Compute output event models for an AND junction.
-    This corresponds to Lemma 4.2 in [Jersak2005]_.
-    """
-    assert len(junction.in_event_models) > 0
-    em = model.EventModel()
-    em.deltamin_func = lambda n: (
-        min(emif.delta_min(n) for emif in junction.in_event_models))
-    em.deltaplus_func = lambda n: (
-        max(emif.delta_plus(n) for emif in junction.in_event_models))
-    em.__description__ = "AND " + \
-            "".join([emif.__description__
-                     for emif in junction.in_event_models])
-    return em
-
 
 def _invalidate_event_model_caches(task):
     """ Invalidate all event model caches """
@@ -597,7 +605,7 @@ def _propagate(task, task_results):
             # task_results).load())
             t.in_event_model = out_event_model(task, task_results)
         elif isinstance(t, model.Junction):
-            _propagate_junction(t, task_results)
+            t.strategy.propagate(t, task_results)
         else:
             raise TypeError("invalid propagation target")
 
@@ -608,38 +616,6 @@ def _assert_event_model_conservativeness(emif_small, emif_large, n_max=1000):
         return
     for n in range(2, n_max):
         assert emif_large.delta_min(n) <= emif_small.delta_min(n)
-
-
-def _propagate_junction(junction, task_results):
-    """ Propagate event model over a junction """
-    # cut function cycles
-    propagate_tasks = copy.copy(junction.prev_tasks)
-
-    # find potential functional cycles in the app-graph
-    # _propagate tasks are all previous input tasks without cycles
-    subgraph = util.breadth_first_search(junction)
-    for prev in junction.prev_tasks:
-        if prev in subgraph:
-            propagate_tasks.remove(prev)
-
-    if len(propagate_tasks) == 0:
-        raise NotSchedulableException("AND Junction %s "
-                                      "consists only of a functional"
-                                      " cycle without further stimulus"
-                                      % junction)
-
-    # check if we can reuse the existing output event model
-    for t in propagate_tasks:
-        if out_event_model(t, task_results) not in junction.in_event_models:
-            new_output_event_model = _out_event_model_junction(
-                junction, task_results, propagate_tasks)
-            # _assert_event_model_conservativeness(junction.out_event_model,
-            # new_output_event_model)
-            junction.out_event_model = new_output_event_model
-            break
-
-    for t in junction.next_tasks:
-        t.in_event_model = junction.out_event_model
 
 
 def _event_arrival(task, n, e_0):
