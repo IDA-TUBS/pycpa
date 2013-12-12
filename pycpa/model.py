@@ -883,7 +883,7 @@ class Fork (Task):
         self.out_event_model = None
 
         # # create a task to id mapping (takes 2-tuples)
-        self.mapping = set()
+        self.mapping = dict()
 
     def clean(self):
         Task.clean(self)
@@ -891,16 +891,11 @@ class Fork (Task):
         
     def map_task(self, dst_task, identifier):
         """ maps an identifier to dst_task """
-        self.mapping.add((dst_task, identifier))
+        self.mapping[dst_task] = identifier
 
     def get_mapping(self, dst_task):
         """ returns the identifier mapped to dst_task (or raises KeyError) """
-
-        for pair in self.mapping:
-            if pair[0] is dst_task:
-                return pair[1]
-
-        raise KeyError
+        return self.mapping[dst_task]
 
 
 class Mutex(object):
