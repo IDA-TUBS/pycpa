@@ -640,6 +640,9 @@ class Junction (object):
 
         self.in_event_models = set()
 
+        # # store analysis results of sampling delay
+        self.analysis_results = None
+
         # # at some point Junction looks like a task
         # i.e. provide wcet, bcet for duck-typing
         self.bcet = 0
