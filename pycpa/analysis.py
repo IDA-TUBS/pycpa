@@ -84,13 +84,11 @@ class TaskResult(object):
             s += k + ':' + str(self.b_wcrt[k]) + ', '
         return s[:-2]
 
-
 class JunctionStrategy(object):
     """ This class encapsulates the junction-specific analysis """
 
     def __init__(self):
         self.name = None
-        pass
 
     def propagate(self, junction, task_results):
         """ Propagate event model over a junction """
@@ -112,7 +110,7 @@ class JunctionStrategy(object):
 
         # check if we can reuse the existing output event model
         for t in propagate_tasks:
-            if out_event_model(t, task_results) not in junction.in_event_models:
+            if out_event_model(t, task_results, junction) not in junction.in_event_models:
                 self.reload_in_event_models(junction, task_results, propagate_tasks)
                 new_output_event_model = self.calculate_out_event_model(junction)
                 # _assert_event_model_conservativeness(junction.out_event_model,
@@ -127,7 +125,7 @@ class JunctionStrategy(object):
         """ Helper function, reloads input event models of junction from tasks in non_cycle_prev"""
         junction.in_event_models = set()
         for t in non_cycle_prev:
-            out = out_event_model(t, task_results)
+            out = out_event_model(t, task_results, junction)
             if out is not None:
                 junction.in_event_models.add(out)
 
@@ -367,7 +365,7 @@ def analyze_task(task, task_results):
             (task_results[task].bcrt, task_results[task].wcrt)
 
 
-def out_event_model(task, task_results):
+def out_event_model(task, task_results, dst_task=None):
     """ Wrapper to call the actual out_event_model_*,
     which computes the output event model of a task.
     See Chapter 4 in [Richter2005]_ for an overview.
@@ -390,7 +388,14 @@ def out_event_model(task, task_results):
     else:
         raise NotImplementedError
 
-    return OutEventModelClass(task, task_results)
+    em = OutEventModelClass(task, task_results)
+
+    if isinstance(task, model.Fork):
+        assert dst_task is not None
+        task.out_event_model = em
+        return task.strategy.output_event_model(task, dst_task)
+    else:
+        return em
 
 
 class JitterPropagationEventModel(model.EventModel):

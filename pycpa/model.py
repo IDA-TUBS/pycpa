@@ -858,6 +858,51 @@ class Resource (object):
         self.tasks = set()
 
 
+class StandardForkStrategy(object):
+    """ Standard fork strategy (unmodified output event model) """
+    def __init__(self):
+        self.name = "Standard"
+
+    def output_event_model(self, fork, *args, **kwargs):
+        return fork.out_event_model
+
+
+class Fork (Task):
+    """ A Fork allows the modification (determined by the assigned strategy)
+        of output event models dependent on the destination task. 
+    """
+
+    def __init__(self, name, *args, **kwargs):
+        # # set default fork strategy
+        self.strategy = StandardForkStrategy()
+        
+        # # call Task CTOR
+        Task.__init__(self, name, *args, **kwargs)
+
+        # # store the output event model (used by the fork strategy)
+        self.out_event_model = None
+
+        # # create a task to id mapping (takes 2-tuples)
+        self.mapping = set()
+
+    def clean(self):
+        Task.clean(self)
+        self.out_event_model = None
+        
+    def map_task(self, dst_task, identifier):
+        """ maps an identifier to dst_task """
+        self.mapping.add((dst_task, identifier))
+
+    def get_mapping(self, dst_task):
+        """ returns the identifier mapped to dst_task (or raises KeyError) """
+
+        for pair in self.mapping:
+            if pair[0] is dst_task:
+                return pair[1]
+
+        raise KeyError
+
+
 class Mutex(object):
     """ A mutually-exclusive shared Resource.
     Shared resources create timing interferences between tasks
