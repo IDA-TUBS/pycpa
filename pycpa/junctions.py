@@ -28,15 +28,17 @@ from . import options
 logger = logging.getLogger("pycpa")
 
 class ORJoin(analysis.JunctionStrategy):
-    """ Compute output event models for an OR junction.
-    This corresponds to Section 4.2, Equations 4.11 and 4.12 in [Jersak2005]_.
-    """
-
     def __init__(self):
         self.name = "or"
 
     def calculate_out_event_model(self, junction):
-        raise NotImplementedError("OR not implemented")
+        assert len(junction.in_event_models) > 0
+        if len(junctions.in_event_models) > 1:
+            return OREventModel(junction.in_event_models)
+        else:
+            for em in junction.in_event_models:
+                return em
+            
 
 class ANDJoin(analysis.JunctionStrategy):
     """ Compute output event models for an AND junction.
@@ -57,6 +59,28 @@ class ANDJoin(analysis.JunctionStrategy):
                 "".join([emif.__description__
                          for emif in junction.in_event_models])
         return em
+
+
+class OREventModel(model.EventModel):
+    """ Compute output event model for an OR junction.
+    This corresponds to Section 4.2, Equations 4.11 and 4.12 in [Jersak2005]_.
+    """
+    def __init__(self, in_event_models):
+        # set proper name
+        name = "OR " + \
+                "".join([emif.__description__
+                         for emif in in_event_models])
+
+        model.EventModel.__init__(self,name)
+        self.in_event_models = in_event_models
+
+        em_or_eta_plus = lambda dt: (
+            sum([emif.eta_plus(dt) for emif in in_event_models]))
+        em_or_eta_min = lambda dt: (
+            sum([emif.eta_min(dt) for emif in in_event_models]))
+
+        self.deltamin_func  = model.EventModel.delta_min_from_eta_plus(em_or_eta_plus)
+        self.deltaplus_func = model.EventModel.delta_plus_from_eta_min(em_or_eta_min)
 
 
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
