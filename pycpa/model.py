@@ -150,6 +150,8 @@ class EventModel (object):
         def delta_min(n):
             if n < 2:
                 return 0
+            if n == INFINITY:
+                return float('NaN')
             x = 0
             while etaplus_func(x) < n:
                 x += 1
@@ -169,6 +171,8 @@ class EventModel (object):
         def delta_plus(n):
             if n < 2:
                 return 0
+            if n == INFINITY:
+                return float('NaN')
             x = 0
             while etamin_func(x) < n - 1:
                 x += 1
