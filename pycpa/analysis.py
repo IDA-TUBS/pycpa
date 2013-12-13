@@ -677,6 +677,9 @@ class GlobalAnalysisState(object):
 
         self._mark_all_dirty(system)
 
+        # # clean old analysis state before we start a new analysis
+        self.clean_analysis_state()
+
         self._init_dependent_tasks(system)
 
         # analyze tasks with most dependencies first
