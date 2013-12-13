@@ -108,26 +108,23 @@ class JunctionStrategy(object):
                                           " cycle without further stimulus"
                                           % junction)
 
-        # check if we can reuse the existing output event model
-        for t in propagate_tasks:
-            if out_event_model(t, task_results, junction) not in junction.in_event_models:
-                self.reload_in_event_models(junction, task_results, propagate_tasks)
-                new_output_event_model = self.calculate_out_event_model(junction)
-                # _assert_event_model_conservativeness(junction.out_event_model,
-                # new_output_event_model)
-                junction.out_event_model = new_output_event_model
-                break
+        # recalculate the output event model
+        self.reload_in_event_models(junction, task_results, propagate_tasks)
+        new_output_event_model = self.calculate_out_event_model(junction)
+        # _assert_event_model_conservativeness(junction.out_event_model,
+        # new_output_event_model)
+        junction.out_event_model = new_output_event_model
 
         for t in junction.next_tasks:
             t.in_event_model = junction.out_event_model
 
     def reload_in_event_models(self, junction, task_results, non_cycle_prev):
         """ Helper function, reloads input event models of junction from tasks in non_cycle_prev"""
-        junction.in_event_models = set()
+        junction.in_event_models.clear()
         for t in non_cycle_prev:
             out = out_event_model(t, task_results, junction)
             if out is not None:
-                junction.in_event_models.add(out)
+                junction.in_event_models[t] = out
 
     def __repr__(self):
         return self.name + " junction"

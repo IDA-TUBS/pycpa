@@ -638,7 +638,7 @@ class Junction (object):
         # i.e. where to supply event model to
         self.next_tasks = set()
 
-        self.in_event_models = set()
+        self.in_event_models = dict()
 
         # # store analysis results of sampling delay
         self.analysis_results = None
@@ -661,8 +661,9 @@ class Junction (object):
         self.next_tasks.add(task)
 
     def clean(self):
-        """ mark output event model as invalid """
+        """ mark event models as invalid """
         self.out_event_model = None
+        self.in_event_models.clear()
 
     def __repr__(self):
         return self.name + " " + str(self.strategy) + " junction"
