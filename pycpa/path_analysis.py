@@ -93,7 +93,7 @@ def end_to_end_latency_classic(path, task_results, n=1, injection_rate='max'):
             # sum up best- and worst-case response times
             lmax += task_results[t].wcrt
             lmin += task_results[t].bcrt
-        else if isinstance(t, model.Junction):
+        elif isinstance(t, model.Junction):
             # add sampling delay induced by the junction (if available)
             if t.analysis_results is not None:
                 lmin += t.analysis_results.bcrt
