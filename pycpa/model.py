@@ -645,7 +645,7 @@ class Junction (object):
         self.in_event_models = dict()
 
         # # store analysis results of sampling delay
-        self.analysis_results = None
+        self.analysis_results = dict()
 
         # # at some point Junction looks like a task
         # i.e. provide wcet, bcet for duck-typing
