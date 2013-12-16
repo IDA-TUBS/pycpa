@@ -146,16 +146,34 @@ class EventModel (object):
             by delta-functions internally.
             Equation 3.7 from [Schliecker2011]_.
         """
-        # TODO:_ binary search
         def delta_min(n):
             if n < 2:
                 return 0
             if n == INFINITY:
                 return float('NaN')
-            x = 0
-            while etaplus_func(x) < n:
-                x += 1
-            return  int(math.floor(x - 1))
+
+            hi = 10
+            lo = 0
+            
+            # search an upper bound
+            while etaplus_func(hi) < n:
+                lo = hi
+                hi *= 10
+
+            # apply binary search
+            while lo < hi:
+                mid = (lo + hi) // 2
+                midval = etaplus_func(mid)
+                if midval < n:
+                    lo = mid + 1
+                else:
+                    hi = mid
+            hi -= 1
+
+            assert etaplus_func(hi) < n
+            assert etaplus_func(hi + 1) >= n
+
+            return  int(math.floor(hi))
         return delta_min
 
     @staticmethod
@@ -167,16 +185,34 @@ class EventModel (object):
             by delta-functions internally.
             Equation 3.8 from [Schliecker2011]_.
         """
-        # TODO:_ binary search
         def delta_plus(n):
             if n < 2:
                 return 0
             if n == INFINITY:
                 return float('NaN')
-            x = 0
-            while etamin_func(x) < n - 1:
-                x += 1
-            return  int(math.floor(x))
+
+            hi = 10
+            lo = 0
+            
+            # search an upper bound
+            while etamin_func(hi) <  n - 1:
+                lo = hi
+                hi *= 10
+
+            # apply binary search
+            while lo < hi:
+                mid = (lo + hi) // 2
+                midval = etamin_func(mid)
+                if midval < n - 1:
+                    lo = mid + 1
+                else:
+                    hi = mid
+            hi -= 1
+
+            assert etamin_func(hi) < n - 1
+            assert etamin_func(hi + 1) >= n - 1
+
+            return  int(math.floor(hi+1))
         return delta_plus
 
     def eta_plus(self, w):
@@ -285,22 +321,43 @@ class EventModel (object):
         if n is not None:
             return n
 
+        if w < 0:
+            w = 0
+
         MAX_EVENTS = 10000
-        n = 2
-        # TODO binary search
-        while self.delta_plus(n) <= w:
-            assert self.delta_plus(n) <= self.delta_plus(n + 1)
-            if(n > MAX_EVENTS):
-                logger.error("w=%f" % w + " n=%d" % n +
-                             "deltaplus(n)=%d" % self.delta_plus(n))
-                return n
-            n += 1
+        hi = 10
+        lo = 2
+
+        # search an upper bound
+        while self.delta_plus(hi) <= w:
+            if(hi > MAX_EVENTS):
+                logger.error("w=%f" % w + " n=%d" % hi +
+                             "deltaplus(n)=%d" % self.delta_plus(hi))
+                return hi
+            lo = hi
+            hi *= 10
+
+        # apply binary search
+        while lo < hi:
+            mid = (lo + hi) // 2
+            midval = self.delta_plus(mid)
+            if midval <= w:
+                lo = mid + 1
+            else:
+                hi = mid
+        hi -= 1
+
+        if (self.delta_plus(hi) > w):
+            print ("delta_plus(" + str(hi) + ") = " + str(self.delta_plus(hi)) + " > " + str(w))
+        assert self.delta_plus(hi) <= w
+        assert self.delta_plus(hi + 1) > w
 
         if self.en_caching:
-            self.eta_min_cache[w] = n-2
+            self.eta_min_cache[w] = hi-1
 
-        return n - 2
-
+        return hi-1
+   
+    
     def eta_min_closed(self, w):
         """ Eta-minus Function
             Return the minimum number of events in a time window w.
@@ -310,20 +367,40 @@ class EventModel (object):
         if n is not None:
             return n
 
+        if w < 0:
+            w = 0
+
         MAX_EVENTS = 10000
-        n = 2
-        # TODO binary search
-        while self.delta_plus(n) < w:
-            if(n > MAX_EVENTS):
-                logger.error("w=%f" % w + " n=%d" % n +
-                             "deltaplus(n)=%d" % self.delta_plus(n))
-                return n
-            n += 1
+        hi = 10
+        lo = 2
+
+        # search an upper bound
+        while self.delta_plus(hi) < w:
+            if(hi > MAX_EVENTS):
+                logger.error("w=%f" % w + " n=%d" % hi +
+                             "deltaplus(n)=%d" % self.delta_plus(hi))
+                return hi
+            lo = hi
+            hi *= 10
+
+        # apply binary search
+        while lo < hi:
+            mid = (lo + hi) // 2
+            midval = self.delta_plus(mid)
+            if midval < w:
+                lo = mid + 1
+            else:
+                hi = mid
+        hi -= 1
+
+        assert self.delta_plus(hi) < w
+        assert self.delta_plus(hi + 1) >= w
 
         if self.en_caching:
-            self.eta_min_closed_cache[w] = n-2
+            self.eta_min_cache[w] = hi-1
 
-        return n - 2
+        return hi-1
+
 
     def delta_min(self, n):
         """ Delta-minus Function
