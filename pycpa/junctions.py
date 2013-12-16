@@ -34,7 +34,7 @@ class ORJoin(analysis.JunctionStrategy):
     def calculate_out_event_model(self, junction):
         assert len(junction.in_event_models) > 0
         if len(junctions.in_event_models) > 1:
-            return OREventModel(junction.in_event_models)
+            return OREventModel(junction.in_event_models.values())
         else:
             for em in junction.in_event_models:
                 return em
@@ -52,12 +52,12 @@ class ANDJoin(analysis.JunctionStrategy):
         assert len(junction.in_event_models) > 0
         em = model.EventModel()
         em.deltamin_func = lambda n: (
-            min(emif.delta_min(n) for emif in junction.in_event_models))
+            min(emif.delta_min(n) for emif in junction.in_event_models.values()))
         em.deltaplus_func = lambda n: (
-            max(emif.delta_plus(n) for emif in junction.in_event_models))
+            max(emif.delta_plus(n) for emif in junction.in_event_models.values()))
         em.__description__ = "AND " + \
                 "".join([emif.__description__
-                         for emif in junction.in_event_models])
+                         for emif in junction.in_event_models.values()])
         return em
 
 

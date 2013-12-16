@@ -287,6 +287,7 @@ class EventModel (object):
 
         MAX_EVENTS = 10000
         n = 2
+        # TODO binary search
         while self.delta_plus(n) <= w:
             assert self.delta_plus(n) <= self.delta_plus(n + 1)
             if(n > MAX_EVENTS):
@@ -311,6 +312,7 @@ class EventModel (object):
 
         MAX_EVENTS = 10000
         n = 2
+        # TODO binary search
         while self.delta_plus(n) < w:
             if(n > MAX_EVENTS):
                 logger.error("w=%f" % w + " n=%d" % n +
