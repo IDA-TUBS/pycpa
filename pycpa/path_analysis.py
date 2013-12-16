@@ -96,7 +96,7 @@ def end_to_end_latency_classic(path, task_results, n=1, injection_rate='max'):
         elif isinstance(t, model.Junction):
             # add sampling delay induced by the junction (if available)
             prev_task = tasks[tasks.index(t)-1]
-            if t.analysis_results.has_key(prev_task) is not None:
+            if t.analysis_results.has_key(prev_task):
                 lmin += t.analysis_results[prev_task].bcrt
                 lmax += t.analysis_results[prev_task].wcrt
 
