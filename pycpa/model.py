@@ -959,9 +959,9 @@ class Fork (Task):
         of output event models dependent on the destination task. 
     """
 
-    def __init__(self, name, *args, **kwargs):
+    def __init__(self, name, strategy=StandardForkStrategy(), *args, **kwargs):
         # # set default fork strategy
-        self.strategy = StandardForkStrategy()
+        self.strategy = strategy
         
         # # call Task CTOR
         Task.__init__(self, name, *args, **kwargs)
