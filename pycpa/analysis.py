@@ -110,13 +110,27 @@ class JunctionStrategy(object):
 
         # recalculate the output event model
         self.reload_in_event_models(junction, task_results, propagate_tasks)
-        new_output_event_model = self.calculate_out_event_model(junction)
+
+        # check if all input event models of this junction are valid, 
+        # i.e. not None
+        if self.out_event_models_valid(junction, propagate_tasks):
+            # All input event models valid. Use junction strategy to
+            # derive output event model.
+            new_output_event_model = self.calculate_out_event_model(junction)
+        else:
+            # Some input event models of this junction are still invalid, 
+            # i.e. None. Propagate "weak" event model in this case.
+            new_output_event_model = model.EventModel()
+            new_output_event_model.deltamin_func = lambda n: (INFINITY)
+            new_output_event_model.deltaplus_func = lambda n: (INFINITY)
+
         # _assert_event_model_conservativeness(junction.out_event_model,
         # new_output_event_model)
         junction.out_event_model = new_output_event_model
 
         for t in junction.next_tasks:
             t.in_event_model = junction.out_event_model
+
 
     def reload_in_event_models(self, junction, task_results, non_cycle_prev):
         """ Helper function, reloads input event models of junction from tasks in non_cycle_prev"""
@@ -126,8 +140,11 @@ class JunctionStrategy(object):
             if out is not None:
                 junction.in_event_models[t] = out
 
+    def out_event_models_valid(self, junction, non_cycle_prev):
+        return len(non_cycle_prev) == len(junction.in_event_models)
+
     def __repr__(self):
-        return self.name + " junction"
+        return self.name
 
 
 class Scheduler(object):
