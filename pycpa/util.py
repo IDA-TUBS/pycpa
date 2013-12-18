@@ -252,7 +252,7 @@ def calculate_base_time(frequencies):
     if common_timebase > ps:
         error_msg = "high base-time value! consider using ps instead"
         logger.error(error_msg)
-    return common_timebase
+    return int(common_timebase)
 
 
 def cycles_to_time(value, freq, base_time, rounding="ceil"):
