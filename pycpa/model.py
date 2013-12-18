@@ -731,6 +731,13 @@ class Junction (object):
         self.bcet = 0
         self.wcet = 0
 
+        # # create a task to id mapping
+        self.mapping = dict()
+
+    def map_task(self, src_task, identifier):
+        """ maps an identifier to src_task """
+        self.mapping[src_task] = identifier
+
     @property
     def mode(self):
         return str(self.strategy)
@@ -969,7 +976,7 @@ class Fork (Task):
         # # store the output event model (used by the fork strategy)
         self.out_event_model = None
 
-        # # create a task to id mapping (takes 2-tuples)
+        # # create a task to id mapping
         self.mapping = dict()
 
     def clean(self):
