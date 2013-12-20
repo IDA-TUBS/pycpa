@@ -331,4 +331,26 @@ def combinations_with_replacement(iterable, r):
             return
         indices[i:] = [indices[i] + 1] * (r - i)
         yield tuple(pool[i] for i in indices)
+
+
+def get_path(t_src, t_dst):
+    """ Find path between tasks t_src and t_dst.
+        Returns a path as list() or None if no path was found.
+        NOTE: These is no protection against cycles!
+    """
+
+    def _get_path_recursive(t_src, t_dst):
+        if t_src == t_dst:
+            return (True, [t_src]) 
+
+        for t in t_src.next_tasks:    
+            (found_dst, v) = _get_path_recursive(t, t_dst)
+            if found_dst:
+                return (True, [t_src] + v)
+        return (False, None)
+
+    (path_found, path) = _get_path_recursive(t_src, t_dst)
+    return path
+
+
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
