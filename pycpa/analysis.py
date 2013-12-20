@@ -120,9 +120,7 @@ class JunctionStrategy(object):
         else:
             # Some input event models of this junction are still invalid, 
             # i.e. None. Propagate "weak" event model in this case.
-            new_output_event_model = model.EventModel()
-            new_output_event_model.deltamin_func = lambda n: (INFINITY)
-            new_output_event_model.deltaplus_func = lambda n: (INFINITY)
+            new_output_event_model = self.get_weak_event_model()
 
         # _assert_event_model_conservativeness(junction.out_event_model,
         # new_output_event_model)
@@ -130,6 +128,12 @@ class JunctionStrategy(object):
 
         for t in junction.next_tasks:
             t.in_event_model = junction.out_event_model
+
+    def get_weak_event_model(self):
+        new_output_event_model = model.EventModel()
+        new_output_event_model.deltamin_func = lambda n: (INFINITY)
+        new_output_event_model.deltaplus_func = lambda n: (INFINITY)
+        return new_output_event_model
 
 
     def reload_in_event_models(self, junction, task_results, non_cycle_prev):
