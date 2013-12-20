@@ -796,18 +796,24 @@ class GlobalAnalysisState(object):
                 inputDependentTask[task] = set()
                 # all tasks on the same shared resource
                 inputDependentTask[task] |= set(task.get_mutex_interferers())
-                for t in task.next_tasks:
-                    if isinstance(t, model.Task):  # skip junctions
-
-                        # all directly dependent task
-                        inputDependentTask[task].add(t)
-
-                        # all tasks on the same resource as directly dependent
-                        # tasks (only for tasks, not junctions)
-                        inputDependentTask[
-                            task] |= set(t.get_resource_interferers())
+                self._add_dependent_tasks(task, task.next_tasks, inputDependentTask)
 
         self.dependentTask = inputDependentTask
+
+    def _add_dependent_tasks(self, task, dependent_tasks, inputDependentTask):
+        """ Helper function for _init_depentent_tasks(). Will be called recursively. """
+        for t in dependent_tasks:
+            if isinstance(t, model.Task):
+                # all directly dependent task
+                inputDependentTask[task].add(t)
+
+                # all tasks on the same resource as directly dependent
+                # tasks (only for tasks, not junctions)
+                inputDependentTask[
+                    task] |= set(t.get_resource_interferers())
+            elif isinstance(t, model.Junction):
+                self._add_dependent_tasks(task, t.next_tasks, inputDependentTask)
+
 
     def _init_analysis_order(self):
         """ Init the ananlysis order,
