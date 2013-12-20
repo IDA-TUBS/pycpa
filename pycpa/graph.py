@@ -200,7 +200,7 @@ def graph_system(s, filename=None, layout='dot',
 
 
     if filename is not None:
-        g.draw(filename, prog='dot')
+        g.draw(filename, prog=layout)
 
     if show:
         try:
