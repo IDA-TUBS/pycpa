@@ -336,7 +336,7 @@ def combinations_with_replacement(iterable, r):
 def get_path(t_src, t_dst):
     """ Find path between tasks t_src and t_dst.
         Returns a path as list() or None if no path was found.
-        NOTE: These is no protection against cycles!
+        NOTE: There is no protection against cycles!
     """
 
     def _get_path_recursive(t_src, t_dst):
@@ -351,6 +351,56 @@ def get_path(t_src, t_dst):
 
     (path_found, path) = _get_path_recursive(t_src, t_dst)
     return path
+
+
+def time_str_to_time(time_str, base_out, rounding="ceil"):
+    """ Convert strings like "100us" or "10 ns" to an integer
+        representation in base_out.
+    """
+    import re
+
+    m = re.match(r"([0-9]+)(\ *)([a-zA-Z]+)", time_str) 
+    assert len(m.groups()) == 3
+    value_str = m.group(1)
+    space_str = m.group(2)
+    time_base_str = m.group(3)
+    assert len(time_str) == len(value_str) + len(space_str) + len(time_base_str)
+
+    value_int = int(value_str)
+
+    return time_to_time(value_int, str_to_time_base(time_base_str), base_out, rounding)
+
+
+def bitrate_str_to_bits_per_second(bitrate_str):
+    """ Convert bitrate strings like "100MBit/s" or "1 Gbit/s"
+        to an integer representation in Bit/s.
+    """
+    import re
+
+    m = re.match(r"([0-9\.]+)(\ *)([a-zA-Z])([bB]it/s)", bitrate_str)
+    assert len(m.groups()) == 4
+
+    value_str = m.group(1)
+    space_str = m.group(2)
+    scale = m.group(3)
+    bits_str = m.group(4)
+    assert len(bitrate_str) == len(value_str) + len(space_str) + len(scale) + len(bits_str)
+    assert len(scale) == 1
+    assert re.match(r"[kKmMgG]", scale) != None
+
+    bits_per_second_int = int(value_str)
+    if re.match(r"[kK]", scale):
+        bits_per_second_int *= 1000
+    elif re.match(r"[mM]", scale):
+        bits_per_second_int *= 1000000
+    elif re.match(r"[gG]", scale):
+        bits_per_second_int *= 1000000000
+    else:
+        assert False
+   
+    return bits_per_second_int 
+
+
 
 
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
