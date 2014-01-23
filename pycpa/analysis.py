@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 
+import gc
 import logging
 import copy
 import time
@@ -33,6 +34,7 @@ from . import options
 from . import util
 from . import path_analysis
 
+gc.enable()
 logger = logging.getLogger(__name__)
 
 
@@ -883,6 +885,10 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
         logger.info("Analyzing, %d tasks left" %
                    (len(analysis_state.dirtyTasks)))
 
+        # explicitly invoke garbage collection because there seem to be circluar references
+        # TODO should be using weak references instead for model propagation
+        gc_count = gc.collect()
+        print("GC found %d objects" % gc_count)
         for t in analysis_state.analysisOrder:
             if t not in analysis_state.dirtyTasks:
                 continue
