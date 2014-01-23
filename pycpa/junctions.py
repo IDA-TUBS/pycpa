@@ -74,13 +74,20 @@ class OREventModel(model.EventModel):
         model.EventModel.__init__(self,name)
         self.in_event_models = in_event_models
 
-        em_or_eta_plus = lambda dt: (
-            sum([emif.eta_plus(dt) for emif in in_event_models]))
-        em_or_eta_min = lambda dt: (
-            sum([emif.eta_min(dt) for emif in in_event_models]))
+        self.deltamin_func = model.EventModel.delta_min_from_eta_plus(self.eta_plus)
+        self.deltaplus_func = model.EventModel.delta_plus_from_eta_min(self.eta_min)
 
-        self.deltamin_func  = model.EventModel.delta_min_from_eta_plus(em_or_eta_plus)
-        self.deltaplus_func = model.EventModel.delta_plus_from_eta_min(em_or_eta_min)
+    def eta_min(self, w):
+        return sum([emif.eta_min(w) for emif in self.in_event_models])
+
+    def eta_plus(self, w):
+        return sum([emif.eta_plus(w) for emif in self.in_event_models])
+
+    def eta_min_closed(self, w):
+        return sum([emif.eta_min_closed(w) for emif in self.in_event_models])
+
+    def eta_plus_closed(self, w):
+        return sum([emif.eta_plus_closed(w) for emif in self.in_event_models])
 
 
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
