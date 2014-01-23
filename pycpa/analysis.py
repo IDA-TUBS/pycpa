@@ -888,7 +888,6 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
         # explicitly invoke garbage collection because there seem to be circluar references
         # TODO should be using weak references instead for model propagation
         gc_count = gc.collect()
-        print("GC found %d objects" % gc_count)
         for t in analysis_state.analysisOrder:
             if t not in analysis_state.dirtyTasks:
                 continue
