@@ -238,15 +238,9 @@ class EventModel (object):
             return INFINITY
         hi = 10
         lo = 2
-        MAX_EVENTS = 40000
 
         # search an upper bound
         while self.delta_min(hi) < w:
-            if hi > MAX_EVENTS:
-                logger.error("w=%f" % w + " n=%d" % hi +
-                             "deltamin(n)=%d" % self.delta_min(hi))
-                print("Cannot find upper bound for window %f, current: %f" % (w, self.delta_min(hi)))
-                raise Exception()
             lo = hi
             hi *= 2
 
@@ -294,15 +288,9 @@ class EventModel (object):
             return INFINITY
         hi = 10
         lo = 2
-        MAX_EVENTS = 40000
 
         # search an upper bound
         while self.delta_min(hi) <= w:
-            if hi > MAX_EVENTS:
-                logger.error("w=%f" % w + " n=%d" % hi +
-                             "deltamin(n)=%d" % self.delta_min(hi))
-                print("Cannot find upper bound for window %f, current: %f" % (w, self.delta_min(hi)))
-                raise Exception()
             lo = hi
             hi *= 2
 
