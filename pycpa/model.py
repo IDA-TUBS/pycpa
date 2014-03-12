@@ -141,14 +141,34 @@ class EventModel (object):
             by delta-functions internally.
             Equation 3.7 from [Schliecker2011]_.
         """
-        # TODO:_ binary search
         def delta_min(n):
             if n < 2:
                 return 0
-            x = 0
-            while etaplus_func(x) < n:
-                x += 1
-            return  int(math.floor(x - 1))
+            if n == INFINITY:
+                return float('NaN')
+
+            hi = 10
+            lo = 0
+            
+            # search an upper bound
+            while etaplus_func(hi) < n:
+                lo = hi
+                hi *= 10
+
+            # apply binary search
+            while lo < hi:
+                mid = (lo + hi) // 2
+                midval = etaplus_func(mid)
+                if midval < n:
+                    lo = mid + 1
+                else:
+                    hi = mid
+            hi -= 1
+
+            assert etaplus_func(hi) < n
+            assert etaplus_func(hi + 1) >= n
+
+            return  int(math.floor(hi))
         return delta_min
 
     @staticmethod
@@ -160,14 +180,34 @@ class EventModel (object):
             by delta-functions internally.
             Equation 3.8 from [Schliecker2011]_.
         """
-        # TODO:_ binary search
         def delta_plus(n):
             if n < 2:
                 return 0
-            x = 0
-            while etamin_func(x) < n - 1:
-                x += 1
-            return  int(math.floor(x))
+            if n == INFINITY:
+                return float('NaN')
+
+            hi = 10
+            lo = 0
+            
+            # search an upper bound
+            while etamin_func(hi) <  n - 1:
+                lo = hi
+                hi *= 10
+
+            # apply binary search
+            while lo < hi:
+                mid = (lo + hi) // 2
+                midval = etamin_func(mid)
+                if midval < n - 1:
+                    lo = mid + 1
+                else:
+                    hi = mid
+            hi -= 1
+
+            assert etamin_func(hi) < n - 1
+            assert etamin_func(hi + 1) >= n - 1
+
+            return  int(math.floor(hi+1))
         return delta_plus
 
     def eta_plus(self, w):
