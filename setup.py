@@ -30,5 +30,6 @@ setup(name='pycpa',
                       'trace': 'numpy',
                       'topology_plot' : 'pygraphviz',
                       'gantt_charts' : 'simpy',
+                      'xls' : 'xlrd',
                       'doc' : 'sphinx'}
      )
