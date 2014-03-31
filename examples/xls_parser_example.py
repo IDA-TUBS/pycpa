@@ -1,7 +1,7 @@
 """
 | Copyright (C) 2014 Daniel Thiele
 | TU Braunschweig, Germany
-| All rights reserved. 
+| All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
@@ -30,8 +30,10 @@ def xls_parser_test(filename):
 
 
 if __name__ == "__main__":
-    assert len(sys.argv) == 2, "Call with xls_parser_example.xls as single argument."
-    xls_parser_test(sys.argv[1])
+    if len(sys.argv) != 2:
+        print("Call with xls_parser_example.xls as single argument.")
+    else:
+        xls_parser_test(sys.argv[1])
 
 
 

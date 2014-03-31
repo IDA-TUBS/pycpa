@@ -27,7 +27,7 @@ def xls_letter_to_col(self, letters):
         converts them to integers, i.e. A -> 0, ..., AA -> 26, etc.
     """
     assert re.match(re.compile(r"^[A-Z]*$"), letters), \
-	'Invalid column ID: %s' % str(letters)
+    'Invalid column ID: %s' % str(letters)
 
     sum = 0
     i = 1
@@ -43,7 +43,7 @@ class XLS_parser(object):
     """ Parse XLS workbook. Data is stored in a dict-list-dict hierarchy,
         i.e. self.sheets is a dict of worksheets, which contain a list of
         all data lines of that worksheet. Each of these lines is a dict
-        using the entries of the header line as keys. The header is 
+        using the entries of the header line as keys. The header is
         expected to be in the first line. All other entries are treated
         as data.
     """
@@ -52,8 +52,8 @@ class XLS_parser(object):
         self.filename = filename
         self.workbook = None
 
-        self.header = dict()	# dict of headers
-        self.sheets = dict()	# dict of worksheets
+        self.header = dict()    # dict of headers
+        self.sheets = dict()    # dict of worksheets
 
 
     def get_line_of_sheet(self, sheet_name, line, use_xls_line_numbers=False):
@@ -71,7 +71,7 @@ class XLS_parser(object):
         """ Get a certain element of the given line in a sheet.
         """
         return self.get_line_of_sheet(sheet_name, line, \
-		use_xls_line_numbers)[element_name]
+            use_xls_line_numbers)[element_name]
 
 
     def parse(self):
@@ -89,12 +89,12 @@ class XLS_parser(object):
     def _parse_worksheet(self, worksheet_name):
         """ Parse a given worksheet.
         """
-        sheet = self.workbook.sheet_by_name(worksheet_name) 
+        sheet = self.workbook.sheet_by_name(worksheet_name)
         result = list()
 
         self.header[worksheet_name] = sheet.row_values(0)
-	assert len(self.header[worksheet_name]) == len(set(self.header[worksheet_name])), \
-		"Worksheet header of \"%s\" appears to have duplicate entries." % worksheet_name
+        assert len(self.header[worksheet_name]) == len(set(self.header[worksheet_name])), \
+            "Worksheet header of \"%s\" appears to have duplicate entries." % worksheet_name
 
         for l in range(1, sheet.nrows):
             line_dict = dict()
