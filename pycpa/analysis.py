@@ -196,6 +196,8 @@ class Scheduler(object):
 
         max_iterations = options.get_opt('max_iterations')
 
+        logger.debug('compute wcrt of %s' % (task.name))
+
         # This could possibly be improved by using the previously computed
         #  WCRT and q as a starting point. Is this conservative?
         q = 1
@@ -210,6 +212,7 @@ class Scheduler(object):
             task_results[task].busy_times = [0]  # busy time of 0 activations
         self.b_plus(task, 1, details=b_wcrt)
         while True:
+            logger.debug('iteration for q=%d' %(q))
             w = self.b_plus(task, q)
             if task_results:
                 task_results[task].busy_times.append(w)
@@ -303,18 +306,23 @@ def analyze_task(task, task_results):
     """ Analyze Task BUT DONT propagate event model.
     This is the "local analysis step", see Section 7.1.4 in [Richter2005]_.
     """
+    assert task is not None
+    assert task_results is not None
+    assert task in task_results
 
     for t in task.resource.tasks:
         assert (t.in_event_model is not None), 'task must have event model'
 
-    assert (task.bcet <= task.wcet), 'BCET must not be larger than WCET'
+    assert (task.bcet <= task.wcet), 'BCET must not be larger '\
+            'than WCET for task %s' % (task.name)
+
     task.resource.scheduler.compute_bcrt(task, task_results)
     task.resource.scheduler.compute_wcrt(task, task_results)
     task.resource.scheduler.compute_max_backlog(task, task_results)
 
     assert (task_results[task].bcrt <= task_results[task].wcrt),\
-            'BCRT (%d) must not be larger than WCRT (%d)' % \
-            (task_results[task].bcrt, task_results[task].wcrt)
+            'Task:%s, BCRT (%d) must not be larger than WCRT (%d)' % \
+            (task.name, task_results[task].bcrt, task_results[task].wcrt)
 
 
 def out_event_model(task, task_results):
@@ -777,6 +785,7 @@ class GlobalAnalysisState(object):
                 self.dirtyTasks.add(t)
             for t in task.get_mutex_interferers():
                 # also mark all tasks on the same shared resource
+                print("marked diry, mutex")
                 self.dirtyTasks.add(t)
 
         for t in task.next_tasks:
@@ -892,7 +901,7 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
             #sanity check
             assert functools.reduce(lambda x, y: x and y,\
                            [b - a >= t.wcet for a,b \
-                            in util.window(task_results[t].busy_times)]) == True
+                            in util.window(task_results[t].busy_times)]) == True, "Busy_times: %s" %(str(task_results[t].busy_times))
 
             new_jitter = task_results[t].wcrt - task_results[t].bcrt
             new_busytimes = task_results[t].busy_times
