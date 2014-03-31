@@ -295,3 +295,4 @@ class TDMAScheduler(analysis.Scheduler):
                                       math.ceil(float(q * task.wcet) / task.scheduling_parameter) * (t_tdma - task.scheduling_parameter))
         return w
 
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

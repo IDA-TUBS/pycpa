@@ -359,3 +359,4 @@ def plot_gantt(tasks, task_results, file_name=None, show=True, xlim=None,
         pyplot.show()
 
 
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

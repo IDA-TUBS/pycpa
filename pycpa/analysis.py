@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 
+import gc
 import logging
 import copy
 import time
@@ -33,6 +34,7 @@ from . import options
 from . import util
 from . import path_analysis
 
+gc.enable()
 logger = logging.getLogger(__name__)
 
 
@@ -83,6 +85,72 @@ class TaskResult(object):
         for k in sorted(self.b_wcrt.keys()):
             s += k + ':' + str(self.b_wcrt[k]) + ', '
         return s[:-2]
+
+class JunctionStrategy(object):
+    """ This class encapsulates the junction-specific analysis """
+
+    def __init__(self):
+        self.name = None
+
+    def propagate(self, junction, task_results):
+        """ Propagate event model over a junction """
+        # cut function cycles
+        propagate_tasks = copy.copy(junction.prev_tasks)
+
+        # find potential functional cycles in the app-graph
+        # _propagate tasks are all previous input tasks without cycles
+        subgraph = util.breadth_first_search(junction)
+        for prev in junction.prev_tasks:
+            if prev in subgraph:
+                propagate_tasks.remove(prev)
+
+        if len(propagate_tasks) == 0:
+            raise NotSchedulableException("AND Junction %s "
+                                          "consists only of a functional"
+                                          " cycle without further stimulus"
+                                          % junction)
+
+        # recalculate the output event model
+        self.reload_in_event_models(junction, task_results, propagate_tasks)
+
+        # check if all input event models of this junction are valid, 
+        # i.e. not None
+        if self.out_event_models_valid(junction, propagate_tasks):
+            # All input event models valid. Use junction strategy to
+            # derive output event model.
+            new_output_event_model = self.calculate_out_event_model(junction)
+        else:
+            # Some input event models of this junction are still invalid, 
+            # i.e. None. Propagate "weak" event model in this case.
+            new_output_event_model = self.get_weak_event_model()
+
+        # _assert_event_model_conservativeness(junction.out_event_model,
+        # new_output_event_model)
+        junction.out_event_model = new_output_event_model
+
+        for t in junction.next_tasks:
+            t.in_event_model = junction.out_event_model
+
+    def get_weak_event_model(self):
+        new_output_event_model = model.EventModel()
+        new_output_event_model.deltamin_func = lambda n: (INFINITY)
+        new_output_event_model.deltaplus_func = lambda n: (INFINITY)
+        return new_output_event_model
+
+
+    def reload_in_event_models(self, junction, task_results, non_cycle_prev):
+        """ Helper function, reloads input event models of junction from tasks in non_cycle_prev"""
+        junction.in_event_models.clear()
+        for t in non_cycle_prev:
+            out = out_event_model(t, task_results, junction)
+            if out is not None:
+                junction.in_event_models[t] = out
+
+    def out_event_models_valid(self, junction, non_cycle_prev):
+        return len(non_cycle_prev) == len(junction.in_event_models)
+
+    def __repr__(self):
+        return self.name
 
 
 class Scheduler(object):
@@ -325,7 +393,7 @@ def analyze_task(task, task_results):
             (task.name, task_results[task].bcrt, task_results[task].wcrt)
 
 
-def out_event_model(task, task_results):
+def out_event_model(task, task_results, dst_task=None):
     """ Wrapper to call the actual out_event_model_*,
     which computes the output event model of a task.
     See Chapter 4 in [Richter2005]_ for an overview.
@@ -348,7 +416,14 @@ def out_event_model(task, task_results):
     else:
         raise NotImplementedError
 
-    return OutEventModelClass(task, task_results)
+    em = OutEventModelClass(task, task_results)
+
+    if isinstance(task, model.Fork):
+        assert dst_task is not None
+        task.out_event_model = em
+        return task.strategy.output_event_model(task, dst_task)
+    else:
+        return em
 
 
 class JitterPropagationEventModel(model.EventModel):
@@ -371,7 +446,7 @@ class JitterPropagationEventModel(model.EventModel):
         name = task.in_event_model.__description__ + "+J=" + \
             str(self.resp_jitter) + ",dmin=" + str(self.dmin)
 
-        model.EventModel.__init__(self,name)
+        model.EventModel.__init__(self,name,task.in_event_model.container)
 
         if options.get_opt('propagation') == 'jitter':
             # ignore dmin if propagation is jitter only
@@ -417,7 +492,7 @@ class JitterOffsetPropagationEventModel(model.EventModel):
         name = task.in_event_model.__description__ + "+J=" + \
         str(self.resp_jitter) + ",O=" + str(self.phi)
 
-        model.EventModel.__init__(self,name)
+        model.EventModel.__init__(self,name,task.in_event_model.container)
 
 
         assert self.resp_jitter >= 0, 'response time jitter must be positive'
@@ -448,7 +523,7 @@ class JitterBminPropagationEventModel(model.EventModel):
         name = task.in_event_model.__description__ + "+J=" + \
         str(self.resp_jitter) + ",dmin=" + str(self.dmin)
 
-        model.EventModel.__init__(self,name)
+        model.EventModel.__init__(self,name,task.in_event_model.container)
         assert self.resp_jitter >= 0, 'response time jitter must be positive'
 
 
@@ -480,7 +555,7 @@ class BusyWindowPropagationEventModel(model.EventModel):
         # set proper name
         name = task.in_event_model.__description__ + "++"
 
-        model.EventModel.__init__(self,name)
+        model.EventModel.__init__(self,name,task.in_event_model.container)
 
         self.task = task
         self.dmin = task_results[task].bcrt
@@ -534,7 +609,7 @@ class OptimalPropagationEventModel(JitterBminPropagationEventModel,
         self.nonrecursive = nonrecursive
 
         name = task.in_event_model.__description__ + "++"
-        model.EventModel.__init__(self,name)
+        model.EventModel.__init__(self,name,task.in_event_model.container)
 
     def deltamin_func(self, n):
         return max(JitterBminPropagationEventModel.deltamin_func(self, n),
@@ -543,47 +618,6 @@ class OptimalPropagationEventModel(JitterBminPropagationEventModel,
     def deltaplus_func(self, n):
         return min(JitterBminPropagationEventModel.deltaplus_func(self, n),
                 BusyWindowPropagationEventModel.deltaplus_func(self, n))
-
-def _out_event_model_junction(junction, task_results, non_cycle_prev):
-    """ Calculate the output event model for this junction.
-    Actually a wrapper to .._or and .._and."""
-    junction.in_event_models = set()
-    for t in non_cycle_prev:
-        if out_event_model(t, task_results) is not None:
-            junction.in_event_models.add(out_event_model(t, task_results))
-
-    if len(junction.in_event_models) == 0:
-        return None
-
-    em = None
-    if junction.mode == 'and':
-        em = _out_event_model_junction_and(junction)
-    else:
-        em = _out_event_model_junction_or(junction)
-    return em
-
-
-def _out_event_model_junction_or(junction):
-    """ Compute output event models for an OR junction.
-    This corresponds to Section 4.2, Equations 4.11 and 4.12 in [Jersak2005]_.
-    """
-    raise NotImplementedError("OR not implemented")
-
-
-def _out_event_model_junction_and(junction):
-    """ Compute output event models for an AND junction.
-    This corresponds to Lemma 4.2 in [Jersak2005]_.
-    """
-    assert len(junction.in_event_models) > 0
-    em = model.EventModel()
-    em.deltamin_func = lambda n: (
-        min(emif.delta_min(n) for emif in junction.in_event_models))
-    em.deltaplus_func = lambda n: (
-        max(emif.delta_plus(n) for emif in junction.in_event_models))
-    em.__description__ = "AND " + \
-            "".join([emif.__description__
-                     for emif in junction.in_event_models])
-    return em
 
 
 def _invalidate_event_model_caches(task):
@@ -603,9 +637,9 @@ def _propagate(task, task_results):
         if isinstance(t, model.Task):
             # print("propagating to " + str(t) + "l=", out_event_model(task,
             # task_results).load())
-            t.in_event_model = out_event_model(task, task_results)
+            t.in_event_model = out_event_model(task, task_results, t)
         elif isinstance(t, model.Junction):
-            _propagate_junction(t, task_results)
+            t.strategy.propagate(t, task_results)
         else:
             raise TypeError("invalid propagation target")
 
@@ -616,38 +650,6 @@ def _assert_event_model_conservativeness(emif_small, emif_large, n_max=1000):
         return
     for n in range(2, n_max):
         assert emif_large.delta_min(n) <= emif_small.delta_min(n)
-
-
-def _propagate_junction(junction, task_results):
-    """ Propagate event model over a junction """
-    # cut function cycles
-    propagate_tasks = copy.copy(junction.prev_tasks)
-
-    # find potential functional cycles in the app-graph
-    # _propagate tasks are all previous input tasks without cycles
-    subgraph = util.breadth_first_search(junction)
-    for prev in junction.prev_tasks:
-        if prev in subgraph:
-            propagate_tasks.remove(prev)
-
-    if len(propagate_tasks) == 0:
-        raise NotSchedulableException("AND Junction %s "
-                                      "consists only of a functional"
-                                      " cycle without further stimulus"
-                                      % junction)
-
-    # check if we can reuse the existing output event model
-    for t in propagate_tasks:
-        if out_event_model(t, task_results) not in junction.in_event_models:
-            new_output_event_model = _out_event_model_junction(
-                junction, task_results, propagate_tasks)
-            # _assert_event_model_conservativeness(junction.out_event_model,
-            # new_output_event_model)
-            junction.out_event_model = new_output_event_model
-            break
-
-    for t in junction.next_tasks:
-        t.in_event_model = junction.out_event_model
 
 
 def _event_arrival(task, n, e_0):
@@ -705,6 +707,9 @@ class GlobalAnalysisState(object):
         self.mark_junctions = set()
 
         self._mark_all_dirty(system)
+
+        # # clean old analysis state before we start a new analysis
+        self.clean_analysis_state()
 
         self._init_dependent_tasks(system)
 
@@ -806,18 +811,24 @@ class GlobalAnalysisState(object):
                 inputDependentTask[task] = set()
                 # all tasks on the same shared resource
                 inputDependentTask[task] |= set(task.get_mutex_interferers())
-                for t in task.next_tasks:
-                    if isinstance(t, model.Task):  # skip junctions
-
-                        # all directly dependent task
-                        inputDependentTask[task].add(t)
-
-                        # all tasks on the same resource as directly dependent
-                        # tasks (only for tasks, not junctions)
-                        inputDependentTask[
-                            task] |= set(t.get_resource_interferers())
+                self._add_dependent_tasks(task, task.next_tasks, inputDependentTask)
 
         self.dependentTask = inputDependentTask
+
+    def _add_dependent_tasks(self, task, dependent_tasks, inputDependentTask):
+        """ Helper function for _init_depentent_tasks(). Will be called recursively. """
+        for t in dependent_tasks:
+            if isinstance(t, model.Task):
+                # all directly dependent task
+                inputDependentTask[task].add(t)
+
+                # all tasks on the same resource as directly dependent
+                # tasks (only for tasks, not junctions)
+                inputDependentTask[
+                    task] |= set(t.get_resource_interferers())
+            elif isinstance(t, model.Junction):
+                self._add_dependent_tasks(task, t.next_tasks, inputDependentTask)
+
 
     def _init_analysis_order(self):
         """ Init the ananlysis order,
@@ -883,6 +894,9 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
         logger.info("Analyzing, %d tasks left" %
                    (len(analysis_state.dirtyTasks)))
 
+        # explicitly invoke garbage collection because there seem to be circluar references
+        # TODO should be using weak references instead for model propagation
+        gc_count = gc.collect()
         for t in analysis_state.analysisOrder:
             if t not in analysis_state.dirtyTasks:
                 continue
@@ -1030,3 +1044,4 @@ def _check_load_constrains(constraints, task_results):
         if resource.load() > load:
             violations.append(resource)
     return violations
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

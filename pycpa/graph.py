@@ -53,10 +53,14 @@ class dotgraph(object):
         node_str += ']'
         return node_str
 
-    def add_node(self, name, **kwargs):
+    def add_subnode(self, name, **kwargs):
         node_str = '"{name}"'.format(name=name)
         node_str += self._str_attr(kwargs) + ';\n'
         self.node_strs [name] = node_str
+
+    def add_node(self, name, **kwargs):
+        self.add_subnode(name, **kwargs)
+        self.dot_str += self.node_strs[name]
 
     def add_subgraph(self, nodes, name):
         subgraph_str = 'subgraph "{name}"'.format(name=name)
@@ -154,7 +158,7 @@ def graph_system(s, filename=None, layout='dot',
 
         if g.has_node(r.name):
             print("graph_system warning: duplicate resource %s", r.name)
-        g.add_node(r.name, color='#aaaacc', shape='none')
+        g.add_subnode(r.name, color='#aaaacc', shape='none')
         res_tasks = [r.name]
         for t in r.tasks:
             if g.has_node(t.name):
@@ -168,7 +172,7 @@ def graph_system(s, filename=None, layout='dot',
                 lab += '(%g,%g)' % (t.bcet, t.wcet)
             if sched_param:
                 lab += ' param: %s' % (str(t.scheduling_parameter))
-            g.add_node(t.name, label=str(lab))
+            g.add_subnode(t.name, label=str(lab))
             res_tasks.append(t.name)
             if t.mutex is not None:
                 g.add_node(t.mutex.name, color='#aaccaa', shape='hexagon')
@@ -200,7 +204,7 @@ def graph_system(s, filename=None, layout='dot',
 
 
     if filename is not None:
-        g.draw(filename, prog='dot')
+        g.draw(filename, prog=layout)
 
     if show:
         try:
@@ -213,3 +217,4 @@ def graph_system(s, filename=None, layout='dot',
 
     return g
 
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

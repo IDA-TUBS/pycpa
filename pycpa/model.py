@@ -100,7 +100,7 @@ class EventModel (object):
     :math:`\Delta t`.
     """
 
-    def __init__(self, name='min'):
+    def __init__(self, name='min', container=dict()):
         """ CTOR
         If called without parameters, a maximal event model (unbounded amount
         of activations) is created
@@ -118,6 +118,11 @@ class EventModel (object):
 
         self.eta_min_closed_cache = dict()
         self.eta_plus_closed_cache = dict()
+
+        # # Takes arbitrary objects that will be propagated along
+        # with the event model. 
+        # Remark: propagation stops at junctions (for now)
+        self.container = container
 
         # # String description of event model
         self.__description__ = name
@@ -239,7 +244,8 @@ class EventModel (object):
         # search an upper bound
         while self.delta_min(hi) < w:
             lo = hi
-            hi *= 10
+            hi *= 2
+
 
         # apply binary search
         while lo < hi:
@@ -288,7 +294,7 @@ class EventModel (object):
         # search an upper bound
         while self.delta_min(hi) <= w:
             lo = hi
-            hi *= 10
+            hi *= 2
 
         # apply binary search
         while lo < hi:
@@ -318,21 +324,43 @@ class EventModel (object):
         if n is not None:
             return n
 
+        if w < 0:
+            w = 0
+
         MAX_EVENTS = 10000
-        n = 2
-        while self.delta_plus(n) <= w:
-            assert self.delta_plus(n) <= self.delta_plus(n + 1)
-            if(n > MAX_EVENTS):
-                logger.error("w=%f" % w + " n=%d" % n +
-                             "deltaplus(n)=%d" % self.delta_plus(n))
-                return n
-            n += 1
+        hi = 10
+        lo = 2
+
+        # search an upper bound
+        while self.delta_plus(hi) <= w:
+            if(hi > MAX_EVENTS):
+                logger.error("w=%f" % w + " n=%d" % hi +
+                             "deltaplus(n)=%d" % self.delta_plus(hi))
+                return hi
+            lo = hi
+            hi *= 10
+
+        # apply binary search
+        while lo < hi:
+            mid = (lo + hi) // 2
+            midval = self.delta_plus(mid)
+            if midval <= w:
+                lo = mid + 1
+            else:
+                hi = mid
+        hi -= 1
+
+        if (self.delta_plus(hi) > w):
+            print ("delta_plus(" + str(hi) + ") = " + str(self.delta_plus(hi)) + " > " + str(w))
+        assert self.delta_plus(hi) <= w
+        assert self.delta_plus(hi + 1) > w
 
         if self.en_caching:
-            self.eta_min_cache[w] = n-2
+            self.eta_min_cache[w] = hi-1
 
-        return n - 2
-
+        return hi-1
+   
+    
     def eta_min_closed(self, w):
         """ Eta-minus Function
             Return the minimum number of events in a time window w.
@@ -342,19 +370,40 @@ class EventModel (object):
         if n is not None:
             return n
 
+        if w < 0:
+            w = 0
+
         MAX_EVENTS = 10000
-        n = 2
-        while self.delta_plus(n) < w:
-            if(n > MAX_EVENTS):
-                logger.error("w=%f" % w + " n=%d" % n +
-                             "deltaplus(n)=%d" % self.delta_plus(n))
-                return n
-            n += 1
+        hi = 10
+        lo = 2
+
+        # search an upper bound
+        while self.delta_plus(hi) < w:
+            if(hi > MAX_EVENTS):
+                logger.error("w=%f" % w + " n=%d" % hi +
+                             "deltaplus(n)=%d" % self.delta_plus(hi))
+                return hi
+            lo = hi
+            hi *= 10
+
+        # apply binary search
+        while lo < hi:
+            mid = (lo + hi) // 2
+            midval = self.delta_plus(mid)
+            if midval < w:
+                lo = mid + 1
+            else:
+                hi = mid
+        hi -= 1
+
+        assert self.delta_plus(hi) < w
+        assert self.delta_plus(hi + 1) >= w
 
         if self.en_caching:
-            self.eta_min_closed_cache[w] = n-2
+            self.eta_min_cache[w] = hi-1
 
-        return n - 2
+        return hi-1
+
 
     def delta_min(self, n):
         """ Delta-minus Function
@@ -657,13 +706,13 @@ class Junction (object):
         See Chapter 4 in [Jersak2005]_ for definitions and details.
     """
 
-    def __init__(self, name="unknown", mode='and'):
+    def __init__(self, name="unknown", strategy=None):
         """ CTOR """
         # # Name
         self.name = name
 
-        # # Semantics of the event concatenation
-        self._mode = mode
+        # # Strategy for the model propagation
+        self.strategy = strategy
 
         # # Set of input tasks
         self.prev_tasks = set()
@@ -675,38 +724,42 @@ class Junction (object):
         # i.e. where to supply event model to
         self.next_tasks = set()
 
-        self.in_event_models = set()
+        self.in_event_models = dict()
+
+        # # store analysis results of sampling delay
+        self.analysis_results = dict()
 
         # # at some point Junction looks like a task
         # i.e. provide wcet, bcet for duck-typing
         self.bcet = 0
         self.wcet = 0
 
-    def invalidate_event_model_cache(self):
-        for t in self.next_tasks:
-            t.invalidate_event_model_cache()
+        # # create a task to id mapping
+        self.mapping = dict()
+
+    def map_task(self, src_task, identifier):
+        """ maps an identifier to src_task """
+        self.mapping[src_task] = identifier
 
     @property
     def mode(self):
-        return self._mode
+        return str(self.strategy)
 
-    @mode.setter
-    def mode(self, mode):
-        if mode == "and" or mode == "or":
-            self._mode = mode
-        else:
-            raise TypeError(str(mode) + " is not a supported mode")
+    def invalidate_event_model_cache(self):
+        for t in self.next_tasks:
+            t.invalidate_event_model_cache()
 
     def link_dependent_task(self, task):
         task.prev_task = self
         self.next_tasks.add(task)
 
     def clean(self):
-        """ mark output event model as invalid """
+        """ mark event models as invalid """
         self.out_event_model = None
+        self.in_event_models.clear()
 
     def __repr__(self):
-        return self.name + " " + self.mode + " junction"
+        return self.name + " " + str(self.strategy) + " junction"
 
 
 class Task (object):
@@ -902,6 +955,46 @@ class Resource (object):
         self.tasks = set()
 
 
+class StandardForkStrategy(object):
+    """ Standard fork strategy (unmodified output event model) """
+    def __init__(self):
+        self.name = "Standard"
+
+    def output_event_model(self, fork, *args, **kwargs):
+        return fork.out_event_model
+
+
+class Fork (Task):
+    """ A Fork allows the modification (determined by the assigned strategy)
+        of output event models dependent on the destination task. 
+    """
+
+    def __init__(self, name, strategy=StandardForkStrategy(), *args, **kwargs):
+        # # set default fork strategy
+        self.strategy = strategy
+        
+        # # call Task CTOR
+        Task.__init__(self, name, *args, **kwargs)
+
+        # # store the output event model (used by the fork strategy)
+        self.out_event_model = None
+
+        # # create a task to id mapping
+        self.mapping = dict()
+
+    def clean(self):
+        Task.clean(self)
+        self.out_event_model = None
+        
+    def map_task(self, dst_task, identifier):
+        """ maps an identifier to dst_task """
+        self.mapping[dst_task] = identifier
+
+    def get_mapping(self, dst_task):
+        """ returns the identifier mapped to dst_task (or raises KeyError) """
+        return self.mapping[dst_task]
+
+
 class Mutex(object):
     """ A mutually-exclusive shared Resource.
     Shared resources create timing interferences between tasks
@@ -1062,3 +1155,4 @@ class System(object):
                 logger.info("\t%s" % task)
 
         return subgraphs
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

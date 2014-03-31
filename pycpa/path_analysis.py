@@ -93,6 +93,12 @@ def end_to_end_latency_classic(path, task_results, n=1, injection_rate='max'):
             # sum up best- and worst-case response times
             lmax += task_results[t].wcrt
             lmin += task_results[t].bcrt
+        elif isinstance(t, model.Junction):
+            # add sampling delay induced by the junction (if available)
+            prev_task = tasks[tasks.index(t)-1]
+            if t.analysis_results.has_key(prev_task):
+                lmin += t.analysis_results[prev_task].bcrt
+                lmax += t.analysis_results[prev_task].wcrt
 
     if injection_rate == 'max':
         # add the eastliest possible release of event n
@@ -177,3 +183,4 @@ def end_to_end_latency_improved(path, task_results, n=1):
     lmin += path.tasks[0].in_event_model.delta_min(n)
 
     return lmin, lmax
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

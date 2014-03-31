@@ -19,6 +19,7 @@ from pycpa import analysis
 from pycpa import graph
 from pycpa import schedulers
 from pycpa import options
+from pycpa import junctions
 
 def junction_test():
 
@@ -43,7 +44,7 @@ def junction_test():
     t22 = r2.bind_task(model.Task(name="T22", wcet=6, bcet=4, scheduling_parameter=2))
 
     # add a junction (this is an AND junction by default)
-    j1 = s.bind_junction(model.Junction())
+    j1 = s.bind_junction(model.Junction(name="J1", strategy=junctions.ANDJoin()))
 
     # define the precedence contraints, e.g. t21 AND t22 activate j1, j1 then activates t12
     t11.link_dependent_task(t21)

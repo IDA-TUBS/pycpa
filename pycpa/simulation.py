@@ -330,3 +330,4 @@ class ResourceModel(Simulation):
         self.activate(self.scheduler , self.scheduler.execute(self.resource, task))
 
         self.simulate(until=until)
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
