@@ -851,12 +851,18 @@ class Task (object):
     def link_dependent_task(self, t):
         """ Link a dependent task t to the task
         The dependent task t is activated by the completion of the task.
+
+        This method returns the t argument, which enables elegant task 
+        linking. E.g. to link t0 -> t1 -> t2, call:
+        t0.link_dependent_task(t1).link_dependent_task(t2)
         """
         self.next_tasks.add(t)
         if isinstance(t, Task):
             t.prev_task = self
         else:
             t.prev_tasks.add(self)
+
+        return t
 
     def get_resource_interferers(self):
         """ returns the set of tasks sharing the same Resource as Task ti
