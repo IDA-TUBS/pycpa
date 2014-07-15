@@ -33,7 +33,7 @@ class ORJoin(analysis.JunctionStrategy):
 
     def calculate_out_event_model(self, junction):
         assert len(junction.in_event_models) > 0
-        if len(junctions.in_event_models) > 1:
+        if len(junction.in_event_models) > 1:
             return OREventModel(junction.in_event_models.values())
         else:
             for em in junction.in_event_models:
