@@ -127,8 +127,6 @@ class EventModel (object):
         # # String description of event model
         self.__description__ = name
 
-        self.container = dict()
-
     def deltamin_func(self, n):
         # # Event model delta function (internal)
         # maximal model: unlimited activations
