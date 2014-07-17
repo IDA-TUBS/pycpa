@@ -421,7 +421,7 @@ def out_event_model(task, task_results, dst_task=None):
     if isinstance(task, model.Fork):
         assert dst_task is not None
         task.out_event_model = em
-        return task.strategy.output_event_model(task, dst_task)
+        return task.strategy.output_event_model(task, dst_task, task_results)
     else:
         return em
 
