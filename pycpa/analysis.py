@@ -451,8 +451,6 @@ class JitterPropagationEventModel(model.EventModel):
         if options.get_opt('propagation') == 'jitter':
             # ignore dmin if propagation is jitter only
             self.dmin = 0
-        else:
-            self.dmin = task.bcet
 
         assert self.resp_jitter >= 0, 'response time jitter must be positive'
 
