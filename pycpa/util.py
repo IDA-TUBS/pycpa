@@ -167,7 +167,7 @@ def additive_extension(additive_func, q, q_max, cache=None, cache_offset=1):
             rem = q % q_max
             d = div * additive_func(q_max) + additive_func(rem)
 
-    cache[q] = d
+    cache[q + cache_offset] = d
     return d
 
 def recursive_max_additive(additive_func, q, q_max, cache=None, cache_offset=1):
