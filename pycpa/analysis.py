@@ -421,7 +421,7 @@ def out_event_model(task, task_results, dst_task=None):
     if isinstance(task, model.Fork):
         assert dst_task is not None
         task.out_event_model = em
-        return task.strategy.output_event_model(task, dst_task)
+        return task.strategy.output_event_model(task, dst_task, task_results)
     else:
         return em
 
@@ -451,8 +451,6 @@ class JitterPropagationEventModel(model.EventModel):
         if options.get_opt('propagation') == 'jitter':
             # ignore dmin if propagation is jitter only
             self.dmin = 0
-        else:
-            self.dmin = task.bcet
 
         assert self.resp_jitter >= 0, 'response time jitter must be positive'
 
@@ -463,10 +461,10 @@ class JitterPropagationEventModel(model.EventModel):
                     (n - 1) * self.dmin)
         else:
             return max(self.task.in_event_model.delta_min(n) - self.resp_jitter,
-                        self.delta_min(n - 1) + dmin)
+                        self.delta_min(n - 1) + self.dmin)
 
     def deltaplus_func(self, n):
-        return self.task.in_event_model.delta_plus(n) + resp_jitter
+        return self.task.in_event_model.delta_plus(n) + self.resp_jitter
 
 
 class JitterOffsetPropagationEventModel(model.EventModel):
@@ -541,7 +539,7 @@ class JitterBminPropagationEventModel(model.EventModel):
                         self.delta_min(n - 1) + self.dmin, self.bmin(n))
 
     def deltaplus_func(self, n):
-        return self.task.in_event_model.delta_plus(n) + resp_jitter
+        return self.task.in_event_model.delta_plus(n) + self.resp_jitter
 
 class BusyWindowPropagationEventModel(model.EventModel):
     """ Derive an output event model from busy window
