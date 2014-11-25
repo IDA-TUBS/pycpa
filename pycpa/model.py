@@ -660,33 +660,38 @@ class TraceEventModel (LimitedDeltaEventModel):
 
         trace = trace_points
         q_max  = len(trace_points)
+        try:
+            import numpy
+            nptrace = numpy.array(trace)
+            
+            def raw_deltamin_func(n):
+                a = nptrace[0:q_max-n+1]
+                b = nptrace[(n-1):q_max]
+                d = numpy.amin(b-a)
+                return d
 
-        def raw_deltamin_func(n):
-            """ raw trace deltamin_func, only valid in the interval [0,q_max]
-            """
-            assert n >= 0
-            assert n <= q_max
-            d = float('inf')
-            for q in range(0, q_max - n + 1):
-                seq = trace[q:q + n ]
-                d_new = seq[-1] - seq[0]
-                assert d_new >= 0
-                d = min(d_new, d)
-            return d
+            def raw_deltaplus_func(n):
+                a = nptrace[0:q_max-n+1]
+                b = nptrace[(n-1):q_max]
+                d = numpy.amin(b-a)
+                return d
+                
+        except ImportError:
+            def raw_deltamin_func(n):
+                """ raw trace deltamin_func, only valid in the interval [0,q_max]
+                """
+                assert n >= 0
+                assert n <= q_max
+                d = min(trace[q + n - 1] - trace[q] for q in range(0, q_max - n + 1))
+                return d
 
-
-        def raw_deltaplus_func(n):
-            """ raw trace deltaplus_func, only valid in the interval [0,q_max]
-            """
-            assert n >= 0
-            assert n <= q_max
-            d = 0
-            for q in range(0, q_max - n + 1):
-                seq = trace[q:q + n ]
-                d_new = seq[-1] - seq[0]
-                assert d_new >= 0
-                d = max(d_new, d)
-            return d
+            def raw_deltaplus_func(n):
+                """ raw trace deltaplus_func, only valid in the interval [0,q_max]
+                """
+                assert n >= 0
+                assert n <= q_max
+                d = max(trace[q + n - 1] - trace[q] for q in range(0, q_max - n + 1))
+                return d
 
         # set the trace as a limited delta function and let pycpa extrapolate
         limit_q_max = max(2, q_max - min_sample_size)
@@ -695,7 +700,7 @@ class TraceEventModel (LimitedDeltaEventModel):
                 limit_q_max, limit_q_max, min_additive, max_additive)
 
         self.__description__ = "trace-based"
-
+        
 
 class Junction (object):
     """ A junction combines multiple event models into one output event model
