@@ -41,7 +41,7 @@ propagation_methods = sorted([b'jitter_offset',
                        b'jitter_bmin',
                        b'optimal'])
 
-parser = argparse.ArgumentParser(description='Scheduling Analysis')
+parser = argparse.ArgumentParser(description='Scheduling Analysis', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--max_iterations', type=int,
                     default=MAX_ITERATIONS,
                     help='Maximum number of iterations in a local analysis (default=%d)' % (MAX_ITERATIONS))
