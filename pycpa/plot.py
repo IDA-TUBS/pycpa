@@ -40,8 +40,10 @@ def augment_range(plot_range):
 
     return a_range
 
-def plot_eta(eta, plot_range, label=None, color=None):
+def plot_eta(eta, plot_range, label=None, color=None, show=False,filename=None):
     """ Plot an eta function """
+    pyplot.figure()
+    pyplot.grid(True)
     # range including surroundings of integers to get the steps right
     augmented_range = plot_range + [x + 0.0001 for x in plot_range] + [x - 0.0001 for x in plot_range]
     augmented_range.sort()
@@ -50,6 +52,11 @@ def plot_eta(eta, plot_range, label=None, color=None):
     pyplot.xlim(xmin=0)
     pyplot.ylim(ymin=0)
     pyplot.xlabel("$\Delta t$")
+    if filename is not None:
+        pyplot.savefig(filename, bbox_inches='tight')
+    if show:
+        pyplot.show()
+    
 
 
 def plot_event_model(model, num_events, file_format=None, separate_plots=True, file_prefix='', ticks_at_steps=False):
