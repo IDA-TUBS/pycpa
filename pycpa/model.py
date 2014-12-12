@@ -903,6 +903,9 @@ class Task (object):
         if self.analysis_results is not None:
             self.analysis_results.clean()
 
+    def update_execution_time(self):
+        return
+
 
 class Resource (object):
     """ A Resource provides service to tasks. """
