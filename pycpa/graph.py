@@ -199,8 +199,10 @@ def graph_system(s, filename=None, layout='dot',
                 g.add_edge(t.name, t.mutex.name, color='#aaccaa', len=1)
 
             if t.prev_task is None:
-                g.add_node(str(t.in_event_model), len=10 * elen)
-                g.add_edge(str(t.in_event_model), t.name, constraint='True', style='dashed')
+                g.add_node(str(t.in_event_model), len=10 * elen,
+                           style='dashed')
+                g.add_edge(str(t.in_event_model), t.name, constraint='True',
+                           style='dashed')
 
 
     if filename is not None:
