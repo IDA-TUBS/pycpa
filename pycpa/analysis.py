@@ -113,14 +113,14 @@ class JunctionStrategy(object):
         # recalculate the output event model
         self.reload_in_event_models(junction, task_results, propagate_tasks)
 
-        # check if all input event models of this junction are valid, 
+        # check if all input event models of this junction are valid,
         # i.e. not None
         if self.out_event_models_valid(junction, propagate_tasks):
             # All input event models valid. Use junction strategy to
             # derive output event model.
             new_output_event_model = self.calculate_out_event_model(junction)
         else:
-            # Some input event models of this junction are still invalid, 
+            # Some input event models of this junction are still invalid,
             # i.e. None. Propagate "weak" event model in this case.
             new_output_event_model = self.get_weak_event_model()
 
@@ -283,6 +283,7 @@ class Scheduler(object):
             logger.debug('iteration for q=%d' %(q))
             w = self.b_plus(task, q)
             if task_results:
+                logger.debug('setting results %d', w)
                 task_results[task].busy_times.append(w)
 
             current_response = w - task.in_event_model.delta_min(q)
@@ -986,7 +987,7 @@ def check_violations(constraints, task_results, wcrt=True, path=True,
         violations = violations or (len(latency_violations) > 0)
 
     if backlog == True:
-        backlog_violations = _check_backlog_constrains(constraints, task_results)
+        backlog_violations = _check_backlog_constraints(constraints, task_results)
         for v in backlog_violations:
             logger.error("Backlog constraint violated for task %s,"
                          " backlog=%f, deadline=%d" % (v.name, task_results[v].backlog,
@@ -1023,7 +1024,7 @@ def _check_path_constraints(constraints, task_results):
             violations.append((path, wcl))
     return violations
 
-def _check_backlog_constrains(constraints, task_results):
+def _check_backlog_constraints(constraints, task_results):
     """ Check all backlog constraints and return a list of tasks that violate their constraint.
     """
     violations = list()
