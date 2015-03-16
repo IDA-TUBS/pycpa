@@ -1,5 +1,5 @@
 """
-| Copyright (C) 2012 Philip Axer, Jonas Diemer
+| Copyright (C) 2013-2014 Johannes Schlatow
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.

@@ -7,6 +7,7 @@
 :Authors:
          - Jonas Diemer
          - Philip Axer
+         - Johannes Schlatow
 
 Description
 -----------
