@@ -27,13 +27,13 @@ E.g. if  pygraphviz is not installed, the analysis works but you can't graph you
 
 Setting up pyCPA
 ----------------
-Download and extract the latest pyCPA release from `google code <http://code.google.com/p/pycpa/>`_.
+Download and extract the latest pyCPA release from `Bitbucket <https://bitbucket.org/pycpa/pycpa/>`_.
 Alternatively and currently recommended, you can also clone the mercurial repository.
 Given, that you have a mercurial installation you can clone the repository as follows:
 
 .. code-block:: bash
 
-   $ hg clone https://code.google.com/p/pycpa/ 
+   $ hg clone https://bitbucket.org/pycpa/pycpa/ 
  
 Now, there are three different ways to install pyCPA,
 depending on how you want to use pyCPA.
