@@ -398,7 +398,7 @@ class EventModel (object):
         assert self.delta_plus(hi + 1) >= w
 
         if self.en_caching:
-            self.eta_min_cache[w] = hi-1
+            self.eta_min_closed_cache[w] = hi-1
 
         return hi-1
 
