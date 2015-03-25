@@ -638,6 +638,7 @@ def _propagate(task, task_results):
             # print("propagating to " + str(t) + "l=", out_event_model(task,
             # task_results).load())
             t.in_event_model = out_event_model(task, task_results, t)
+            t.update_execution_time()
         elif isinstance(t, model.Junction):
             t.strategy.propagate(t, task_results)
         else:

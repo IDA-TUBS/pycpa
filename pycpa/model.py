@@ -399,7 +399,7 @@ class EventModel (object):
         assert self.delta_plus(hi + 1) >= w
 
         if self.en_caching:
-            self.eta_min_cache[w] = hi-1
+            self.eta_min_closed_cache[w] = hi-1
 
         return hi-1
 
@@ -908,6 +908,9 @@ class Task (object):
 
         if self.analysis_results is not None:
             self.analysis_results.clean()
+
+    def update_execution_time(self):
+        return
 
 
 class Resource (object):
