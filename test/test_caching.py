@@ -57,9 +57,6 @@ def _run_test(scheduler, priorities):
     return not failed
 
 def test():
-    # init pycpa and trigger command line parsing
-    options.init_pycpa()
-
 #    priorities = [2, 1, 6]
 
     failed = False
