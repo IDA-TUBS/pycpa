@@ -20,7 +20,7 @@ from pycpa import graph
 from pycpa import options
 import itertools
 
-def test(scheduler, priorities):
+def _run_test(scheduler, priorities):
     # generate an new system
     s = model.System()
 
@@ -56,7 +56,7 @@ def test(scheduler, priorities):
 
     return not failed
 
-if __name__ == "__main__":
+def test():
     # init pycpa and trigger command line parsing
     options.init_pycpa()
 
@@ -64,7 +64,10 @@ if __name__ == "__main__":
 
     failed = False
     for priorities in itertools.permutations([1,2,3]):
-        if not test(schedulers.SPPScheduler(), priorities):
+        if not _run_test(schedulers.SPPScheduler(), priorities):
             failed = True
 
     assert not failed
+
+if __name__ == "__main__":
+    test()
