@@ -559,13 +559,13 @@ class BusyWindowPropagationEventModel(model.EventModel):
 
         self.task = task
         self.dmin = task_results[task].bcrt
-        self.task_result = task_results[task]
+        self.bcrt = task_results[task].bcrt
+        self.busy_times = task_results[task].busy_times
 
     def deltamin_func(self, n):
-        busy_times = self.task_result.busy_times
-        max_k = len(busy_times)
+        max_k = len(self.busy_times)
         min_k = 1  # k \elem N+
-        bcrt = self.task_result.bcrt
+        bcrt = self.bcrt
 
         if max_k <= 1:
             # if this task has not been analysed, propagate input event model
@@ -574,15 +574,14 @@ class BusyWindowPropagationEventModel(model.EventModel):
         assert max_k > min_k
 
         return max((n - 1) * self.dmin,
-            min([self.task.in_event_model.delta_min(n + k - 1) - busy_times[k]
+            min([self.task.in_event_model.delta_min(n + k - 1) - self.busy_times[k]
                  for k in range(min_k, max_k)])
             + bcrt)
 
     def deltaplus_func(self, n):
-        busy_times = self.task_result.busy_times
-        max_k = len(busy_times)
+        max_k = len(self.busy_times)
         min_k = 1  # k \elem N+
-        bcrt = self.task_result.bcrt
+        bcrt = self.bcrt
 
         if max_k <= 1:
             # if this task has not been analysed, propagate input event model
@@ -590,7 +589,7 @@ class BusyWindowPropagationEventModel(model.EventModel):
 
         assert max_k > min_k
 
-        return max([self.task.in_event_model.delta_plus(n - k + 1) + busy_times[k]
+        return max([self.task.in_event_model.delta_plus(n - k + 1) + self.busy_times[k]
              for k in range(min_k, max_k)]) - bcrt
 
 class OptimalPropagationEventModel(JitterBminPropagationEventModel,
