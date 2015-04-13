@@ -421,7 +421,7 @@ def out_event_model(task, task_results, dst_task=None):
     if isinstance(task, model.Fork):
         assert dst_task is not None
         task.out_event_model = em
-        return task.strategy.output_event_model(task, dst_task)
+        return task.strategy.output_event_model(task, dst_task, task_results)
     else:
         return em
 
@@ -451,8 +451,6 @@ class JitterPropagationEventModel(model.EventModel):
         if options.get_opt('propagation') == 'jitter':
             # ignore dmin if propagation is jitter only
             self.dmin = 0
-        else:
-            self.dmin = task.bcet
 
         assert self.resp_jitter >= 0, 'response time jitter must be positive'
 
@@ -559,13 +557,13 @@ class BusyWindowPropagationEventModel(model.EventModel):
 
         self.task = task
         self.dmin = task_results[task].bcrt
-        self.task_result = task_results[task]
+        self.bcrt = task_results[task].bcrt
+        self.busy_times = task_results[task].busy_times
 
     def deltamin_func(self, n):
-        busy_times = self.task_result.busy_times
-        max_k = len(busy_times)
+        max_k = len(self.busy_times)
         min_k = 1  # k \elem N+
-        bcrt = self.task_result.bcrt
+        bcrt = self.bcrt
 
         if max_k <= 1:
             # if this task has not been analysed, propagate input event model
@@ -574,15 +572,14 @@ class BusyWindowPropagationEventModel(model.EventModel):
         assert max_k > min_k
 
         return max((n - 1) * self.dmin,
-            min([self.task.in_event_model.delta_min(n + k - 1) - busy_times[k]
+            min([self.task.in_event_model.delta_min(n + k - 1) - self.busy_times[k]
                  for k in range(min_k, max_k)])
             + bcrt)
 
     def deltaplus_func(self, n):
-        busy_times = self.task_result.busy_times
-        max_k = len(busy_times)
+        max_k = len(self.busy_times)
         min_k = 1  # k \elem N+
-        bcrt = self.task_result.bcrt
+        bcrt = self.bcrt
 
         if max_k <= 1:
             # if this task has not been analysed, propagate input event model
@@ -590,7 +587,7 @@ class BusyWindowPropagationEventModel(model.EventModel):
 
         assert max_k > min_k
 
-        return max([self.task.in_event_model.delta_plus(n - k + 1) + busy_times[k]
+        return max([self.task.in_event_model.delta_plus(n - k + 1) + self.busy_times[k]
              for k in range(min_k, max_k)]) - bcrt
 
 class OptimalPropagationEventModel(JitterBminPropagationEventModel,
@@ -638,6 +635,7 @@ def _propagate(task, task_results):
             # print("propagating to " + str(t) + "l=", out_event_model(task,
             # task_results).load())
             t.in_event_model = out_event_model(task, task_results, t)
+            t.update_execution_time()
         elif isinstance(t, model.Junction):
             t.strategy.propagate(t, task_results)
         else:
