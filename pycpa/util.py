@@ -359,16 +359,18 @@ def time_str_to_time(time_str, base_out, rounding="ceil"):
     """
     import re
 
-    m = re.match(r"([0-9]+)(\ *)([a-zA-Z]+)", time_str) 
+    m = re.match(r"([0-9]+\.?[0-9]*)(\ *)([a-zA-Z]+)", time_str) 
     assert len(m.groups()) == 3
     value_str = m.group(1)
     space_str = m.group(2)
     time_base_str = m.group(3)
     assert len(time_str) == len(value_str) + len(space_str) + len(time_base_str)
 
-    value_int = int(value_str)
+    value_float = float(value_str)
+    value_int = time_to_time(value_float, str_to_time_base(time_base_str), base_out, rounding)
+    assert ((value_float == 0.0 and value_int == 0) or (value_float > 0.0 and value_int > 0)), "[ERROR] pycpa:util.time_str_to_time(): could not convert %f %s to %s without precision loss." % (value_float, time_base_str, time_base_to_str(base_out))
 
-    return time_to_time(value_int, str_to_time_base(time_base_str), base_out, rounding)
+    return value_int
 
 
 def bitrate_str_to_bits_per_second(bitrate_str):
@@ -377,9 +379,8 @@ def bitrate_str_to_bits_per_second(bitrate_str):
     """
     import re
 
-    m = re.match(r"([0-9\.]+)(\ *)([a-zA-Z])([bB]it/s)", bitrate_str)
+    m = re.match(r"([0-9]+\.?[0-9]*)(\ *)([a-zA-Z])([bB]it/s)", bitrate_str)
     assert len(m.groups()) == 4
-
     value_str = m.group(1)
     space_str = m.group(2)
     scale = m.group(3)
@@ -388,13 +389,12 @@ def bitrate_str_to_bits_per_second(bitrate_str):
     assert len(scale) == 1
     assert re.match(r"[kKmMgG]", scale) != None
 
-    bits_per_second_int = int(value_str)
     if re.match(r"[kK]", scale):
-        bits_per_second_int *= 1000
+        bits_per_second_int = int(float(value_str) * 1000.0)
     elif re.match(r"[mM]", scale):
-        bits_per_second_int *= 1000000
+        bits_per_second_int = int(float(value_str) * 1000000.0)
     elif re.match(r"[gG]", scale):
-        bits_per_second_int *= 1000000000
+        bits_per_second_int = int(float(value_str) * 1000000000.0)
     else:
         assert False
    
