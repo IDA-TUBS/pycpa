@@ -915,7 +915,7 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
             #sanity check
             assert functools.reduce(lambda x, y: x and y,\
                            [b - a >= t.wcet for a,b \
-                            in util.window(task_results[t].busy_times)]) == True, "Busy_times: %s" %(str(task_results[t].busy_times))
+                            in util.window(task_results[t].busy_times)]) == True, "Busy_times for task %s on resource %s: %s" % (t.name, t.resource.name, str(task_results[t].busy_times))
 
             new_jitter = task_results[t].wcrt - task_results[t].bcrt
             new_busytimes = task_results[t].busy_times
