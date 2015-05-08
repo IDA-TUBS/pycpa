@@ -27,6 +27,28 @@ from . import options
 
 logger = logging.getLogger("pycpa")
 
+class SampledInput(analysis.JunctionStrategy):
+    def __init__(self):
+        self.name = "sampled"
+
+    def set_trigger_event_model(self, trigger_em):
+        assert isinstance(trigger_em, model.EventModel)
+        self.trigger = trigger_em
+
+    def calculate_out_event_model(self, junction):
+        # calculate sampling delay
+        sampling_delay = self.trigger.deltaplus_func(2)
+
+        # set sampling delay for every task that is connected to this junction (used in path analysis)
+        for t in junction.in_event_models:
+            if t is not self.trigger:
+                junction.analysis_results[t] = analysis.TaskResult()
+                junction.analysis_results[t].bcrt = 0
+                junction.analysis_results[t].wcrt = sampling_delay
+
+        # ignore the in_event_models for output event model as the sampling is purely time triggered
+        return self.trigger
+
 class ORJoin(analysis.JunctionStrategy):
     def __init__(self):
         self.name = "or"
