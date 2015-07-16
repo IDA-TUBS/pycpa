@@ -71,6 +71,7 @@ class ANDJoin(analysis.JunctionStrategy):
         self.name = "and"
 
     def calculate_out_event_model(self, junction):
+        # TODO delta_min can be less conservatively computed by the max (not min). See issue #3
         assert len(junction.in_event_models) > 0
         em = model.EventModel()
         em.deltamin_func = lambda n: (
