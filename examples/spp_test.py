@@ -60,7 +60,16 @@ def spp_test():
         for t in sorted(r.tasks, key=str):
             print("%s: wcrt=%d" % (t.name, task_results[t].wcrt))
             print("    b_wcrt=%s" % (task_results[t].b_wcrt_str()))
+            
 
+    expected_wcrt = dict()
+    expected_wcrt[t11] = 10
+    expected_wcrt[t12] = 13
+    expected_wcrt[t21] = 2
+    expected_wcrt[t22] = 19
+
+    for t in expected_wcrt.keys():
+        assert(expected_wcrt[t] == task_results[t].wcrt)
 
 if __name__ == "__main__":
     spp_test()
