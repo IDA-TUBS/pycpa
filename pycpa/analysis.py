@@ -406,6 +406,10 @@ def out_event_model(task, task_results, dst_task=None):
     if task.in_event_model is None:
         return None
 
+    # "shortcut" input event model if propagation is disabled for this task
+    if task.no_propagation:
+        return task.in_event_model
+
     method = options.get_opt('propagation')
     if method == 'jitter_offset':
         OutEventModelClass = JitterOffsetPropagationEventModel
@@ -784,6 +788,7 @@ class GlobalAnalysisState(object):
                 self.dependentTask[t] = set()
 
     def _mark_dirty(self, task):
+        # FIXME dead code
         """ add task and its dependencies to the dirty set """
         if isinstance(task, model.Task):  # skip junctions
             self.dirtyTasks.add(task)
@@ -833,7 +838,7 @@ class GlobalAnalysisState(object):
 
 
     def _init_analysis_order(self):
-        """ Init the ananlysis order,
+        """ Init the analysis order,
         using the number of all potentially tasks that require re-analysis
         as an indicator as to which task to analyze first
         """
@@ -881,8 +886,9 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
         task_results = dict()
         for r in system.resources:
             for t in r.tasks:
-                task_results[t] = TaskResult()
-                t.analysis_results = task_results[t]
+                if not t.no_propagation:
+                    task_results[t] = TaskResult()
+                    t.analysis_results = task_results[t]
 
     analysis_state = GlobalAnalysisState(system, task_results)
 
@@ -905,6 +911,10 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
             start = time.clock()
 
             analysis_state.dirtyTasks.remove(t)
+
+            # skip analysis for tasks w/ disable propagation
+            if t.no_propagation:
+                continue
 
             if only_dependent_tasks and len(analysis_state.
                                             dependentTask[t]) == 0:
