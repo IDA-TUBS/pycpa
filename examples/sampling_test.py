@@ -23,7 +23,7 @@ from pycpa import options
 from pycpa import junctions
 from pycpa import path_analysis
 
-def sampling_test():
+def sampling_test(wclat_results):
 
     options.init_pycpa()
 
@@ -67,6 +67,8 @@ def sampling_test():
     for n in range(1, 11):
         best_case_latency, worst_case_latency = path_analysis.end_to_end_latency(s1, results, n)
         print("stream S1 e2e latency. best case: %d, worst case: %d" % (best_case_latency, worst_case_latency))
+        assert(worst_case_latency == wclat_results[n-1])
 
 if __name__ == "__main__":
-    sampling_test()
+    wclat_results = [59, 74, 104, 134, 164, 194, 224, 254, 284, 314]
+    sampling_test(wclat_results)

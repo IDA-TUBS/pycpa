@@ -100,7 +100,7 @@ class JunctionStrategy(object):
 
         # find potential functional cycles in the app-graph
         # _propagate tasks are all previous input tasks without cycles
-        # TODO This should only be done for AND junctions (see issue #4).
+        # TODO This should only be done for OR junctions (see issue #4).
         subgraph = util.breadth_first_search(junction)
         for prev in junction.prev_tasks:
             if prev in subgraph:
