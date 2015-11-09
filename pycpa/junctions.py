@@ -53,6 +53,17 @@ class ORJoin(analysis.JunctionStrategy):
     def __init__(self):
         self.name = "or"
 
+    def _filter_propagate_tasks(self, junction, propagate_tasks):
+        # find potential functional cycles in the app-graph
+        # propagate tasks are all previous input tasks without cycles
+        subgraph = util.breadth_first_search(junction)
+        for prev in junction.prev_tasks:
+            if prev in subgraph:
+                logger.warning("Cutting functional cycle at join. PLEASE BE SURE THAT YOU KNOW WHAT YOU'RE DOING!")
+                propagate_tasks.remove(prev)
+
+        return propagate_tasks
+
     def calculate_out_event_model(self, junction):
         assert len(junction.in_event_models) > 0
         if len(junction.in_event_models) > 1:

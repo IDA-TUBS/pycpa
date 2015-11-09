@@ -93,22 +93,16 @@ class JunctionStrategy(object):
     def __init__(self):
         self.name = None
 
+    def _filter_propagate_tasks(self, junction, propagate_tasks):
+        return propagate_tasks
+
     def propagate(self, junction, task_results):
         """ Propagate event model over a junction """
         # cut function cycles
-        propagate_tasks = copy.copy(junction.prev_tasks)
-
-        # find potential functional cycles in the app-graph
-        # _propagate tasks are all previous input tasks without cycles
-        # TODO This should only be done for OR junctions (see issue #4).
-        subgraph = util.breadth_first_search(junction)
-        for prev in junction.prev_tasks:
-            if prev in subgraph:
-                logger.warning("Cutting functional cycle at join.")
-                propagate_tasks.remove(prev)
+        propagate_tasks = self._filter_propagate_tasks(junction, copy.copy(junction.prev_tasks))
 
         if len(propagate_tasks) == 0:
-            raise NotSchedulableException("AND Junction %s "
+            raise NotSchedulableException("Junction %s "
                                           "consists only of a functional"
                                           " cycle without further stimulus"
                                           % junction)
