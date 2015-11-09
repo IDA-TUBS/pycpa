@@ -60,3 +60,7 @@ The [documentation](http://readthedocs.org/docs/pycpa/en/latest/) is hosted on r
 
 ##Other
 You may also want to look at [SMFF](http://smff.sourceforge.net/).
+
+##Publications
+A list of publications can be found at [publications](TODO).
+Please let us know about if you used/extended pyCPA for any of your publications so we can add it to the list.
