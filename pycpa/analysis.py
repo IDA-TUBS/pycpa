@@ -601,6 +601,8 @@ class OptimalPropagationEventModel(JitterBminPropagationEventModel,
         self.task_result = task_results[task]
         self.dmin = task_results[task].bcrt
         self.resp_jitter = task_results[task].wcrt - task_results[task].bcrt
+        self.busy_times = task_results[task].busy_times
+        self.bcrt = task_results[task].bcrt
         self.nonrecursive = nonrecursive
 
         name = task.in_event_model.__description__ + "++"
