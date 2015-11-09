@@ -6,6 +6,7 @@
 
 :Authors:
          - Philip Axer
+         - Johannes Schlatow
 
 Description
 -----------
@@ -16,12 +17,13 @@ Simple and-junction analysis
 
 from pycpa import model
 from pycpa import analysis
+from pycpa import path_analysis
 from pycpa import graph
 from pycpa import schedulers
 from pycpa import options
 from pycpa import junctions
 
-def junction_test():
+def junction_test(expected_wcrt, expected_wclat):
 
     options.init_pycpa()
 
@@ -58,17 +60,35 @@ def junction_test():
     # graph the system
     graph.graph_system(s, "junction_example.pdf")
 
+    # register paths
+    s1 = s.bind_path(model.Path("S1", [t11, t21, j1, t12]))
+    s2 = s.bind_path(model.Path("S2", [t11, t22, j1, t12]))
+    paths = [s1, s2]
+
     # analyze the system
     print("Performing analysis")
     results = analysis.analyze_system(s)
 
-
     # print the results
+    n = 0
     print("Result:")
     for r in sorted(s.resources, key=str):
         print "load on resource %s: %0.2f" % (r.name, r.load())
         for t in sorted(r.tasks, key=str):
             print "  task %s - wcrt: %d" % (t.name, results[t].wcrt)
+            assert(results[t].wcrt == expected_wcrt[n])
+            n = n+1
+
+    # calculate the S1 latency for the first 50 events
+    i = 0
+    for p in range(0, len(paths)):
+        for n in range(1, 6):
+            best_case_latency, worst_case_latency = path_analysis.end_to_end_latency(paths[p], results, n)
+            print("stream %s e2e latency. best case: %d, worst case: %d" % (paths[p].name, best_case_latency, worst_case_latency))
+            assert(worst_case_latency == expected_wclat[i])
+            i += 1
 
 if __name__ == "__main__":
-    junction_test()
+    expected_wcrt = [3, 6, 4, 10]
+    expected_wclat = [66, 81, 111, 141, 171, 72, 87, 117, 147, 177]
+    junction_test(expected_wcrt, expected_wclat)

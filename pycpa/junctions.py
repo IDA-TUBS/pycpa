@@ -71,7 +71,6 @@ class ANDJoin(analysis.JunctionStrategy):
         self.name = "and"
 
     def calculate_out_event_model(self, junction):
-        # TODO delta_min can be less conservatively computed by the max (not min). See issue #3
         assert len(junction.in_event_models) > 0
         em = model.EventModel()
         em.deltamin_func = lambda n: (
@@ -81,6 +80,17 @@ class ANDJoin(analysis.JunctionStrategy):
         em.__description__ = "AND " + \
                 "".join([emif.__description__
                          for emif in junction.in_event_models.values()])
+
+        # calculate waiting delay for every task connected to this junction (see issue #6)
+        # FIXME: this is rather conservative but could be improved if the input event models have a
+        #        common source
+        for t in junction.in_event_models:
+            waiting_delay = max(emif.delta_plus(2) for emif in junction.in_event_models.values() if emif is not t)
+
+            junction.analysis_results[t] = analysis.TaskResult()
+            junction.analysis_results[t].bcrt = 0
+            junction.analysis_results[t].wcrt = waiting_delay
+
         return em
 
 

@@ -21,7 +21,7 @@ from pycpa import analysis
 from pycpa import path_analysis
 from pycpa import options
 
-def e2e_test():
+def e2e_test(expected_wclat):
     options.init_pycpa()
 
     # generate an new system
@@ -52,7 +52,9 @@ def e2e_test():
     for n in range(1, 11):
         best_case_latency, worst_case_latency = path_analysis.end_to_end_latency(s1, task_results, n)
         print("stream S1 e2e latency. best case: %d, worst case: %d" % (best_case_latency, worst_case_latency))
+        assert(worst_case_latency == expected_wclat[n-1])
 
 
 if __name__ == "__main__":
-    e2e_test()
+    expected_wclat = [11, 12, 16, 20, 24, 28, 32, 36, 40, 44]
+    e2e_test(expected_wclat)
