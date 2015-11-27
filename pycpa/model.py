@@ -171,8 +171,9 @@ class EventModel (object):
                     hi = mid
             hi -= 1
 
-            assert etaplus_func(hi) < n
-            assert etaplus_func(hi + 1) >= n
+            if hi >= 0:
+                assert etaplus_func(hi) < n
+                assert etaplus_func(hi + 1) >= n
 
             return  int(math.floor(hi))
         return delta_min
@@ -210,8 +211,9 @@ class EventModel (object):
                     hi = mid
             hi -= 1
 
-            assert etamin_func(hi) < n - 1
-            assert etamin_func(hi + 1) >= n - 1
+            if hi >= 0:
+                assert etamin_func(hi) < n - 1
+                assert etamin_func(hi + 1) >= n - 1
 
             return  int(math.floor(hi+1))
         return delta_plus
