@@ -1126,6 +1126,12 @@ class System(object):
         self.resources.add(r)
         return r
 
+    def get_resource_by_name(self, resource_name):
+        for r in self.resources:
+            if r.name == resource_name:
+                return r
+        return None
+
     def bind_path(self, path):
         """ Add a Path to the System """
         self.paths.add(path)
