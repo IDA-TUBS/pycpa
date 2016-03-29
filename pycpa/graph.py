@@ -104,7 +104,8 @@ class dotgraph(object):
 
 
     def string(self):
-        return self.dot_str
+        dot_str = self.dot_str + '}\n' # close graph
+        return dot_str
 
 
 def graph_system(s, filename=None, layout='dot',
