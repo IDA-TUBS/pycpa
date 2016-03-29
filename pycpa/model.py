@@ -806,6 +806,9 @@ class Task (object):
         # # Event model activating the Task
         self.in_event_model = None
 
+        # # Do not calculate/propagated output event model
+        self.no_propagation = False
+
         self.analysis_results = None
 
         # compatability to the old call semantics (name, bcet, wcet,
