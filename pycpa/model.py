@@ -969,6 +969,12 @@ class Resource (object):
             task.resource = None
         self.tasks = set()
 
+    def get_task_by_name(self, name):
+        for t in self.tasks:
+            if t.name == name:
+                return t
+        return None
+
 
 class StandardForkStrategy(object):
     """ Standard fork strategy (unmodified output event model) """
