@@ -99,6 +99,8 @@ def end_to_end_latency_classic(path, task_results, n=1, injection_rate='max'):
             if prev_task in t.analysis_results:
                 lmin += t.analysis_results[prev_task].bcrt
                 lmax += t.analysis_results[prev_task].wcrt
+        else:
+            print("Warning: no task_results for task %s" % t.name)
 
     if injection_rate == 'max':
         # add the eastliest possible release of event n
