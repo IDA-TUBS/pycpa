@@ -951,7 +951,7 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
 
         # # check for constraint violations
         if options.get_opt("check_violations"):
-            violations = system.constraints.check_violations(task_results)
+            violations = check_violations(system.constraints, task_results)
             if violations == True:
                 logger.error("Analysis stopped!")
                 break
