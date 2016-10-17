@@ -24,6 +24,7 @@ import logging
 from . import analysis
 from . import model
 from . import options
+from . import util
 
 logger = logging.getLogger("pycpa")
 
