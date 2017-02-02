@@ -61,7 +61,7 @@ def end_to_end_latency(path, task_results, n=1 , task_overhead=0,
 
     return (lmin, lmax)
 
-def end_to_end_latency_classic(path, task_results, n=1, injection_rate='max'):
+def end_to_end_latency_classic(path, task_results, n=1, injection_rate='max', **kwargs):
     """ Computes the worst-/best-case end-to-end latency
     Assumes that all tasks in the system have successfully been analyzed.
     Assumes that events enter the path at maximum/minumum rate.
@@ -135,50 +135,58 @@ def _event_arrival_path(path, n, e_0=0):
     return e
 
 
-def _event_exit_path(path, i, n):
+def _event_exit_path(path, task_results, i, n, e_0=0):
     """ Returns the latest exit time of the n-th event
     relative to the arrival of an event 0
     (cf. Lemma 2 in [Schliecker2009recursive]_)
+    In contrast to Lemma 2, k_max is set so that all busy times
+    are taken into account.
     """
 
     # logger.debug("calculating exit for task %d, n=%d" % (i, n))
 
     if i == -1:
-        # Task -1 is the input event model of task 0,
-        # so compute the arrival of n events at task 0
-        e = _event_arrival_path(path, n)
+        # The exit of task -1 is the arrival of task 0.
+        e = _event_arrival_path(path, n, e_0)
+    elif path.tasks[i] not in task_results:
+        # skip task if there are no results for this
+        # (this may happen if, e.g., a chain analysis has been performed)
+        return _event_exit_path(path, task_results, i-1, n, e_0)
     else:
         e = float('-inf')
-        k_max = len(path.tasks[i - 1].busy_times)
+        k_max = len(task_results[path.tasks[i]].busy_times)
         # print("k_max:",k_max)
-        for k in range(k_max + 1):
-            e_k = _event_exit_path(path, i - 1, n - k) + \
-                    path.tasks[i].busy_time(k + 1)
+        for k in range(1, k_max):
+            e_k = _event_exit_path(path, task_results, i - 1, n - k + 1, e_0) + \
+                    task_results[path.tasks[i]].busy_times[k]
 
             # print("e_k:",e_k)
             if e_k > e:
-                # logger.debug("task %d, n=%d k=%d, new e=%d" % (i, n, k, e_k))
+                # print("task %d, n=%d k=%d, new e=%d" % (i, n, k, e_k))
                 e = e_k
 
-    # logger.debug("exit for task %d, n=%d is %d" % (i, n, e))
+    # print("exit for task %d, n=%d is %d" % (i, n, e))
     return e
 
 
-def end_to_end_latency_improved(path, task_results, n=1):
+def end_to_end_latency_improved(path, task_results, n=1, e_0=0, **kwargs):
     """ Performs the path analysis presented in [Schliecker2009recursive]_,
     which improves results compared to end_to_end_latency() for
     n>1 and bursty event models.
     lat(n)
-    FIXME: BROKEN
     """
     lmax = 0
     lmin = 0
-    lmax = _event_exit_path(path, len(path.tasks) - 1, n - 1) - 0
+    lmax = _event_exit_path(path, task_results, len(path.tasks) - 1, n - 1, e_0) - e_0
 
     for t in path.tasks:
-        if isinstance(t, model.Task):
+        if isinstance(t, model.Task) and t in task_results:
             # sum up best-case response times
-            lmin += t.bcrt
+            lmin += task_results[t].bcrt
+        elif isinstance(t, model.Junction):
+            print("Error: path contains junctions")
+        else:
+            print("Warning: no task_results for task %s" % t.name)
 
     # add the earliest possible release of event n
     # TODO: Can lmin be improved?

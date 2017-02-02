@@ -654,39 +654,6 @@ def _assert_event_model_conservativeness(emif_small, emif_large, n_max=1000):
         assert emif_large.delta_min(n) <= emif_small.delta_min(n)
 
 
-def _event_arrival(task, n, e_0):
-    """ Returns the latest arrival time of the n-th event
-    with respect to an event 0
-    (cf. [schliecker2010recursive], Lemma 1)
-    """
-
-    if n > 0:
-        e = e_0 + task.in_event_model.delta_plus(n + 1)
-    elif n < 0:
-        e = e_0 - task.in_event_model.delta_min(-n + 1)
-    else:
-        e = 0  # same event, so the difference is 0
-
-    return e
-
-
-def _event_exit(task, n, e_0):
-    """ Returns the latest exit time of the n-th event
-    relative to the arrival of an event 0
-    (cf. [schliecker2010recursive], Lemma 2)
-    """
-    e = 0
-
-    k_max = task.prev_task.in_event_model.delta_min(task.wcrt)
-    print("k_max:", k_max)
-    for k in range(k_max + 1):
-        print("k:", k)
-        e_k = task.event_arrival(n - k, e_0) + task.busy_time(k + 1)
-        if e_k > e:
-            e = e_k
-
-    return e
-
 
 class GlobalAnalysisState(object):
     """ Everything that is persistent during one analysis run is stored here.
