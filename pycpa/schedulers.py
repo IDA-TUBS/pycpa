@@ -23,6 +23,7 @@ import logging
 
 from . import analysis
 from . import options
+from . import model
 
 logger = logging.getLogger("pycpa")
 
@@ -40,7 +41,7 @@ class RoundRobinScheduler(analysis.Scheduler):
     task.scheduling_parameter is the respective slot size
     """
 
-    def b_plus(self, task, q, details=None):
+    def b_plus(self, task, q, details=None, **kwargs):
         w = q * task.wcet
         # print "q=",q
         while True:
@@ -144,7 +145,7 @@ class SPNPScheduler(analysis.Scheduler):
         return False
 
 
-    def b_plus(self, task, q, details=None):
+    def b_plus(self, task, q, details=None, **kwargs):
         """ Return the maximum time required to process q activations
         """
         assert(task.scheduling_parameter != None)
@@ -199,7 +200,7 @@ class SPPScheduler(analysis.Scheduler):
         # # priority ordering
         self.priority_cmp = priority_cmp
 
-    def b_plus(self, task, q, details=None):
+    def b_plus(self, task, q, details=None, **kwargs):
         """ This corresponds to Theorem 1 in [Lehoczky1990]_ or Equation 2.3 in [Richter2005]_. """
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
@@ -232,12 +233,258 @@ class SPPScheduler(analysis.Scheduler):
 
             w = w_new
 
+class CorrelatedDeltaMin(model.EventModel):
+    def __init__(self, em, m, offset):
+        model.EventModel.__init__(self, 'tmp')
+
+        self.em = em
+        self.m = m
+        self.offset = offset
+
+    def deltamin_func(self, n):
+        if n <= self.m:
+            return self.em.deltamin_func(n)
+        elif n == self.m + 1:
+            return max(self.em.deltamin_func(n), self.offset)
+        else:
+            return max(self.em.deltamin_func(n), self.offset + self.em.deltamin_func(n - self.m))
+
+class SPPSchedulerCorrelatedRox(SPPScheduler):
+    """ SPP scheduler with dmin correlation.
+        Computes the approximate response time bound as presented in [Rox2010].
+    """
+
+    def b_plus_idle(self, task, q, details=None, task_results=None):
+        assert(task.scheduling_parameter != None)
+        assert(task.wcet >= 0)
+
+        w = q * task.wcet
+        while True:
+            details.clear()
+            details['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
+
+            idle_intrf = 0
+            idle_details = dict()
+
+            for ti in task.get_resource_interferers():
+                assert(ti.scheduling_parameter != None)
+                assert(ti.resource == task.resource)
+                if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):  # equal priority also interferes (FCFS)
+
+                    idle_intrf += ti.wcet * ti.in_event_model.eta_plus(w-ti.in_event_model.correlated_dmin(task))
+                    idle_details[str(ti)+':eta*WCET'] = str(ti.in_event_model.eta_plus(w-ti.in_event_model.correlated_dmin(task))) + '*' +\
+                            str(ti.wcet) + '=' + str(ti.wcet * ti.in_event_model.eta_plus(w-ti.in_event_model.correlated_dmin(task)))
+
+            w_new = q * task.wcet + idle_intrf
+            for d in idle_details.keys():
+                details[d] = idle_details[d]
+
+            if w == w_new:
+                break
+            w = w_new
+
+        assert(w >= q * task.wcet)
+        return w
+
+    def b_plus_busy(self, task, q, details=None, task_results=None):
+        assert(task.scheduling_parameter != None)
+        assert(task.wcet >= 0)
+
+        w = q * task.wcet
+        while True:
+            details.clear()
+            details['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
+
+            busy_intrf = 0
+            busy_details = dict()
+
+            interferers = set()
+            for ti in task.get_resource_interferers():
+                assert(ti.scheduling_parameter != None)
+                assert(ti.resource == task.resource)
+                if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):  # equal priority also interferes (FCFS)
+                    interferers.add(ti)
+
+            for ti in interferers:
+
+                # ti starts busy window -> iterate candidates of task's first arrival
+                qmax = len(task_results[ti].busy_times)
+                for q in range(1, qmax):
+                    intrf = 0
+                    intrf_details = dict()
+                    a0 = ti.in_event_model.delta_min(q) + task.in_event_model.correlated_dmin(ti)
+
+                    for tj in interferers:
+                        if tj is ti:
+                            mj = q
+                        else:
+                            mj = tj.in_event_model.eta_plus(a0 - task.in_event_model.correlated_dmin(ti))
+
+                        em = CorrelatedDeltaMin(tj.in_event_model, mj, a0 + tj.in_event_model.correlated_dmin(task))
+                        intrf += tj.wcet * em.eta_plus(w + a0)
+                        intrf_details[str(tj)+':eta*WCET'] = str(em.eta_plus(w+a0)) + '+' + str(tj.wcet) +\
+                                '=' + str(tj.wcet * em.eta_plus(w + a0))
+
+                    intrf -= a0
+                    intrf_details[str(ti)+':offset'] = str(a0)
+
+                    if intrf > busy_intrf:
+                        busy_intrf = intrf
+                        busy_details = intrf_details
+
+            w_new = q * task.wcet + busy_intrf
+            for d in busy_details.keys():
+                details[d] = busy_details[d]
+
+            if w == w_new:
+                break
+            w = w_new
+
+        assert(w >= q * task.wcet)
+        return w
+
+    def b_plus(self, task, q, details=None, task_results=None):
+        assert(task.scheduling_parameter != None)
+        assert(task.wcet >= 0)
+
+        idle_details     = dict()
+        idle_intrf = self.b_plus_idle(task, q, idle_details, task_results)
+
+        busy_details     = dict()
+        busy_intrf = self.b_plus_busy(task, q, busy_details, task_results)
+
+        if idle_intrf > busy_intrf:
+            w = idle_intrf
+            if details is not None:
+                for d in idle_details.keys():
+                    details[d] = idle_details[d]
+        else:
+            w = busy_intrf
+            if details is not None:
+                for d in busy_details.keys():
+                    details[d] = busy_details[d]
+
+#        classic_details  = dict()
+#        classic_intrf = SPPScheduler.b_plus(self, task, q, classic_details)
+#        if classic_intrf < w:
+#            w = classic_intrf
+#            if details is not None:
+#                for d in classic_details.keys():
+#                    details[d] = classic_details[d]
+
+        return w
+
+class SPPSchedulerCorrelatedRoxExact(SPPScheduler):
+    """ SPP scheduler with dmin correlation based on [Rox2010].
+        This is the exact version which performs an extensive search of busy window candidates.
+    """
+
+    def calculate_w(self, task, sequence, details=None):
+        w = 0
+        q_cur = 0
+        a0 = 0
+        for ti, a in sequence:
+            w += ti.wcet
+
+            if details is not None:
+                details[str(ti)+':'+str(a)] = str(ti.wcet)
+
+            if ti is task:
+                q_cur += 1
+                if q_cur == 1:
+                    a0 = a
+
+        return w, a0, q_cur
+
+    def find_candidates_recursive(self, task, q, interferers, sequence):
+
+        w, a0, q_cur = self.calculate_w(task, sequence)
+
+        if q > q_cur:
+            interferers.add(task)
+        elif task in interferers:
+            interferers.remove(task)
+
+        # place further activations and find maximum w
+        worst_sequence = sequence
+        for ti in interferers:
+            w_new = 0
+            new_sequence = list(sequence)
+            if len(new_sequence):
+                last_t, last_a = new_sequence[-1]
+                d_i = last_a + ti.in_event_model.correlated_dmin(last_t)
+                dmin = last_a
+
+                k = 0
+                for (tj, a) in new_sequence:
+                    if tj is ti:
+                        if k == 0:
+                            first_a = a
+
+                        dmin = first_a + ti.in_event_model.delta_min(2 + k)
+                        k += 1
+
+                next_a = max(dmin, d_i)
+                if next_a <= w:
+                    new_sequence.append( (ti, next_a) )
+                    new_sequence = self.find_candidates_recursive(task, q, set(interferers), new_sequence)
+            else:
+                new_sequence.append((ti, 0))
+                new_sequence = self.find_candidates_recursive(task, q, set(interferers), new_sequence)
+
+            w_new, a0, q_cur = self.calculate_w(task, new_sequence)
+            if w_new >= w and q == q_cur:
+                w = w_new
+                worst_sequence = new_sequence
+
+        return worst_sequence
+
+    def b_plus_exact(self, task, q, details=None, task_results=None):
+        assert(task.scheduling_parameter != None)
+        assert(task.wcet >= 0)
+
+        interferers = set()
+        for ti in task.get_resource_interferers():
+            assert(ti.scheduling_parameter != None)
+            assert(ti.resource == task.resource)
+            if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):  # equal priority also interferes (FCFS)
+                interferers.add(ti)
+
+        sequence = self.find_candidates_recursive(task, q, interferers, list())
+        w, a0, q_cur = self.calculate_w(task, sequence, details)
+
+        assert(q == q_cur)
+        return w - a0
+
+    def b_plus(self, task, q, details=None, task_results=None):
+        assert(task.scheduling_parameter != None)
+        assert(task.wcet >= 0)
+
+        busy_details     = dict()
+        busy_intrf = self.b_plus_exact(task, q, busy_details, task_results)
+
+        w = busy_intrf
+        if details is not None:
+            for d in busy_details.keys():
+                details[d] = busy_details[d]
+
+#        classic_details  = dict()
+#        classic_intrf = SPPScheduler.b_plus(self, task, q, classic_details)
+#        if classic_intrf < w:
+#            w = classic_intrf
+#            if details is not None:
+#                for d in classic_details.keys():
+#                    details[d] = classic_details[d]
+
+        assert(w >= q * task.wcet)
+        return w
+
 
 class SPPSchedulerRoundRobin(SPPScheduler):
     """ SPP scheduler with non-preemptive round-robin policy for equal priorities
     """
 
-    def b_plus(self, task, q, details=None):
+    def b_plus(self, task, q, details=None, **kwargs):
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 
@@ -273,7 +520,7 @@ class TDMAScheduler(analysis.Scheduler):
         task.scheduling_parameter is the slot size of the respective task
     """
 
-    def b_plus(self, task, q, details=None):
+    def b_plus(self, task, q, details=None, **kwargs):
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 

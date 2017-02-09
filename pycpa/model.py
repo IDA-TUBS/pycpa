@@ -89,7 +89,6 @@ class ConstraintsManager(object):
         self._load_constraints[resource] = load
 
 
-
 class EventModel (object):
     """ The event model describing the activation of tasks as described
     in [Jersak2005]_, [Richter2005]_, [Henia2005]_.
@@ -520,6 +519,13 @@ class PJdEventModel (EventModel):
     def deltamin_func(self, n):
         return max((n - 1) * self.dmin, (n - 1) * self.P - self.J)
 
+class CorrelatedEventModel (EventModel):
+    def __init__(self, *args, **kwargs):
+        EventModel.__init__(self, args, kwargs)
+
+    def correlated_dmin(self, task):
+        return None
+
 
 class CTEventModel (EventModel):
     """ c events every T time event model.
@@ -806,8 +812,13 @@ class Task (object):
         # # Event model activating the Task
         self.in_event_model = None
 
-        # # Do not calculate/propagated output event model
-        self.no_propagation = False
+        # # Omit analysis
+        self.skip_analysis = False
+
+        # # Set event model propagation
+        from . import propagation
+        if not 'OutEventModelClass' in kwargs:
+            self.OutEventModelClass = propagation.default_propagation_method()
 
         self.analysis_results = None
 
