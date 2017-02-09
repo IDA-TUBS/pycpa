@@ -407,6 +407,7 @@ class SPPSchedulerCorrelatedRoxExact(SPPScheduler):
 
         # place further activations and find maximum w
         worst_sequence = sequence
+        worst_rt = w - a0
         for ti in interferers:
             w_new = 0
             new_sequence = list(sequence)
@@ -433,8 +434,8 @@ class SPPSchedulerCorrelatedRoxExact(SPPScheduler):
                 new_sequence = self.find_candidates_recursive(task, q, set(interferers), new_sequence)
 
             w_new, a0, q_cur = self.calculate_w(task, new_sequence)
-            if w_new >= w and q == q_cur:
-                w = w_new
+            if w_new - a0 >= worst_rt and q == q_cur:
+                worst_rt = w_new - a0
                 worst_sequence = new_sequence
 
         return worst_sequence
