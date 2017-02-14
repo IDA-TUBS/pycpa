@@ -1,11 +1,18 @@
 """
 :Authors:
          - Marc Boyer
+         - Johannes Schlatow
 
 Description
 -----------
 
-Simple FCFS example with two flows and a single link
+Implementation of the example given in
+   "Exploiting Inter-Event Stream Correlations Between Output Event
+    Streams of non-Preemptively Scheduled Tasks", Jonas Rox and Rolf
+    Ernst
+    http://dl.acm.org/citation.cfm?id=1870980
+
+Made of one CAN bus and one CPU.
 """
 
 

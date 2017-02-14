@@ -405,9 +405,13 @@ class SPPSchedulerCorrelatedRoxExact(SPPScheduler):
         elif task in interferers:
             interferers.remove(task)
 
-        # place further activations and find maximum w
         worst_sequence = sequence
-        worst_rt = w - a0
+        if q > q_cur:
+            worst_rt = 0
+        else:
+            worst_rt = w - a0
+
+        # place further activations and find maximum w
         for ti in interferers:
             w_new = 0
             new_sequence = list(sequence)
