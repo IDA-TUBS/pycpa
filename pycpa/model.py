@@ -925,7 +925,7 @@ class Task (object):
         if self.analysis_results is not None:
             self.analysis_results.clean()
 
-    def update_execution_time(self):
+    def update_execution_time(self, task_results=None):
         return
 
 

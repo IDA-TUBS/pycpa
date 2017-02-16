@@ -383,6 +383,8 @@ def analyze_task(task, task_results):
     assert (task.bcet <= task.wcet), 'BCET must not be larger '\
             'than WCET for task %s' % (task.name)
 
+    task.update_execution_time(task_results)
+
     task.resource.scheduler.compute_bcrt(task, task_results)
     task.resource.scheduler.compute_wcrt(task, task_results)
     task.resource.scheduler.compute_max_backlog(task, task_results)
@@ -432,7 +434,6 @@ def _propagate(task, task_results):
             # print("propagating to " + str(t) + "l=", out_event_model(task,
             # task_results).load())
             t.in_event_model = out_event_model(task, task_results, t)
-            t.update_execution_time()
         elif isinstance(t, model.Junction):
             t.strategy.propagate(t, task_results)
         else:

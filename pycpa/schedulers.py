@@ -249,6 +249,9 @@ class CorrelatedDeltaMin(model.EventModel):
         else:
             return max(self.em.deltamin_func(n), self.offset + self.em.deltamin_func(n - self.m))
 
+    def deltaplus_func(self, n):
+        return self.em.deltaplus_func(n)
+
 class SPPSchedulerCorrelatedRox(SPPScheduler):
     """ SPP scheduler with dmin correlation.
         Computes the approximate response time bound as presented in [Rox2010].
