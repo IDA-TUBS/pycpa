@@ -195,7 +195,7 @@ class BusyWindowPropagationEventModel(model.EventModel):
 
         if max_k <= 1:
             # if this task has not been analysed, propagate input event model
-            return self.task.in_event_model.delta_min(n)
+            return self.task.in_event_model.delta_plus(n)
 
         assert max_k > min_k
 
