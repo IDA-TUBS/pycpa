@@ -233,6 +233,65 @@ class SPPScheduler(analysis.Scheduler):
 
             w = w_new
 
+class SPPSchedulerActivationOffsets(SPPScheduler):
+    """ Static-Priority-Preemptive Scheduler which considers activation offsets assuming
+        all tasks are activated synchronously with the given offsets/phases (phi).
+
+        Assumptions:
+            * implicit or constrained deadlines
+
+        We exclude/shift interferers whose phase is larger than the task under analysis iff the interferers period is
+        equal or smaller.
+    """
+
+
+    def __init__(self, priority_cmp=prio_low_wins_equal_fifo):
+        SPPScheduler.__init__(self, priority_cmp)
+
+    def b_plus(self, task, q, details=None, **kwargs):
+        """ This corresponds to Theorem 1 in [Lehoczky1990]_ or Equation 2.3 in [Richter2005]_. """
+        assert(task.scheduling_parameter != None)
+        assert(task.wcet >= 0)
+
+        w = q * task.wcet
+
+        while True:
+            s = 0
+            for ti in task.get_resource_interferers():
+                assert(ti.scheduling_parameter != None)
+                assert(ti.resource == task.resource)
+                if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):  # equal priority also interferes (FCFS)
+                    if ti.in_event_model.delta_min(2) <= task.in_event_model.delta_min(2):
+                        phi_diff = ti.in_event_model.phi - task.in_event_model.phi
+                        if phi_diff < 0:
+                            phi_diff = 0
+                    else:
+                        phi_diff = 0
+
+                    s += ti.wcet * ti.in_event_model.eta_plus(w - phi_diff)
+
+            w_new = q * task.wcet + s
+            if w == w_new:
+                assert(w >= q * task.wcet)
+                if details is not None:
+                    details['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
+                    for ti in task.get_resource_interferers():
+                        if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):
+                            if ti.in_event_model.delta_min(2) <= task.in_event_model.delta_min(2):
+                                phi_diff = ti.in_event_model.phi - task.in_event_model.phi
+                                if phi_diff < 0:
+                                    phi_diff = 0
+                            else:
+                                phi_diff = 0
+                            details[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w-phi_diff)) + '*'\
+                                + str(ti.wcet) + '=' + str(ti.wcet * ti.in_event_model.eta_plus(w-phi_diff))
+                return w
+
+            if q > 1:
+                logger.warning("Using SPPSchedulerActivationOffset() with deadline > period (task %s)." % (task))
+
+            w = w_new
+
 class CorrelatedDeltaMin(model.EventModel):
     def __init__(self, em, m, offset):
         model.EventModel.__init__(self, 'tmp')

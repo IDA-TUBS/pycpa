@@ -1047,7 +1047,30 @@ class Mutex(object):
         # # Resource identifier
         self.name = name
 
+class EffectChain(object):
+    def __init__(self, name, tasks=None):
+        self.name = name
+        self.tasks = tasks
+        
+    def add_task(self, task):
+        self.tasks.append(task)
 
+    def task_sequence(self, writers_only=False):
+        """ Generates and returns the sequence of reader/writer tasks in the form of [reader_, writer_0, reader_1, writer_1,...].
+            
+            A task in this sequence therefore acts either as a reader or a writer. Tasks at odd positions in this
+            sequence are readers while tasks at even positions are writers.
+        """
+
+        sequence = list()
+        for task in self.tasks:
+            # add reading and writing tasks
+            if not writers_only:
+                sequence.append(task)
+            sequence.append(task)
+
+        return sequence
+    
 class Path(object):
     """ A Path describes a chain of tasks.
     Required for path analysis (e.g. end-to-end latency).

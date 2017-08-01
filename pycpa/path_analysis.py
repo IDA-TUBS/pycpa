@@ -24,6 +24,8 @@ from __future__ import division
 from . import options
 from . import model
 
+import math
+
 
 def end_to_end_latency(path, task_results, n=1 , task_overhead=0,
                        path_overhead=0, **kwargs):
@@ -193,4 +195,83 @@ def end_to_end_latency_improved(path, task_results, n=1, e_0=0, **kwargs):
     lmin += path.tasks[0].in_event_model.delta_min(n)
 
     return lmin, lmax
+
+def cause_effect_chain_data_age(chain, task_results, details=None):
+    """ computes the data age of the given cause effect chain
+    :param chain: model.EffectChain
+    :param task_results: dict of analysis.TaskResult
+    """
+
+    sequence = chain.task_sequence(writers_only=True)
+
+    if details is None:
+        details = dict()
+
+    l_max = sequence[0].in_event_model.phi + _jitter(sequence[0])
+    details[sequence[0].name+'-PHI+J'] = l_max
+    for i in range(len(sequence)):
+        # add write-to-read delay for all but the last task
+        if i < len(sequence)-1:
+            # add write to read delay
+            delay = _calculate_backward_distance(sequence[i], sequence[i+1], task_results, 
+                    details=details)
+            l_max += delay
+
+        # add read-to-write delay (response time) for all tasks
+        delay = task_results[sequence[i]].wcrt
+        details[sequence[i].name+'-WCRT'] = delay
+        l_max += delay
+
+    return l_max
+
+def _period(task):
+    return task.in_event_model.P
+
+def _jitter(task):
+    if hasattr(task.in_event_model, 'phiJ'):
+        return task.in_event_model.phiJ
+    else:
+        return 0
+
+def _calculate_backward_distance(writer, reader, task_results, details):
+    """ computes backward distance (for data age)
+    """
+
+    if _period(reader) < _period(writer): # oversampling 
+
+        candidates = set()
+        for n in range(int(math.ceil(_period(writer)/_period(reader)))):
+            candidates.add(_rplus(reader, task_results, n) - _wmin(writer, task_results, 0))
+
+            # include previous cycle?
+            if _wplus(writer, task_results) > _rmin(reader, task_results, n):
+                candidates.add(_rplus(reader, task_results, n) - _wmin(writer, task_results, -1))
+
+    else: # undersampling or same period
+
+        candidates = set()
+        # include previous cycle?
+        if _wplus(writer, task_results) > _rmin(reader, task_results):
+            candidates.add(_rplus(reader, task_results) - _wmin(writer, task_results, -1))
+
+        # include all other possible writers
+        for n in range(int(math.ceil(_period(reader)/_period(writer)))):
+            candidates.add(_rplus(reader, task_results) - _wmin(writer, task_results, n))
+
+    result = max(candidates)
+    details[writer.name+'-'+reader.name+'-delay'] = result
+    return result
+
+def _wplus(writer, task_results, n=0):
+    return n*_period(writer) + writer.in_event_model.phi + task_results[writer].wcrt + _jitter(writer)
+
+def _wmin(writer, task_results, n=0):
+    return n*_period(writer) + writer.in_event_model.phi + task_results[writer].bcrt - _jitter(writer)
+
+def _rplus(reader, task_results, n=0):
+    return _wplus(reader, task_results, n) - task_results[reader].bcrt
+
+def _rmin(reader, task_results, n=0):
+    return n*_period(reader) + reader.in_event_model.phi - _jitter(reader)
+
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
