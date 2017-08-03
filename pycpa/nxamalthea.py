@@ -1,9 +1,8 @@
 import xml.etree.ElementTree as ET
 import networkx as nx
-from pycpa import util
-from pycpa import model
-from pycpa import schedulers
-from pycpa import nxamalthea as nxamp
+from . import util
+from . import model
+from . import schedulers
 
 xsi='{http://www.w3.org/2001/XMLSchema-instance}'
 XSI_TYPE='{http://www.w3.org/2001/XMLSchema-instance}type'
@@ -155,15 +154,15 @@ class NxConverter(object):
        """
        s = model.System()
        for n,d in self.G.nodes_iter(data=True):
-           if d['TYPE'] == nxamp.RESSOURCE:
+           if d['TYPE'] == RESSOURCE:
                #for the time being we only support SPP
                #r = s.bind_resource(model.Resource(self.G.node[n], schedulers.SPPScheduler()))
                r = s.bind_resource(model.Resource(n, schedulers.SPPScheduler()))
                # get the neigbors of n that have a MAPPING to a task
                for u,v,d_edge in self.G.out_edges_iter(n,data=True):
-                   if d_edge[nxamp.TYPE] == nxamp.MAPPING:
+                   if d_edge[TYPE] == MAPPING:
                        #v is a task
-                       assert (self.G.node[v][nxamp.TYPE] == nxamp.TASK )
+                       assert (self.G.node[v][TYPE] == TASK )
                        task_params = self.get_task_params(v,reverse_prios)
                        t = r.bind_task(model.Task(name=v, **task_params))
                        t.in_event_model = self.construct_event_model(v)
@@ -182,12 +181,12 @@ class NxConverter(object):
             t_params['scheduling_parameter'] = self.G.node[t]['scheduling_parameter']
 
         #Filter out a subgraph that only contains runnables, tasks and mapping edges
-        tasks_runnables = [ n for n,d in self.G.nodes_iter(data=True) if (d[nxamp.TYPE] ==
-            nxamp.RUNNABLE or d[nxamp.TYPE] == nxamp.TASK)]
+        tasks_runnables = [ n for n,d in self.G.nodes_iter(data=True) if (d[TYPE] ==
+            RUNNABLE or d[TYPE] == TASK)]
         H = self.G.subgraph( tasks_runnables )
         #Iterate over the runnables and compute WCET/BCET as a sum over the neigbors!
         for u,v,d in H.out_edges_iter(t,data=True):
-            if (d[nxamp.TYPE] == nxamp.MAPPING and self.G.node[v][nxamp.TYPE] == nxamp.RUNNABLE):
+            if (d[TYPE] == MAPPING and self.G.node[v][TYPE] == RUNNABLE):
                 #print(u,v,d)
                 t_params['wcet'] = int(self.G.node[v]['wcet']) + int(t_params['wcet'])
                 t_params['bcet'] = int(self.G.node[v]['bcet']) + int(t_params['bcet'])
@@ -217,9 +216,9 @@ class NxConverter(object):
         prio_list = list()
         name_list = list()
         for n,d in self.G.nodes_iter(data=True):
-            if d[nxamp.TYPE] == nxamp.TASK:
+            if d[TYPE] == TASK:
                 name_list.append(n)
-                prio_list.append(d[nxamp.PRIO])
+                prio_list.append(d[PRIO])
         prio_list.reverse()
         prio_cache = dict()
         for i in range(len(name_list)):
