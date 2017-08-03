@@ -164,7 +164,7 @@ def init_pycpa(implicit=False):
     elif get_opt('verbose'):
         logging.basicConfig(level=logging.INFO, format=log_format)
     else:
-        logging.basicConfig(level=logging.WARNING, format=log_format)
+        logging.basicConfig(level=logging.WARNING, format=log_format, stream = sys.stderr)
 
 
 
