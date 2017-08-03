@@ -100,7 +100,7 @@ class EventModel (object):
     :math:`\Delta t`.
     """
 
-    def __init__(self, name='min', container=dict()):
+    def __init__(self, name='min', container=dict(), **kwargs):
         """ CTOR
         If called without parameters, a maximal event model (unbounded amount
         of activations) is created
@@ -126,6 +126,11 @@ class EventModel (object):
 
         # # String description of event model
         self.__description__ = name
+
+        # After all mandatory attributes have been initialized above, load
+        # those set in kwargs
+        for key in kwargs:
+            setattr(self, key, kwargs[key])
 
     def deltamin_func(self, n):
         # # Event model delta function (internal)
@@ -478,11 +483,11 @@ class PJdEventModel (EventModel):
     """ A periodic, jitter, min-distance event model.
     """
 
-    def __init__(self, P=0, J=0, dmin=0, phi=0, name='min'):
+    def __init__(self, P=0, J=0, dmin=0, phi=0, name='min', **kwargs):
         """ Periodic, Jitter, min. distance event model. Offset can be supplied
         but is not evaluated by all analyses.
         """
-        EventModel.__init__(self, name)
+        EventModel.__init__(self, name, **kwargs)
 
         # setup event model
         self.set_PJd(P, J, dmin)
@@ -530,9 +535,9 @@ class CorrelatedEventModel (EventModel):
 class CTEventModel (EventModel):
     """ c events every T time event model.
     """
-    def __init__(self, c, T, dmin=1, name='min'):
+    def __init__(self, c, T, dmin=1, name='min', **kwargs):
 
-        EventModel.__init__(self, name)
+        EventModel.__init__(self, name, kwargs)
 
         self.set_c_in_T(c, T, dmin)
         self.c = c
@@ -574,9 +579,10 @@ class LimitedDeltaEventModel(EventModel):
             limit_q_plus=float('inf'),
             min_additive=util.recursive_min_additive,
             max_additive=util.recursive_max_additive,
-            name='min'):
+            name='min',
+            **kwargs):
 
-        EventModel.__init__(self, name)
+        EventModel.__init__(self, name, kwargs)
 
         self.set_limited_delta(limited_delta_min_func, limited_delta_plus_func, limit_q_min, limit_q_plus, min_additive, max_additive)
 
@@ -635,8 +641,22 @@ class TraceEventModel (LimitedDeltaEventModel):
     def __init__(self, trace_points=[], min_sample_size=20,
                  min_additive=util.recursive_min_additive,
                  max_additive=util.recursive_max_additive,
-                 name='min'):
-        LimitedDeltaEventModel.__init__(self, name=name)
+                 name='min',
+                 **kwargs):
+        LimitedDeltaEventModel.__init__(self, name=name, **kwargs)
+#        LimitedDeltaEventModel.__init__(self,limited_delta_min_func=None,
+#                limited_delta_plus_func=None, limit_q_min=float('inf'), limit_q_plus=float('inf'), min_additive=min_additive,
+#                max_additive=max_additive, name=name, **kwargs)
+
+    def __init__(self,
+            limited_delta_min_func=None,
+            limited_delta_plus_func=None,
+            limit_q_min=float('inf'),
+            limit_q_plus=float('inf'),
+            min_additive=util.recursive_min_additive,
+            max_additive=util.recursive_max_additive,
+            name='min',
+            **kwargs):
 
         self.trace_points = trace_points
         self.min_sample_size = min_sample_size
