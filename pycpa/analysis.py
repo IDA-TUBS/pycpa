@@ -628,7 +628,7 @@ class GlobalAnalysisState(object):
 
 
 def analyze_system(system, task_results=None, only_dependent_tasks=False,
-                   progress_hook=None):
+                   progress_hook=None, **kwargs):
     """ Analyze all tasks until we find a fixed point
 
         system -- the system to analyze
@@ -715,6 +715,7 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
             violations = check_violations(system.constraints, task_results)
             if violations == True:
                 logger.error("Analysis stopped!")
+                raise NotSchedulableException("Violation of constraints")
                 break
 
     # print "Global iteration done after %d iterations" % (round)
@@ -722,6 +723,11 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
     # # also print the violations if on-the-fly checking was turned off
     if not options.get_opt("check_violations"):
         check_violations(system.constraints, task_results)
+    
+    # a hook that allows to inspect the analysis_state object after the analysis run
+    post_hook = kwargs.get('post_hook', None)
+    if post_hook is not None:
+        post_hook(analysis_state)
 
     return task_results
 
@@ -743,8 +749,8 @@ def check_violations(constraints, task_results, wcrt=True, path=True,
         deadline_violations = _check_wcrt_constraints(constraints, task_results)
         for v in deadline_violations:
             logger.error("Deadline violated for task %s, "
-                    "wcrt=%d, deadline=%d" %
-                    (v.name, task_results[v].wcrt,
+                    "wcet=%d, wcrt=%d, deadline=%d" %
+                    (v.name, v.wcet, task_results[v].wcrt,
                         constraints._wcrt_constraints[v]))
         violations = violations or (len(deadline_violations) > 0)
 
