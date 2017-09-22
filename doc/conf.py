@@ -27,7 +27,7 @@ sys.path.append('../examples')
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.coverage', 'sphinx.ext.pngmath', 'sphinx.ext.viewcode']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.coverage', 'sphinx.ext.imgmath', 'sphinx.ext.viewcode']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -43,7 +43,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pyCPA'
-copyright = u'2012-2015, Jonas Diemer, Philip Axer, Daniel Thiele, Johannes Schlatow'
+copyright = u'2012-2017, Jonas Diemer, Philip Axer, Daniel Thiele, Johannes Schlatow'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -214,7 +214,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'pycpa', u'pycpa Documentation',
-     [u'Diemer, Axer'], 1)
+     [u'Diemer, Axer, Thiele, Schlatow'], 1)
 ]
 
 # Mock missing modules for automatic building on readthedocs.org.

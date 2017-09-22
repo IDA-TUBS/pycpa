@@ -11,9 +11,12 @@ pyCPA core modules
    :maxdepth: 1
 
    modules/model
+   modules/junctions
    modules/analysis
+   modules/propagation
    modules/path_analysis   
    modules/options
+   modules/util
 
 Schedulers (busy window functions)
 ----------------------------------

@@ -1,11 +1,13 @@
 """
-| Copyright (C) 2012 Philip Axer, Jonas Diemer
+| Copyright (C) 2017 Philip Axer, Jonas Diemer, Johannes Schlatow
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
-         - Jonas Diemer, Philip Axer
+         - Jonas Diemer
+         - Philip Axer
+         - Johannes Schlatow
 
 Description
 -----------

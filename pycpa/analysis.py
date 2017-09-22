@@ -1,6 +1,6 @@
 """ Generic Compositional Performance Analysis Algorithms
 
-| Copyright (C) 2007-2012 Jonas Diemer, Philip Axer
+| Copyright (C) 2007-2017 Jonas Diemer, Philip Axer, Daniel Thiele, Johannes Schlatow
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.

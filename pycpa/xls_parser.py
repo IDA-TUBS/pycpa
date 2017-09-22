@@ -1,5 +1,5 @@
 """
-| Copyright (C) 2014 Daniel Thiele
+| Copyright (C) 2014-2017 Daniel Thiele
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.

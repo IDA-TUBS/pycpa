@@ -1,6 +1,6 @@
 """ Generic Compositional Performance Analysis Algorithms
 
-| Copyright (C) 2007-2012 Jonas Diemer, Philip Axer
+| Copyright (C) 2007-2017 Jonas Diemer, Philip Axer, Johannes Schlatow
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.
@@ -155,7 +155,7 @@ class JitterBminPropagationEventModel(model.EventModel):
 
 class BusyWindowPropagationEventModel(model.EventModel):
     """ Derive an output event model from busy window
-     and in_event_model (used as reference).
+    and in_event_model (used as reference).
     Gives better results than _out_event_model_jitter.
 
     This results from Theorems 1, 2 and 3 from [Schliecker2008]_.

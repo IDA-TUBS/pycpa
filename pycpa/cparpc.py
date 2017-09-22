@@ -1,5 +1,5 @@
 """
-| Copyright (C) 2012 Philip Axer, Jonas Diemer
+| Copyright (C) 2012-2017 Philip Axer, Jonas Diemer
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.
@@ -57,7 +57,7 @@ NOT_SCHEDULABLE = 9
 class CPARPC(xmlrpc.XMLRPC):
     """ Basic XML RPC Server for pyCPA.
 
-    Methods prefixed with "xmlrpc_" are actually callable from the client.
+    Methods prefixed with ``"xmlrpc_"`` are actually callable from the client.
 
     Please see :py:mod:`pycpa.model` for more details about the pyCPA model
     and :py:mod:`pycpa.analysis` for information about the analysis.
@@ -129,10 +129,11 @@ class CPARPC(xmlrpc.XMLRPC):
 
     def xmlrpc_set_id_type(self, id_type):
         ''' Select the type for returned IDs.
-        'numeric' generates numeric IDs (strings of long int)
-        'id_numeric' like 'numeric', but prefixes 'id_' (makes debug output executable)
-        'name' generates the ID from the objects' name
-        'full' is like 'name', but prefixes name by parent's name (TODO)
+
+        - 'numeric' generates numeric IDs (strings of long int)
+        - 'id_numeric' like 'numeric', but prefixes ``'id_'`` (makes debug output executable)
+        - 'name' generates the ID from the objects' name
+        - 'full' is like 'name', but prefixes name by parent's name (TODO)
 
         In case of 'name' or 'full', the ID is suffixed in case of duplicates.
 
@@ -536,7 +537,8 @@ class CPARPC(xmlrpc.XMLRPC):
         """ Generate a graph of the system in dot file format (in server directory).
         The resulting file can be converted using graphviz.
         E.g. to create a PDF, run:
-           dot -Tpdf <filename> -o out.pdf
+        
+            dot -Tpdf <filename> -o out.pdf
 
         :param system_id: ID of the system to analyze
         :type system_id: string

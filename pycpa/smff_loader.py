@@ -1,5 +1,5 @@
 """
-| Copyright (C) 2012 Philip Axer
+| Copyright (C) 2012-2017 Philip Axer
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.
