@@ -1,5 +1,5 @@
 """
-| Copyright (C) 2011 Jonas Diemer, Philip Axer
+| Copyright (C) 2011-2017 Jonas Diemer, Philip Axer, Johannes Schlatow
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.
@@ -7,10 +7,11 @@
 :Authors:
          - Jonas Diemer
          - Philip Axer
+         - Johannes Schlatow
 """
 
 
-__author__ = "Jonas Diemer, Philip Axer"
+__author__ = "Jonas Diemer, Philip Axer, Daniel Thiele, Johannes Schlatow"
 __copyright__ = "Copyright (C) 2010-2017, TU Braunschweig, Germany. All rights reserved."
 
 __license__ = "MIT"
@@ -35,6 +36,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__all__ = ["model", "analysis", "path_analysis", "options", "graph", "cparpc"]
+__all__ = ["model", "analysis", "path_analysis", "options", "graph", "cparpc", 
+           "schedulers", "util", "propagation", "junctions", "plot"]
 
 __version__ = 'devel'

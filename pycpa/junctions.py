@@ -1,5 +1,5 @@
 """
-| Copyright (C) 2013-2014 Johannes Schlatow
+| Copyright (C) 2013-2017 Johannes Schlatow
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.
