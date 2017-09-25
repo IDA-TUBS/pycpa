@@ -295,6 +295,8 @@ class SPPSchedulerActivationOffsets(SPPScheduler):
             w = w_new
 
 class CorrelatedDeltaMin(model.EventModel):
+    """ Computes the correlated event model :math \delta^-_j: from Lemma 2 in [Rox2010]_.
+    """
     def __init__(self, em, m, offset):
         model.EventModel.__init__(self, 'tmp')
 
@@ -315,10 +317,12 @@ class CorrelatedDeltaMin(model.EventModel):
 
 class SPPSchedulerCorrelatedRox(SPPScheduler):
     """ SPP scheduler with dmin correlation.
-        Computes the approximate response time bound as presented in [Rox2010].
+        Computes the approximate response time bound as presented in [Rox2010]_.
     """
 
     def b_plus_idle(self, task, q, details=None, task_results=None):
+        """ Implements Case 2 in [Rox2010]_.
+        """
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 
@@ -351,6 +355,8 @@ class SPPSchedulerCorrelatedRox(SPPScheduler):
         return w
 
     def b_plus_busy(self, task, q, details=None, task_results=None):
+        """ Implements Case 1 in [Rox2010]_.
+        """
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 
@@ -428,18 +434,10 @@ class SPPSchedulerCorrelatedRox(SPPScheduler):
                 for d in busy_details.keys():
                     details[d] = busy_details[d]
 
-#        classic_details  = dict()
-#        classic_intrf = SPPScheduler.b_plus(self, task, q, classic_details)
-#        if classic_intrf < w:
-#            w = classic_intrf
-#            if details is not None:
-#                for d in classic_details.keys():
-#                    details[d] = classic_details[d]
-
         return w
 
 class SPPSchedulerCorrelatedRoxExact(SPPScheduler):
-    """ SPP scheduler with dmin correlation based on [Rox2010].
+    """ SPP scheduler with dmin correlation based on [Rox2010]_.
         This is the exact version which performs an extensive search of busy window candidates.
     """
 
