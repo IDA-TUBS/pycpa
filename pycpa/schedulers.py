@@ -295,7 +295,7 @@ class SPPSchedulerActivationOffsets(SPPScheduler):
             w = w_new
 
 class CorrelatedDeltaMin(model.EventModel):
-    """ Computes the correlated event model :math \delta^-_j: from Lemma 2 in [Rox2010]_.
+    """ Computes the correlated event model :math:`\delta^-_j` from Lemma 2 in [Rox2010]_.
     """
     def __init__(self, em, m, offset):
         model.EventModel.__init__(self, 'tmp')
