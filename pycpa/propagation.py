@@ -1,4 +1,4 @@
-""" Generic Compositional Performance Analysis Algorithms
+""" Event model propagation algorithms.
 
 | Copyright (C) 2007-2017 Jonas Diemer, Philip Axer, Johannes Schlatow
 | TU Braunschweig, Germany
