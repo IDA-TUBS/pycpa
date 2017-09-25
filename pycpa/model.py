@@ -1069,6 +1069,9 @@ class Mutex(object):
         self.name = name
 
 class EffectChain(object):
+    """ An cause-effect chain describes a (functional) chain of independent tasks.
+        All tasks within a chain are time-triggered and hence sample their input data independently.
+    """
     def __init__(self, name, tasks=None):
         self.name = name
         self.tasks = tasks
@@ -1077,10 +1080,13 @@ class EffectChain(object):
         self.tasks.append(task)
 
     def task_sequence(self, writers_only=False):
-        """ Generates and returns the sequence of reader/writer tasks in the form of [reader_, writer_0, reader_1, writer_1,...].
+        """ Generates and returns the sequence of reader/writer tasks in the form of [reader_0, writer_0, reader_1, writer_1,...].
             
             A task in this sequence therefore acts either as a reader or a writer. Tasks at odd positions in this
             sequence are readers while tasks at even positions are writers.
+
+            :param writers_only:  if true, only include writer tasks in sequence (omit readers)
+            :type writers_only:   boolean
         """
 
         sequence = list()
