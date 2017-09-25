@@ -731,7 +731,7 @@ class Junction (object):
         See Chapter 4 in [Jersak2005]_ for definitions and details.
     """
 
-    def __init__(self, name="unknown", strategy):
+    def __init__(self, name="unknown", strategy=None):
         """ CTOR """
         # # Name
         self.name = name
