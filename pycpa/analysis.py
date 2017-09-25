@@ -395,9 +395,17 @@ def analyze_task(task, task_results):
 
 
 def out_event_model(task, task_results, dst_task=None):
-    """ Wrapper to call the actual out_event_model_*,
-    which computes the output event model of a task.
+    """ Wrapper to call the out_event_model() method
+    of the actual propagation strategy in order to
+    compute the output event model of a task.
     See Chapter 4 in [Richter2005]_ for an overview.
+
+    :param task: the source task
+    :type task: model.Task
+    :param task_results: dictionary which stores analysis results
+    :type task_results: dict (analysis.TaskResult)
+    :param dst_task: the destination task
+    :type dst_task: model.Task
     """
     # if there is no valid input model, there is no valid output model
     if task.in_event_model is None:
@@ -424,7 +432,12 @@ def _invalidate_event_model_caches(task):
 
 
 def _propagate(task, task_results):
-    """ Propagate the event models for a task.
+    """ Propagate the event models to all dependent tasks.
+
+    :param task: the source task
+    :type task: model.Task
+    :param task_results: dictionary which stores analysis results
+    :type task_results: dict (analysis.TaskResult)
     """
     _invalidate_event_model_caches(task)
     for t in task.next_tasks:

@@ -13,6 +13,7 @@ Bibliography
 .. [Paliencia1998] Palencia and Harbour, "Schedulability analysis for tasks with static and dynamic offsets", Proc. of RTSS, 1998
 .. [Palencia2003] Palencia and Harbour, "Offset-based response time analysis of distributed systems scheduled under EDF", Proc. of 15th Euromicro Conference on Real-Time Systems, 2003
 .. [Richter2005] Kai Richter, "Compositional Scheduling Analysis Using Standard Event Models", Dissertation, Technische Universität Braunschweig, 2005
+.. [Rox2010] Jonas Rox and Rolf Ernst, "Exploiting Inter-Event Stream Correlations Between Output Event Streams of non-Preemptively Scheduled Tasks", Proc. Design, Automation and Test in Europe (DATE 2010), 2010.
 .. [Schlatow2016] Johannes Schlatow and Rolf Ernst, "Response-Time Analysis for Task Chains in Communicating Threads", Real-Time and Embedded Technology and Applications Symposium, 2016
 .. [Schlatow2017] Johannes Schlatow and Rolf Ernst, “Response-Time Analysis for Task Chains with Complex Precedence and Blocking Relations” in International Conference on Embedded Software, 2017
 .. [Schliecker2008] Simon Schliecker, Jonas Rox, Matthias Ivers, Rolf Ernst, "Providing Accurate Event Models for the Analysis of Heterogeneous Multiprocessor Systems, Proc. 6th International Conference on Hardware Software Codesign and System Synthesis (CODES-ISSS), 2008

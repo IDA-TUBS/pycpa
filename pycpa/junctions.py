@@ -29,6 +29,10 @@ from . import util
 logger = logging.getLogger("pycpa")
 
 class SampledInput(analysis.JunctionStrategy):
+    """ Uses a fixed event model (trigger) as output event model.
+        Serves as a workaround for defining a Path over time-triggered tasks.
+        The sampling delay is conservatively computed and automatically added to the path latency.
+    """
     def __init__(self):
         self.name = "sampled"
 
@@ -51,6 +55,8 @@ class SampledInput(analysis.JunctionStrategy):
         return self.trigger
 
 class ORJoin(analysis.JunctionStrategy):
+    """ Compute output event models for an OR junction.
+    """
     def __init__(self):
         self.name = "or"
 
