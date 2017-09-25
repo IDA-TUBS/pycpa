@@ -44,7 +44,7 @@ class JitterPropagationEventModel(model.EventModel):
 
     This corresponds to Equations 1 (non-recursive) and
     2 (recursive from [Schliecker2009]_
-    This is equivalent to Equation 5 in [Henia2005]
+    This is equivalent to Equation 5 in [Henia2005]_
     or Equation 4.6 in [Richter2005]_.
 
     Uses a reference to task.deltamin_func
@@ -82,15 +82,17 @@ class JitterPropagationEventModel(model.EventModel):
 class JitterOffsetPropagationEventModel(model.EventModel):
     """ Derive an output event model from response time jitter
      and in_event_model (used as reference).
+     Also calculates the offset attribute.
 
     This corresponds to Equations 1 (non-recursive) and
     2 (recursive from [Schliecker2009]_
-    This is equivalent to Equation 5 in [Henia2005]
+    This is equivalent to Equation 5 in [Henia2005]_
     or Equation 4.6 in [Richter2005]_.
 
     Uses a reference to task.deltamin_func
     """
     def __init__(self, task, task_results,nonrecursive=True):
+        assert nonrecursive, "nonrecursive=False is not implemented"
 
         self.phi = task.in_event_model.phi + task.bcet
         self.task = task
@@ -116,8 +118,7 @@ class JitterOffsetPropagationEventModel(model.EventModel):
 
 class JitterBminPropagationEventModel(model.EventModel):
     """ Derive an output event model from response time jitter,
-    the b_min as well as
-    the in_event_model (used as reference).
+    the b_min as well as the in_event_model (used as reference).
 
     Uses a reference to task.deltamin_func
     """
@@ -156,7 +157,7 @@ class JitterBminPropagationEventModel(model.EventModel):
 class BusyWindowPropagationEventModel(model.EventModel):
     """ Derive an output event model from busy window
     and in_event_model (used as reference).
-    Gives better results than _out_event_model_jitter.
+    Typically provides better results than JitterPropagationEventModel.
 
     This results from Theorems 1, 2 and 3 from [Schliecker2008]_.
     """
@@ -204,6 +205,10 @@ class BusyWindowPropagationEventModel(model.EventModel):
 
 class SPNPBusyWindowPropagationEventModel(BusyWindowPropagationEventModel):
     """ 
+    Performs standard busy window propagation but additionally calculates the
+    minimum distance to any preceding event of a given task.
+
+    This corresponds to Def. 2 from [Rox2010]_.
     """
     def __init__(self, task, task_results, nonrecursive=True):
         BusyWindowPropagationEventModel.__init__(self, task, task_results, nonrecursive)
@@ -217,7 +222,7 @@ class OptimalPropagationEventModel(JitterBminPropagationEventModel,
     propagation.
     For some schedulers, such as FIFO and EDF neither busy_window
     nor jitter propagation is optimal. This will
-    try both and take choses the best result.
+    try both and chooses the best result.
     """
     def __init__(self, task, task_results, nonrecursive=True):
         self.task = task
