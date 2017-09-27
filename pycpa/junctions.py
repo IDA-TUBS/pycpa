@@ -55,7 +55,7 @@ class SampledInput(analysis.JunctionStrategy):
         return self.trigger
 
 class ORJoin(analysis.JunctionStrategy):
-    """ Compute output event models for an OR junction.
+    """ Compute output event models for an OR junction (see [Jersak2005]).
     """
     def __init__(self):
         self.name = "or"

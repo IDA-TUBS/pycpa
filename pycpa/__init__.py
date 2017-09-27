@@ -36,7 +36,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__all__ = ["model", "analysis", "path_analysis", "options", "graph", "cparpc", 
+__all__ = ["model", "analysis", "path_analysis", "options", "graph", 
            "schedulers", "util", "propagation", "junctions", "plot"]
 
-__version__ = 'devel'
+__version__ = '1.2'

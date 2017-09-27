@@ -490,17 +490,10 @@ class PJdEventModel (EventModel):
         EventModel.__init__(self, name, **kwargs)
 
         # setup event model
-        self.set_PJd(P, J, dmin)
+        self.set_PJd(P, J, dmin, phi)
 
-        # store parameters
-        self.P = P
-        self.J = J
-        self.dmin = dmin
 
-        # offset for some context sensitive analyses
-        self.phi = phi
-
-    def set_PJd(self, P, J=0, dmin=0, early_arrival=False):
+    def set_PJd(self, P, J=0, dmin=0, phi=0, early_arrival=False):
         """ Sets the event model to a periodic activation
         with jitter and minimum distance.
         Equations 1 and 2 from [Schliecker2008]_.
@@ -514,7 +507,13 @@ class PJdEventModel (EventModel):
         self.J = J
         self.dmin = dmin
 
-        self.__description__ = "P={} J={} d={}".format(P, J, dmin)
+        # offset for some context sensitive analyses
+        self.phi = phi
+
+        if self.phi > 0:
+            self.__description__ = "P={} J={} d={} phi={}".format(P, J, dmin, phi)
+        else:
+            self.__description__ = "P={} J={} d={}".format(P, J, dmin)
         if early_arrival:
             raise(NotImplementedError)
 

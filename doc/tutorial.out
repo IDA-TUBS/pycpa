@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-invoked via: examples/spp_test.py
+invoked via: examples/tutorial.py
 
 check_violations :       False 
 debug            :       False 
@@ -35,13 +35,60 @@ verbose          :       False
 
 
 
-Performing analysis
+
+Performing analysis of system 'step1'
 Result:
+T21: wcrt=11
+    b_wcrt=blocker:9, q*WCET:1*2=2
+T22: wcrt=11
+    b_wcrt=T21:eta*WCET:1*2=2, blocker:0, q*WCET:1*9=9
 T11: wcrt=10
     b_wcrt=q*WCET:1*10=10
 T12: wcrt=13
     b_wcrt=T11:eta*WCET:1*10=10, q*WCET:1*3=3
-T21: wcrt=2
+T31: wcrt=11
+    b_wcrt=T32:eta*WCET:2*3=6, q*WCET:1*5=5
+T32: wcrt=3
+    b_wcrt=q*WCET:1*3=3
+path P1 e2e latency. best case: 10, worst case: 32
+path P2 e2e latency. best case: 8, worst case: 27
+
+Performing analysis of system 'step2'
+Result:
+T21: wcrt=11
+    b_wcrt=blocker:9, q*WCET:1*2=2
+T22: wcrt=11
+    b_wcrt=T21:eta*WCET:1*2=2, blocker:0, q*WCET:1*9=9
+T11: wcrt=10
+    b_wcrt=q*WCET:1*10=10
+T12: wcrt=13
+    b_wcrt=T11:eta*WCET:1*10=10, q*WCET:1*3=3
+T31: wcrt=5
+    b_wcrt=q*WCET:1*5=5
+T32: wcrt=3
+    b_wcrt=q*WCET:1*3=3
+path P1 e2e latency. best case: 10, worst case: 26
+path P2 e2e latency. best case: 8, worst case: 27
+
+Performing analysis of system 'step3'
+Result:
+T21: wcrt=11
+    b_wcrt=blocker:9, q*WCET:1*2=2
+T22: wcrt=11
+    b_wcrt=T21:eta*WCET:1*2=2, blocker:0, q*WCET:1*9=9
+T11: wcrt=20
+    b_wcrt=TX:eta*WCET:5*2=10, q*WCET:1*10=10
+T12: wcrt=26
+    b_wcrt=T11:eta*WCET:2*10=20, TX:eta*WCET:7*2=14, q*WCET:2*3=6
+T13: wcrt=55
+    b_wcrt=T11:eta*WCET:2*10=20, T12:eta*WCET:4*3=12, TX:eta*WCET:9*2=18, q*WCET:1*5=5
+TX: wcrt=6
+    b_wcrt=q*WCET:4*2=8
+RX: wcrt=2
     b_wcrt=q*WCET:1*2=2
-T22: wcrt=19
-    b_wcrt=T21:eta*WCET:1*2=2, q*WCET:2*9=18
+T31: wcrt=43
+    b_wcrt=RX:eta*WCET:9*2=18, T32:eta*WCET:6*3=18, q*WCET:2*5=10
+T32: wcrt=15
+    b_wcrt=RX:eta*WCET:3*2=6, q*WCET:3*3=9
+T33: wcrt=76
+    b_wcrt=RX:eta*WCET:11*2=22, T31:eta*WCET:4*5=20, T32:eta*WCET:8*3=24, q*WCET:2*5=10
