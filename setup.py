@@ -18,10 +18,10 @@ Setup
 from setuptools import setup
 
 setup(name='pycpa',
-      version='1.0',
+      version='1.2',
       description='pyCPA - a python implementation of compositional performance analysis',
       author='Jonas Diemer, Philip Axer, Daniel Thiele, Johannes Schlatow',
-      author_email='{axer, diemer,thiele,schlatow}@ida.ing.tu-bs,de',
+      author_email='{axer,diemer,thiele,schlatow}@ida.ing.tu-bs.de',
       url='https://bitbucket.org/pycpa/pycpa',
       license="MIT",
       packages=['pycpa'],

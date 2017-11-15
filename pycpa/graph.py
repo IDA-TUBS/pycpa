@@ -1,5 +1,5 @@
 """
-| Copyright (C) 2007-2012 Jonas Diemer, Philip Axer
+| Copyright (C) 2007-2017 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.
@@ -19,6 +19,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import sys
 
 
 from . import model
@@ -49,7 +50,7 @@ class dotgraph(object):
                 first = False
             else:
                 node_str += ',\n'
-            node_str += '{k}=\"{v}\"'.format(k=k,v=v)
+            node_str += '%s=\"%s\"' % (k,v)
         node_str += ']'
         return node_str
 
@@ -96,11 +97,14 @@ class dotgraph(object):
         if format is None and path is not None:
             format=os.path.splitext(path)[-1].lower()[1:]
 
-        dot_str = self.dot_str + '}\n' # close graph
+        dot_str = '' + self.dot_str + '}\n' # close graph
         cmd = '{prog} -T{fmt} -o {path}'.format(prog=prog, fmt=format, path=path)
 
         p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE)
-        p.communicate(input=dot_str)
+        if sys.version_info[0] < 3:
+            p.communicate(input=dot_str)
+        else:
+            p.communicate(input=bytes(dot_str, 'utf-8'))
 
 
     def string(self):

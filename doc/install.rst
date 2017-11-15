@@ -1,74 +1,126 @@
 Installation
 ============
 
-Before you can install pyCPA, you must set up Python first (>=2.6, <3.0).
+Before you can install pyCPA, you must set up Python 2.7 and all required python packages. 
+In a second step, pyCPA will be installed in a manual procedure.
+
+Setting up prerequisites
+------------------------
+
+* Python 2.7 or Python 3
+* Python packages: setuptools, argparse, pygraphviz, matplotlib
+* Optional python packages: numpy, simpy, xlrd
 
 Linux
------
+^^^^^
 Install Python and the required prerequisites.
-If you use Ubuntu/Debian this can be done using the following commands:
+We assume, Linux users will be familiar with installing any packages from their distribution's repositories.
+If you use Ubuntu/Debian this can for instance be achieved using the following commands:
 
 .. code-block:: bash
 
    $ sudo apt-get install python-matplotlib python-pygraphviz python-simpy python-setuptools
-   
-Other linux distributions provide similar functionality, RTFM.
 
-Windows
--------
-We recommend to use `Python(x,y) <http://code.google.com/p/pythonxy/>`_ a prepackaged Python release
-targeted towards scientific and engineering development software.
-Most of the required Python modules such as matplotlib are already included,
-but some (SimPy and pygraphviz) have to be installed by hand if required.
-
-Please consider the Python(x,y) manual on how to do so. In case packages are
-not available (pygraphviz has to be compiled by hand) you still can use pyCPA.
-E.g. if  pygraphviz is not installed, the analysis works but you can't graph your system.
-
-Setting up pyCPA
-----------------
-Download and extract the latest pyCPA release from `Bitbucket <https://bitbucket.org/pycpa/pycpa/>`_.
-Alternatively and currently recommended, you can also clone the mercurial repository.
-Given, that you have a mercurial installation you can clone the repository as follows:
+If your distribution does not provide similar packages, you can use ``pip`` to install additional python packages.
 
 .. code-block:: bash
 
-   $ hg clone https://bitbucket.org/pycpa/pycpa/ 
- 
-Now, there are three different ways to install pyCPA,
-depending on how you want to use pyCPA.
-Note, that you only have to do ONE of these steps!
-     
-1. Install/copy pyCPA into your Python installation.
+   $ pip install simpy
+
+Windows
+^^^^^^^
+We recommend to use `Python(x,y) <https://python-xy.github.io/>`_, which includes a comprehensive set of scientific
+Python libraries and tools as well as related documentation.
+Most of the required Python modules such as matplotlib are already included,
+but some (SimPy) have to be installed by hand if required.
+It is recommended to uninstall any other Python distribution before installing Python(x,y).
+
+You can install missing packages using the recommended installer for python packages, ``pip``, from the command prompt. ``pip`` is included in Python(x,y).
+
+.. code-block:: bash
+
+   $ python -m pip install simpy
+
+For a detailed documentation regarding package installation you may consult the `official website <https://packaging.python.org/tutorials/installing-packages/>`_.
+
+Downloading and setting up pyCPA
+--------------------------------
+
+For downloading the pyCPA source code, you have two options:
+
+A. **Easiest**: Download and extract the latest pyCPA release from `Bitbucket <https://bitbucket.org/pycpa/pycpa/downloads/>`_.
+
+B. Alternatively, if you are familiar with mercurial, you can alternatively clone the repository:
+
+  a) **Easiest**: Using `tortoise-hg <https://www.mercurial-scm.org/wiki/TortoiseHg>`_.
+
+  b) On the command line (requires mercurial installation):
+
+   .. code-block:: bash
+
+      $ hg clone https://bitbucket.org/pycpa/pycpa/
+
+Depending on how you want to use pyCPA, there are two ways of making pyCPA available to your python installation:
+
+A. **Easiest**: Install pyCPA into your python installation using the command prompt from the pyCPA directory.
    This is for people who just want to use pyCPA as it comes.
 
    .. code-block:: bash
-   
-     $ python setup.py install
 
-2. Leave pyCPA where it is and tell Python to use the module in-place.
-   Add the pycpa/src directory to your PYTHONPATH:
+      $ python setup.py install
+
+B. Leave pyCPA where it is and tell Python to use the module in-place.
+   This is for people who want to modify pyCPA or use different versions in parallel.
+   You achieve this by setting the PYTHONPATH variable to the pyCPA directory.
+   For command line users, this is done as follows:
 
    .. code-block:: bash
-   
-     $ export PYTHONPATH="/path/to/pycpa"
 
-3. Also you can import pyCPA as an eclipse project, given you use `PyDev <http://pydev.org/>`_.
-   Start eclipse and import pyCPA as a new PyDev project.
-   In the project settings under PYTHONPATH settings, add pycpa/examples and pycpa/src to your project source folders.
-   Also you might want to install `MercurialEclipse <http://javaforge.com/project/HGE>`_ 
+      $ export PYTHONPATH="/path/to/pyCPA:$PYTHONPATH"
 
+   Note that you must *NOT* specify the subdirectory ``pycpa`` within the pyCPA directory.
+   If you prefer using an IDE, please refer to `With an IDE`_.
 
-If you uncertain how to proceed, we recommend using Eclipse since it provides a nice GUI and
-you always have the pyCPA sources at hand, in case you want know more.
+Using pyCPA
+-----------
 
-     
 Congratulations, you have installed pyCPA!
-To test pyCPA you may want to run the examples which are provided with the distribution. 
+
+With an IDE
+^^^^^^^^^^^
+
+We recommend to use Eclipse with PyDev as IDE, which can be installed by the following steps:
+
+1. Make sure that you have installed Python 2.7 *BEFORE* you install Eclipse.
+2. Download from `<http://www.eclipse.org/downloads/eclipse-packages/>`_ the current Eclipse release for Windows 32 bit (!). Extract the zip-file, execute ``eclipse.exe`` and follow the installation instructions.
+3. Open Eclipse and specify a workspace. If you open a workspace for the first time, you will have to close the Welcome tab, before proceeding to your workspace.
+4. Select the menu item ``Help –> Install New Software``, search for the site `<http://pydev.org/updates>`_. Select and install the item “PyDev” which will be displayed in the list of available software. 
+
+Now, you can set up a pyCPA project as follows:
+
+1. Open the PyDev-Perspective by selecting in the main menu ``Window -> Open Perspective -> Other -> PyDev``
+2. Select in the main menu ``File -> New -> PyDev Project``.
+3. In the PyDev-Project Window specify a project name; the project will be saved to your workspace unless specified otherwise.
+4. Choose the project type “Python” and select the 2.7 interpreter version.
+5. Click on “Please configure an interpreter before proceeding”. 
+
+   i. Select ``Manual Config`` in the pop-up window. 
+   ii. In the settings for the Python interpreter click ``New…`` and specify an interpreter name, e.g. Python27, and the path to the interpreter executable (e.g. ``C:\myPathToPython\python.exe``). In the appearing pop-up window select all options. 
+   iii. In the tab ``Libraries``, select ``New Folder`` and specify the path to the pyCPA-folder (e.g. ``C:\MyPathTo\pycpa``).
+   iv. Close the preferences window by clicking ok.
+
+6. Back in the PyDev-Project Window, click ``add project directory to PYTHONPATH`` and then the button ``Finish``.
+7. You may now add a Python file to your project (right-click on your project in the PyDev Package Explorer -> New… -> File) and write a Python program (e.g. test.py) which uses pyCPA. 
+8. To run test.py, right-click on ``test.py`` and select ``Run as -> Python Run``. If you want to modify your run settings in order to e.g. specify arguments, select ``Run as -> Run Configurations`` and adapt the settings as needed before clicking ``Run`` in the Run Configurations Window. 
+9. You may also try out the examples which are provided with pyCPA such as the :doc:`spp_example`.
+
+From a command line
+^^^^^^^^^^^^^^^^^^^
+
+To test pyCPA you may want to run the examples which are provided with the distribution, e.g.:
 
    .. code-block:: bash
    
      $ python /path/to/pycpa/examples/spp-test.py
 
-Or, if you decided to use Eclipse just run spp-test.py as a Python application from Eclipse.
 If you want to know what this examples does and how it works checkout the :doc:`spp_example`.

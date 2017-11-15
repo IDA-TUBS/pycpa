@@ -1,5 +1,5 @@
 """
-| Copyright (C) 2007-2012 Jonas Diemer, Philip Axer
+| Copyright (C) 2007-2017 Jonas Diemer, Philip Axer, Daniel Thiele, Johannes Schlatow
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.
@@ -490,17 +490,10 @@ class PJdEventModel (EventModel):
         EventModel.__init__(self, name, **kwargs)
 
         # setup event model
-        self.set_PJd(P, J, dmin)
+        self.set_PJd(P, J, dmin, phi)
 
-        # store parameters
-        self.P = P
-        self.J = J
-        self.dmin = dmin
 
-        # offset for some context sensitive analyses
-        self.phi = phi
-
-    def set_PJd(self, P, J=0, dmin=0, early_arrival=False):
+    def set_PJd(self, P, J=0, dmin=0, phi=0, early_arrival=False):
         """ Sets the event model to a periodic activation
         with jitter and minimum distance.
         Equations 1 and 2 from [Schliecker2008]_.
@@ -514,7 +507,13 @@ class PJdEventModel (EventModel):
         self.J = J
         self.dmin = dmin
 
-        self.__description__ = "P={} J={} d={}".format(P, J, dmin)
+        # offset for some context sensitive analyses
+        self.phi = phi
+
+        if self.phi > 0:
+            self.__description__ = "P={} J={} d={} phi={}".format(P, J, dmin, phi)
+        else:
+            self.__description__ = "P={} J={} d={}".format(P, J, dmin)
         if early_arrival:
             raise(NotImplementedError)
 
@@ -523,13 +522,6 @@ class PJdEventModel (EventModel):
 
     def deltamin_func(self, n):
         return max((n - 1) * self.dmin, (n - 1) * self.P - self.J)
-
-class CorrelatedEventModel (EventModel):
-    def __init__(self, *args, **kwargs):
-        EventModel.__init__(self, args, kwargs)
-
-    def correlated_dmin(self, task):
-        return None
 
 
 class CTEventModel (EventModel):
@@ -734,7 +726,7 @@ class TraceEventModel (LimitedDeltaEventModel):
 class Junction (object):
     """ A junction combines multiple event models into one output event model
         This is used to model multi-input tasks.
-        Valid semantics are "and" and "or" junctions.
+        Typical semantics are "and" and "or" strategies.
         See Chapter 4 in [Jersak2005]_ for definitions and details.
     """
 
@@ -1011,11 +1003,19 @@ class Resource (object):
 
 
 class StandardForkStrategy(object):
-    """ Standard fork strategy (unmodified output event model) """
+    """ Standard fork strategy: propagates unmodified output event model to all tasks. """
     def __init__(self):
         self.name = "Standard"
 
-    def output_event_model(self, fork, *args, **kwargs):
+    def output_event_model(self, fork, dst_task=None, task_results=None):
+        """
+        This strategy does not distinguish between destination tasks.
+
+        :param fork:      Fork from which to take the output event model.
+        :type fork:       model.Fork
+        :param dst_task:  destination task
+        :type fork:       model.Task
+        """
         return fork.out_event_model
 
 
@@ -1068,6 +1068,9 @@ class Mutex(object):
         self.name = name
 
 class EffectChain(object):
+    """ An cause-effect chain describes a (functional) chain of independent tasks.
+        All tasks within a chain are time-triggered and hence sample their input data independently.
+    """
     def __init__(self, name, tasks=None):
         self.name = name
         self.tasks = tasks
@@ -1076,10 +1079,13 @@ class EffectChain(object):
         self.tasks.append(task)
 
     def task_sequence(self, writers_only=False):
-        """ Generates and returns the sequence of reader/writer tasks in the form of [reader_, writer_0, reader_1, writer_1,...].
+        """ Generates and returns the sequence of reader/writer tasks in the form of [reader_0, writer_0, reader_1, writer_1,...].
             
             A task in this sequence therefore acts either as a reader or a writer. Tasks at odd positions in this
             sequence are readers while tasks at even positions are writers.
+
+            :param writers_only:  if true, only include writer tasks in sequence (omit readers)
+            :type writers_only:   boolean
         """
 
         sequence = list()
@@ -1092,7 +1098,7 @@ class EffectChain(object):
         return sequence
     
 class Path(object):
-    """ A Path describes a chain of tasks.
+    """ A Path describes a (event) chain of tasks.
     Required for path analysis (e.g. end-to-end latency).
     The information stored in Path classes could be derived from the task graph
     (see Task.next_tasks and Task.prev_task),

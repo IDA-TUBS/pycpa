@@ -1,11 +1,13 @@
 """
-| Copyright (C) 2012 Philip Axer, Jonas Diemer
+| Copyright (C) 2017 Philip Axer, Jonas Diemer, Johannes Schlatow
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.
 
 :Authors:
-         - Jonas Diemer, Philip Axer
+         - Jonas Diemer
+         - Philip Axer
+         - Johannes Schlatow
 
 Description
 -----------
@@ -261,14 +263,14 @@ class SPPSchedulerActivationOffsets(SPPScheduler):
                 assert(ti.scheduling_parameter != None)
                 assert(ti.resource == task.resource)
                 if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):  # equal priority also interferes (FCFS)
-                    if ti.in_event_model.delta_min(2) <= task.in_event_model.delta_min(2):
-                        phi_diff = ti.in_event_model.phi - task.in_event_model.phi
-                        if phi_diff < 0:
-                            phi_diff = 0
+                    if hasattr(ti.in_event_model, 'P') and hasattr(task.in_event_model, 'P') and \
+                        ti.in_event_model.P <= task.in_event_model.P and \
+                        task.in_event_model.P % ti.in_event_model.P == 0:
+                            diff = task.in_event_model.phi - ti.in_event_model.phi
                     else:
-                        phi_diff = 0
+                        diff = ti.in_event_model.phiJ
 
-                    s += ti.wcet * ti.in_event_model.eta_plus(w - phi_diff)
+                    s += ti.wcet * ti.in_event_model.eta_plus(w + diff)
 
             w_new = q * task.wcet + s
             if w == w_new:
@@ -277,14 +279,15 @@ class SPPSchedulerActivationOffsets(SPPScheduler):
                     details['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
                     for ti in task.get_resource_interferers():
                         if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):
-                            if ti.in_event_model.delta_min(2) <= task.in_event_model.delta_min(2):
-                                phi_diff = ti.in_event_model.phi - task.in_event_model.phi
-                                if phi_diff < 0:
-                                    phi_diff = 0
+                            if hasattr(ti.in_event_model, 'P') and hasattr(task.in_event_model, 'P') and \
+                                ti.in_event_model.P <= task.in_event_model.P and \
+                                task.in_event_model.P % ti.in_event_model.P == 0:
+                                    diff = task.in_event_model.phi - ti.in_event_model.phi
                             else:
-                                phi_diff = 0
-                            details[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w-phi_diff)) + '*'\
-                                + str(ti.wcet) + '=' + str(ti.wcet * ti.in_event_model.eta_plus(w-phi_diff))
+                                diff = ti.in_event_model.phiJ
+
+                            details[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w+diff)) + '*'\
+                                + str(ti.wcet) + '=' + str(ti.wcet * ti.in_event_model.eta_plus(w+diff))
                 return w
 
             if q > 1:
@@ -293,6 +296,8 @@ class SPPSchedulerActivationOffsets(SPPScheduler):
             w = w_new
 
 class CorrelatedDeltaMin(model.EventModel):
+    """ Computes the correlated event model :math:`\delta^-_j` from Lemma 2 in [Rox2010]_.
+    """
     def __init__(self, em, m, offset):
         model.EventModel.__init__(self, 'tmp')
 
@@ -313,10 +318,12 @@ class CorrelatedDeltaMin(model.EventModel):
 
 class SPPSchedulerCorrelatedRox(SPPScheduler):
     """ SPP scheduler with dmin correlation.
-        Computes the approximate response time bound as presented in [Rox2010].
+        Computes the approximate response time bound as presented in [Rox2010]_.
     """
 
     def b_plus_idle(self, task, q, details=None, task_results=None):
+        """ Implements Case 2 in [Rox2010]_.
+        """
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 
@@ -349,6 +356,8 @@ class SPPSchedulerCorrelatedRox(SPPScheduler):
         return w
 
     def b_plus_busy(self, task, q, details=None, task_results=None):
+        """ Implements Case 1 in [Rox2010]_.
+        """
         assert(task.scheduling_parameter != None)
         assert(task.wcet >= 0)
 
@@ -426,18 +435,10 @@ class SPPSchedulerCorrelatedRox(SPPScheduler):
                 for d in busy_details.keys():
                     details[d] = busy_details[d]
 
-#        classic_details  = dict()
-#        classic_intrf = SPPScheduler.b_plus(self, task, q, classic_details)
-#        if classic_intrf < w:
-#            w = classic_intrf
-#            if details is not None:
-#                for d in classic_details.keys():
-#                    details[d] = classic_details[d]
-
         return w
 
 class SPPSchedulerCorrelatedRoxExact(SPPScheduler):
-    """ SPP scheduler with dmin correlation based on [Rox2010].
+    """ SPP scheduler with dmin correlation based on [Rox2010]_.
         This is the exact version which performs an extensive search of busy window candidates.
     """
 

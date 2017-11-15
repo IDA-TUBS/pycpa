@@ -1,5 +1,5 @@
 """
-| Copyright (C) 2007-2012 Jonas Diemer, Philip Axer
+| Copyright (C) 2007-2017 Jonas Diemer, Philip Axer
 | TU Braunschweig, Germany
 | All rights reserved.
 | See LICENSE file for copyright and license details.
@@ -27,6 +27,7 @@ try:
     from matplotlib import pyplot
     from matplotlib import patches
     from matplotlib.collections import PatchCollection
+    import matplotlib as mpl
 except ImportError:
     print ("matplotlib not available, plotting disabled")
 
@@ -98,17 +99,19 @@ def plot_event_model(model, num_events, file_format=None, separate_plots=True, f
         pyplot.subplot(121)
         pyplot.subplots_adjust(left=0.05, bottom=0.1, right=0.97, top=0.92, wspace=None, hspace=None)
 
+    mpl.rcParams['lines.markeredgewidth'] = 0.3
+
     #eta minus first (so it appears below in case of overlaps)
-    pyplot.plot([0], [0], 'g-^', label="$\eta^-(\Delta t)$") #only one point for label + legend (with line and marker)
+    pyplot.plot([0], [0], 'g-^', label="$\eta^-(\Delta t)$", markeredgecolor='k') #only one point for label + legend (with line and marker)
     pyplot.plot(augmented_range, [model.eta_min(x) for x in augmented_range], 'g-') # line only
-    pyplot.plot(steps_eta_min, [model.eta_min(x) for x in steps_eta_min], 'g^') # inclusive markers
-    pyplot.plot(steps_eta_min, [model.eta_min(x - eps) for x in steps_eta_min], 'w^') # exclusive markers
+    pyplot.plot(steps_eta_min, [model.eta_min(x) for x in steps_eta_min], 'g^', markeredgecolor='k') # inclusive markers
+    pyplot.plot(steps_eta_min, [model.eta_min(x - eps) for x in steps_eta_min], 'w^', markeredgecolor='k') # exclusive markers
 
     #now eta plus on top
-    pyplot.plot([0], [0], 'r-v', label="$\eta^+(\Delta t)$") #only one point for label + legend (with line and marker)
+    pyplot.plot([0], [0], 'r-v', label="$\eta^+(\Delta t)$", markeredgecolor='k') #only one point for label + legend (with line and marker)
     pyplot.plot(augmented_range, [model.eta_plus(x) for x in augmented_range], 'r-') # line only
-    pyplot.plot(steps_eta_plus, [model.eta_plus(x) for x in steps_eta_plus], 'rv') # inclusive markers
-    pyplot.plot(steps_eta_plus, [model.eta_plus(x + eps) for x in steps_eta_plus], 'wv') # exclusive markers
+    pyplot.plot(steps_eta_plus, [model.eta_plus(x) for x in steps_eta_plus], 'rv', markeredgecolor='k') # inclusive markers
+    pyplot.plot(steps_eta_plus, [model.eta_plus(x + eps) for x in steps_eta_plus], 'wv', markeredgecolor='k') # exclusive markers
 
     pyplot.xlim(xmin=0, xmax=max_delta_t)
     pyplot.ylim(ymin=0, ymax=num_events + .5)
@@ -131,13 +134,13 @@ def plot_event_model(model, num_events, file_format=None, separate_plots=True, f
     range_delta = range(num_events + 1)
 
     # plot delta_min first so it appears below when overlapping
-    pyplot.plot(range_delta, [model.delta_min(x) for x in range_delta], 'r^',
+    pyplot.plot(range_delta, [model.delta_min(x) for x in range_delta], 'r^', markeredgecolor='k',
                 label="$\delta^-(n)$")
 
     # plot delta_plus on top
     if model.delta_plus(2) < float('inf'):
         # only plot delta+ if it is not infinity
-        pyplot.plot(range_delta, [model.delta_plus(x) for x in range_delta], 'gv',
+        pyplot.plot(range_delta, [model.delta_plus(x) for x in range_delta], 'gv', markeredgecolor='k',
                     label="$\delta^+(n)$")
 
     pyplot.xlim(xmin=0, xmax=num_events + .5)

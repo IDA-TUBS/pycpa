@@ -71,7 +71,7 @@ def simple_test():
             print("%s: wcrt=%d" % (t.name, results[t].wcrt))
 
     bcl, wcl = path_analysis.end_to_end_latency(p1, results, 2)
-    print "bcl: %d, wcl: %d" % (bcl, wcl)
+    print("bcl: %d, wcl: %d" % (bcl, wcl))
 
 if __name__ == "__main__":
     simple_test()
