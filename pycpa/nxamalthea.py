@@ -4,10 +4,15 @@ from . import util
 from . import model
 from . import schedulers
 
+import csv
+
 xsi='{http://www.w3.org/2001/XMLSchema-instance}'
 XSI_TYPE='{http://www.w3.org/2001/XMLSchema-instance}type'
 
 MAPPING = 'mapping'
+ACCESS = 'ACCESS'
+READ = 'read'
+WRITE = 'write'
 TASK = 'task'
 RUNNABLE = 'runnable'
 LABEL = 'label'
@@ -57,9 +62,9 @@ class NxAmaltheaParser(object):
                         
                         access = ri.get('access')
                         if access == "read":
-                            self.G.add_edge(label,r_name,access=access)
+                            self.G.add_edge(label,r_name,TYPE = ACCESS, ACCESS = READ)
                         else:
-                            self.G.add_edge(r_name,label,access=access)
+                            self.G.add_edge(r_name,label,TYPE = ACCESS, ACCESS = WRITE)
         return self.G
 
     def _number_of_labels_in_xml(self):
@@ -129,6 +134,26 @@ class NxAmaltheaParser(object):
 
         return self.G
 
+    def parse_runnable_sequence(self):
+        # adds edges to the graph G that specify the sequence of runnables in a task
+        # assumes that runnables and tasks are already parsed
+        for t in self.sw_model.iter('tasks'):
+            t_name = t.get('name')
+
+            graphEntries = t.find('callGraph/graphEntries')
+            prefix,tag =  graphEntries.get(XSI_TYPE).split(":")
+            if tag == 'CallSequence':
+                first_runnable = True
+                for call in graphEntries.iter('calls'):
+                    # Get the runnable 
+                    cur_r = self.clean_xml_string(call.get('runnable'))
+                    # Link the runnables in order
+                    if not first_runnable:
+                        self.G.add_edge(prev_r, cur_r, TYPE=RUNNABLE_CALL)
+                    first_runnable = False # The first runnable has no predecessor in the task
+                    prev_r = cur_r
+
+        return self.G
 
     def _set_time_per_instruction(self):
         assert ( int(self.hw_model.find('coreTypes').get('instructionsPerCycle')) == 1 )
@@ -140,6 +165,13 @@ class NxAmaltheaParser(object):
 
     def get_cpa_sys(self,G):
         pass
+
+    def parse_all(self):
+        self.parse_runnables_and_labels_to_nx()
+        self.parse_tasks_and_cores_to_nx()
+        self.parse_runnable_sequence()
+
+        return self.G
     
 class NxConverter(object):
     def __init__(self,G):
@@ -153,13 +185,13 @@ class NxConverter(object):
             reversing prios ensures that Amalthea Models parsed to nx are compatible with pyCPA
        """
        s = model.System()
-       for n,d in self.G.nodes_iter(data=True):
+       for n,d in self.G.nodes(data=True):
            if d['TYPE'] == RESSOURCE:
                #for the time being we only support SPP
                #r = s.bind_resource(model.Resource(self.G.node[n], schedulers.SPPScheduler()))
                r = s.bind_resource(model.Resource(n, schedulers.SPPScheduler()))
                # get the neigbors of n that have a MAPPING to a task
-               for u,v,d_edge in self.G.out_edges_iter(n,data=True):
+               for u,v,d_edge in self.G.out_edges(n,data=True):
                    if d_edge[TYPE] == MAPPING:
                        #v is a task
                        assert (self.G.node[v][TYPE] == TASK )
@@ -181,11 +213,11 @@ class NxConverter(object):
             t_params['scheduling_parameter'] = self.G.node[t]['scheduling_parameter']
 
         #Filter out a subgraph that only contains runnables, tasks and mapping edges
-        tasks_runnables = [ n for n,d in self.G.nodes_iter(data=True) if (d[TYPE] ==
+        tasks_runnables = [ n for n,d in self.G.nodes(data=True) if (d[TYPE] ==
             RUNNABLE or d[TYPE] == TASK)]
         H = self.G.subgraph( tasks_runnables )
         #Iterate over the runnables and compute WCET/BCET as a sum over the neigbors!
-        for u,v,d in H.out_edges_iter(t,data=True):
+        for u,v,d in H.out_edges(t,data=True):
             if (d[TYPE] == MAPPING and self.G.node[v][TYPE] == RUNNABLE):
                 #print(u,v,d)
                 t_params['wcet'] = int(self.G.node[v]['wcet']) + int(t_params['wcet'])
@@ -215,7 +247,7 @@ class NxConverter(object):
         # in principle this can be cached!
         prio_list = list()
         name_list = list()
-        for n,d in self.G.nodes_iter(data=True):
+        for n,d in self.G.nodes(data=True):
             if d[TYPE] == TASK:
                 name_list.append(n)
                 prio_list.append(d[PRIO])
@@ -225,3 +257,47 @@ class NxConverter(object):
             prio_cache[name_list[i]] = prio_list[i]
 
         return prio_cache[task]
+
+    def _get_event_model_params(self, task=None):
+        """ Instead of return a cpa event model just return the parameters
+            WARNING: Only returns periods at the moment
+        """
+        if self.G.node[task]['event_model']['EMType'] == 'Periodic':
+            s_param = self.G.node[task]['event_model']
+            P = util.time_to_time( int(s_param['value']) , base_in=util.str_to_time_base(s_param['unit']), base_out=self.cpa_base)
+            return (P,0)
+
+        elif self.G.node[task]['event_model']['EMType'] == 'Sporadic':
+            lB = self.G.node[task]['event_model']['lowerBound']
+            uB = self.G.node[task]['event_model']['upperBound']
+            #TODO!
+            s_param = self.G.node[task]['event_model']['lowerBound']
+            P = util.time_to_time( int(s_param['value']) , base_in=util.str_to_time_base(s_param['unit']), base_out=self.cpa_base)
+            return (P,0)
+        else:
+            raise ValueError
+
+    def write_to_csv(self,filename, reverse_prios=True):
+        """ WARNING: Forces P,J as Event Model Parameters! """
+
+        with open(filename, 'w') as csvfile:
+           fieldnames = ['task_name', 'resource', 'bcet', 'wcet', 'scheduling_parameter', 'period' , 'jitter']
+           writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
+           writer.writeheader()
+
+           for n,d in self.G.nodes(data=True):
+               if d['TYPE'] == RESSOURCE:
+                   # get the neigbors of n that have a MAPPING to a task
+                   for u,v,d_edge in self.G.out_edges(n,data=True):
+                       if d_edge[TYPE] == MAPPING:
+                           #v is a task (i.e. the name)
+                           assert (self.G.node[v][TYPE] == TASK )
+                           task_params = self.get_task_params(v,reverse_prios)
+                           task_params['task_name'] = v
+                           task_params['resource'] = n 
+                           task_params['period'], task_params['jitter'] = self._get_event_model_params(v)
+                           writer.writerow(task_params)
+
+
+
+
