@@ -1,6 +1,10 @@
 Tutorial
 =================================
 
+.. contents:: 
+   :local:
+   :depth: 1
+
 Introduction
 ------------
 
@@ -69,7 +73,7 @@ First, we create an empty system, which is just a container for all other object
 
 .. literalinclude:: ../examples/tutorial.py
    :language: python
-   :lines: 40-41
+   :lines: 50-51
 
 The next step is to create the three resources
 and bind them to the system via :py:func:`pycpa.model.System.bind_resource()`.
@@ -83,7 +87,7 @@ For the bus, we use :py:class:`pycpa.schedulers.SPNPScheduler`.
 
 .. literalinclude:: ../examples/tutorial.py
    :language: python
-   :lines: 43-47
+   :lines: 53-57
 
 The next part is to create tasks and bind them to a resource
 via :py:func:`pycpa.model.Resource.bind_task()`.
@@ -95,7 +99,7 @@ For SPP and SPNP, it specifies the priority. By default higher numbers denote lo
 
 .. literalinclude:: ../examples/tutorial.py
    :language: python
-   :lines: 49-59
+   :lines: 59-69
 
 In case tasks communicate with each other through event propagation (e.g. one task fills the queue of another task),
 we model this through task links, 
@@ -105,7 +109,7 @@ In case of communication-overhead it must be modeled by using other resources/ta
  
 .. literalinclude:: ../examples/tutorial.py
    :language: python
-   :lines: 61-63
+   :lines: 71-73
 
 Last, we need to assign activation patterns (aka input event models) to the first tasks in the task chains, i.e. T11 and
 T12.
@@ -113,7 +117,7 @@ We do this by assigning a periodic with jitter model, which is implemented by :p
 
 .. literalinclude:: ../examples/tutorial.py
     :language: python
-    :lines: 65-67
+    :lines: 75-77
 
 Plotting the Task-Graph
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -167,7 +171,7 @@ registered.
 
 .. literalinclude:: ../examples/tutorial.py
     :language: python
-    :lines: 69-71
+    :lines: 79-81
 
 The path analysis is invoked by :py:func:`pycpa.path_analysis.end_to_end_latency()` with the path to analysis, the
 task_results dictionary and the number of events.
@@ -203,7 +207,7 @@ We use the same system model as before but replace the scheduler on CPU2 by
 
 .. literalinclude:: ../examples/tutorial.py
     :language: python
-    :lines: 84
+    :lines: 94
 
 This scheduler exploits inter-event stream correlations that are accessed via the :py:func:`correlated_dmin()` function
 of the input event models.
@@ -212,7 +216,7 @@ We achieve this by replacing the propagation method by :py:class:`pycpa.propagat
 
 .. literalinclude:: ../examples/tutorial.py
     :language: python
-    :lines: 85-86
+    :lines: 95-96
 
 This results in the following analysis output:
 
@@ -248,13 +252,13 @@ Note that modifying a system model in such a way is not recommended but used for
 
 .. literalinclude:: ../examples/tutorial.py
     :language: python
-    :lines: 122-125
+    :lines: 132-134
 
 Next, we add the additional tasks T31 and TX to CPU1 and specify an input event model for T31.
 
 .. literalinclude:: ../examples/tutorial.py
     :language: python
-    :lines: 127-130
+    :lines: 136-140
 
 Now, we need a junction in order to combine the output event models of T12 and T13 into and provide the input event model of TX.
 This is achieved by registering a :py:class:`pycpa.model.Junction` to the system via :py:func:`pycpa.model.System.bind_junction()`.
@@ -264,13 +268,13 @@ Here, we use the :py:class:`pycpa.junctions.ORJoin` in order to model that TX wi
 
 .. literalinclude:: ../examples/tutorial.py
     :language: python
-    :lines: 132-133
+    :lines: 142-143
 
 Of course, we also need to add the corresponding task links.
 
 .. literalinclude:: ../examples/tutorial.py
     :language: python
-    :lines: 135-140
+    :lines: 145-150
 
 On CPU2, we also need to add new tasks: T31 and RX.
 More specifically, we add RX as a :py:class:`pycpa.model.Fork` which inherits from :py:class:`pycpa.model.Task`.
@@ -281,7 +285,7 @@ Before that, let us register the missing task links.
 
 .. literalinclude:: ../examples/tutorial.py
     :language: python
-    :lines: 148-153
+    :lines: 158-163
 
 A fork also allows adding a mapping from its dependent tasks to for instance an identifier or an object that will be
 used by the fork strategy to distinguish the extracted event models.
@@ -289,7 +293,7 @@ We use this in order to map the tasks T32 and T33 to T12 and T13 respectively.
 
 .. literalinclude:: ../examples/tutorial.py
     :language: python
-    :lines: 155-157
+    :lines: 165-167
 
 Writing a Fork Strategy
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -310,7 +314,7 @@ the path jitter (worst-case latency - best-case latency) instead of the response
 
 .. literalinclude:: ../examples/tutorial.py
     :language: python
-    :lines: 94-120
+    :lines: 104-130
 
 Analysis
 ^^^^^^^^
@@ -329,27 +333,110 @@ For this, we use the :py:mod:`pycpa.plot` module to plot and compare the input e
 
 .. literalinclude:: ../examples/tutorial.py
     :language: python
-    :lines: 159
+    :lines: 169
 .. literalinclude:: ../examples/tutorial.py
     :language: python
     :lines: 22-25
-
-.. figure:: _static/event-model-T32plot.png
-   :align:   right
-
-   Input event model of T32.
 
 .. figure:: _static/event-model-T12plot.png
 
    Input event model of T12.
 
+.. figure:: _static/event-model-T32plot.png
+
+   Input event model of T32.
+
 
 Step 4: Cause-Effect Chains
 ---------------------------
 
-TODO
+In this step, we demonstrate how we can compute end-to-end latencies for cause-effect chains.
+In contrast to a path, which describes an event stream across a chains of (dependent) tasks, a cause-effect chain
+describes a sequence of independently (time-)triggered tasks.
+In both cases, data is processed by a sequence of tasks but with different communication styles between the tasks.
+
+.. figure:: _static/step4.png
+   :align: right
+
+   Cause-Effect Chains
+
+We modify the base scenario by moving from single-core CPUs to multiple cores per CPU.
+More precisely, we added one core to CPU1 as illustrated in the figure to the right:
+
+.. literalinclude:: ../examples/tutorial.py
+   :language: python
+   :lines: 176-177
+
+We also a new task to both cores:
+
+.. literalinclude:: ../examples/tutorial.py
+   :language: python
+   :lines: 179-183
+
+.. literalinclude:: ../examples/tutorial.py
+   :language: python
+   :lines: 179-183
+
+Now we define an effect chain comprising T01, T02 and T11.
+
+.. literalinclude:: ../examples/tutorial.py
+   :language: python
+   :lines: 185
+
+Note that every task in the effect chain has its own periodic input event model.
+In contrast to activation dependencies (solid black arrows in the figure), the data dependencies within the effect chain are illustrated by blue dotted arrows.
+
+Analysis 
+^^^^^^^^
+
+The effect chain analysis is performed similar to the path analysis.
+Note that there are two different latency semantics: reaction time and data age.
+Here, we are interested in the data age.
+
+.. literalinclude:: ../examples/tutorial.py
+   :language: python
+   :lines: 39-44
+
+When running the analysis, we obtain the following output:
+
+.. literalinclude:: tutorial.out
+   :language: none
+   :lines: 96-117
+
 
 Step 5: Complex Run-Time Environments
 -------------------------------------
 
-TODO
+It has been shown that CPA may provide very conservative results if a lot of task dependencies are present on a single
+resource [Schlatow2016]_.
+The general idea to mitigate this is to only use event model propagation at resource boundaries as illustrated in the
+figure to the right.
+On the resource itself, we end up with task chains that can be analysed as a whole with the busy-window approach (see [Schlatow2016]_, [Schlatow2017]_).
+
+.. figure:: _static/taskchains.png
+   :align: right
+
+   Task Chains
+
+The implementation of this approach is available as an extension to the pyCPA core at `<https://bitbucket.org/pycpa/pycpa_taskchain>`_.
+It replaces the :py:class:`pycpa.model.Resource` with a `TaskchainResource` and also the Scheduler with an appropriate
+implementation.
+
+Hence, we need to import the modules as follows:
+
+.. literalinclude:: ../examples/tutorial.py
+   :language: python
+   :lines: 191-192
+
+We then model the scenario depicted in the figure as follows:
+
+.. literalinclude:: ../examples/tutorial.py
+   :language: python
+   :lines: 197-228
+
+When running the analysis, we get the task-chain response time results as the results for the last task in each chain: 
+
+.. literalinclude:: tutorial.out
+   :language: none
+   :lines: 119-131
+

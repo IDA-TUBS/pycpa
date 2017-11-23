@@ -208,7 +208,7 @@ def cause_effect_chain_data_age(chain, task_results, details=None):
     if details is None:
         details = dict()
 
-    l_max = sequence[0].in_event_model.phi + _jitter(sequence[0])
+    l_max = _phi(sequence[0]) + _jitter(sequence[0])
     details[sequence[0].name+'-PHI+J'] = l_max
     for i in range(len(sequence)):
         # add write-to-read delay for all but the last task
@@ -224,6 +224,12 @@ def cause_effect_chain_data_age(chain, task_results, details=None):
         l_max += delay
 
     return l_max
+
+def _phi(task):
+    if hasattr(task.in_event_model, 'phi'):
+        return task.in_event_model.phi
+    else:
+        return 0
 
 def _period(task):
     return task.in_event_model.P
@@ -276,15 +282,15 @@ def _calculate_backward_distance(writer, reader, task_results, details):
     return result
 
 def _wplus(writer, task_results, n=0):
-    return n*_period(writer) + writer.in_event_model.phi + task_results[writer].wcrt + _jitter(writer)
+    return n*_period(writer) + _phi(writer) + task_results[writer].wcrt + _jitter(writer)
 
 def _wmin(writer, task_results, n=0):
-    return n*_period(writer) + writer.in_event_model.phi + task_results[writer].bcrt - _jitter(writer)
+    return n*_period(writer) + _phi(writer) + task_results[writer].bcrt - _jitter(writer)
 
 def _rplus(reader, task_results, n=0):
     return _wplus(reader, task_results, n) - task_results[reader].bcrt
 
 def _rmin(reader, task_results, n=0):
-    return n*_period(reader) + reader.in_event_model.phi - _jitter(reader)
+    return n*_period(reader) + _phi(reader) - _jitter(reader)
 
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

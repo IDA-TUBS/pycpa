@@ -636,19 +636,6 @@ class TraceEventModel (LimitedDeltaEventModel):
                  name='min',
                  **kwargs):
         LimitedDeltaEventModel.__init__(self, name=name, **kwargs)
-#        LimitedDeltaEventModel.__init__(self,limited_delta_min_func=None,
-#                limited_delta_plus_func=None, limit_q_min=float('inf'), limit_q_plus=float('inf'), min_additive=min_additive,
-#                max_additive=max_additive, name=name, **kwargs)
-
-    def __init__(self,
-            limited_delta_min_func=None,
-            limited_delta_plus_func=None,
-            limit_q_min=float('inf'),
-            limit_q_plus=float('inf'),
-            min_additive=util.recursive_min_additive,
-            max_additive=util.recursive_max_additive,
-            name='min',
-            **kwargs):
 
         self.trace_points = trace_points
         self.min_sample_size = min_sample_size
