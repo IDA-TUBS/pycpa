@@ -11,9 +11,9 @@
 
 from pycpa import *
 
-def run(s, paths=list(), plot_in=list()):
+def run(s, paths=list(), plot_in=list(), chains=list()):
     # graph the system to visualize the architecture
-    g = graph.graph_system(s, filename='%s.pdf' % s.name, dotout='%s.dot' % s.name, show=False)
+    g = graph.graph_system(s, filename='%s.pdf' % s.name, dotout='%s.dot' % s.name, show=False, chains=chains)
 
     # perform the analysis
     print("\nPerforming analysis of system '%s'" % s.name)
@@ -27,7 +27,7 @@ def run(s, paths=list(), plot_in=list()):
     # print the worst case response times (WCRTs)
     print("Result:")
     for r in sorted(s.resources, key=str):
-        for t in sorted(r.tasks, key=str):
+        for t in sorted(r.tasks & task_results.keys(), key=str):
             print("%s: wcrt=%d" % (t.name, task_results[t].wcrt))
             print("    b_wcrt=%s" % (task_results[t].b_wcrt_str()))
 
@@ -35,6 +35,16 @@ def run(s, paths=list(), plot_in=list()):
     for p in paths:
         best_case_latency, worst_case_latency = path_analysis.end_to_end_latency(p, task_results, n=1)
         print("path %s e2e latency. best case: %d, worst case: %d" % (p.name, best_case_latency, worst_case_latency))
+
+    # perform effect-chain analysis
+    for c in chains:
+        details = dict()
+        data_age = path_analysis.cause_effect_chain_data_age(c, task_results, details)
+        print("chain %s data age: %d" % (c.name, data_age))
+        print("  %s" % str(details))
+
+
+
 
 def _setup_base_scenario():
     # generate an new system
@@ -159,6 +169,66 @@ def junction_scenario():
     plot_in = [t12, t32, ttx]
     run(s, plot_in=plot_in)
 
+def effectchain_scenario():
+    s, r1, r2, r3, t11, t12, t21, t22, t31, t32, paths = _setup_base_scenario()
+    s.name = 'step4'
+
+    r1.name = 'CPU1.1'
+    r10 = s.bind_resource(model.Resource("CPU1.0", schedulers.SPPScheduler()))
+
+    t01 = r10.bind_task(model.Task("T01", wcet=5, bcet=2, scheduling_parameter=1))
+    t02 =  r1.bind_task(model.Task("T02", wcet=5, bcet=2, scheduling_parameter=4))
+
+    t01.in_event_model = model.PJdEventModel(P=10, phi=0)
+    t02.in_event_model = model.PJdEventModel(P=60, phi=6)
+
+    chains = [ model.EffectChain(name='Chain1', tasks=[t01, t02, t11]) ]
+
+    run(s, paths, chains=chains)
+
+def taskchain_scenario():
+    try:
+        from taskchain import model as tc_model
+        from taskchain import schedulers as tc_schedulers
+    except ImportError:
+        print("taskchain repository not found")
+        return
+
+    s = model.System(name='step5')
+
+    # add two resources (CPUs) to the system
+    # and register the static priority preemptive scheduler
+    r1 = s.bind_resource(tc_model.TaskchainResource("Resource 1", tc_schedulers.SPPSchedulerSync()))
+    r2 = s.bind_resource(tc_model.TaskchainResource("Resource 2", tc_schedulers.SPPSchedulerSync()))
+
+    # create and bind tasks to r1
+    t11 = r1.bind_task(model.Task("T11", wcet=10, bcet=1, scheduling_parameter=1))
+    t12 = r1.bind_task(model.Task("T12", wcet=2, bcet=2, scheduling_parameter=3))
+    t13 = r1.bind_task(model.Task("T13", wcet=4, bcet=2, scheduling_parameter=6))
+
+    t31 = r1.bind_task(model.Task("T31", wcet=5, bcet=3, scheduling_parameter=4))
+    t32 = r1.bind_task(model.Task("T32", wcet=5, bcet=3, scheduling_parameter=2))
+
+    t21 = r2.bind_task(model.Task("T21", wcet=3, bcet=1, scheduling_parameter=2))
+    t22 = r2.bind_task(model.Task("T22", wcet=9, bcet=4, scheduling_parameter=2))
+
+    # specify precedence constraints
+    t11.link_dependent_task(t12).link_dependent_task(t13).link_dependent_task(t21).\
+            link_dependent_task(t22).link_dependent_task(t31).link_dependent_task(t32)
+
+    # register a periodic with jitter event model for T11
+    t11.in_event_model = model.PJdEventModel(P=50, J=5)
+
+    # register task chains
+    c1 = r1.bind_taskchain(tc_model.Taskchain("C1", [t11, t12, t13]))
+    c2 = r2.bind_taskchain(tc_model.Taskchain("C2", [t21, t22]))
+    c3 = r1.bind_taskchain(tc_model.Taskchain("C3", [t31, t32]))
+
+    # register a path
+    s1 = s.bind_path(model.Path("S1", [t11, t12, t13, t21, t22, t31, t32]))
+
+    run(s, paths=[s1])
+
 if __name__ == "__main__":
     # init pycpa and trigger command line parsing
     options.init_pycpa()
@@ -172,6 +242,8 @@ if __name__ == "__main__":
     # Step 3 (junctions and forks)
     junction_scenario()
 
-    # TODO Step 4 (cause-effect chains)
+    # Step 4 (cause-effect chains)
+    effectchain_scenario()
 
-    # TODO Step 5 (complex run-time environments)
+    # Step 5 (complex run-time environments)
+    taskchain_scenario()

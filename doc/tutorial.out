@@ -92,3 +92,40 @@ T32: wcrt=15
     b_wcrt=RX:eta*WCET:3*2=6, q*WCET:3*3=9
 T33: wcrt=76
     b_wcrt=RX:eta*WCET:11*2=22, T31:eta*WCET:4*5=20, T32:eta*WCET:8*3=24, q*WCET:2*5=10
+
+Performing analysis of system 'step4'
+Result:
+T21: wcrt=11
+    b_wcrt=blocker:9, q*WCET:1*2=2
+T22: wcrt=11
+    b_wcrt=T21:eta*WCET:1*2=2, blocker:0, q*WCET:1*9=9
+T01: wcrt=5
+    b_wcrt=q*WCET:1*5=5
+T02: wcrt=21
+    b_wcrt=T11:eta*WCET:1*10=10, T12:eta*WCET:2*3=6, q*WCET:1*5=5
+T11: wcrt=10
+    b_wcrt=q*WCET:1*10=10
+T12: wcrt=13
+    b_wcrt=T11:eta*WCET:1*10=10, q*WCET:1*3=3
+T31: wcrt=11
+    b_wcrt=T32:eta*WCET:2*3=6, q*WCET:1*5=5
+T32: wcrt=3
+    b_wcrt=q*WCET:1*3=3
+path P1 e2e latency. best case: 10, worst case: 32
+path P2 e2e latency. best case: 8, worst case: 27
+chain Chain1 data age: 116
+  {'T01-PHI+J': 0, 'T01-T02-delay': 23, 'T01-WCRT': 5, 'T02-T11-delay': 57, 'T02-WCRT': 21, 'T11-WCRT': 10}
+
+Performing analysis of system 'step5'
+Result:
+T13: wcrt=26
+    b_wcrt=T11:q*WCET:1*10=10, T12:q*WCET:1*2=2, T13:q*WCET:1*4=4, T31:eta*WCET:1*5=5, T32:eta*WCET:1*5=5
+T32: wcrt=22
+    b_wcrt=T11:WCET:10, T12:WCET:2, T31:q*WCET:1*5=5, T32:q*WCET:1*5=5
+T22: wcrt=12
+    b_wcrt=T21:q*WCET:1*3=3, T22:q*WCET:1*9=9
+Warning: no task_results for task T11
+Warning: no task_results for task T12
+Warning: no task_results for task T21
+Warning: no task_results for task T31
+path S1 e2e latency. best case: 16, worst case: 60
