@@ -119,7 +119,8 @@ def graph_system(s, filename=None, layout='dot',
                  rankdir='LR',
                  show=False,
                  dotout=None,
-                 use_pygraphviz=False
+                 use_pygraphviz=False,
+                 chains=list()
                  ):
     """
     Return a graph of the system
@@ -209,6 +210,10 @@ def graph_system(s, filename=None, layout='dot',
                 g.add_edge(str(t.in_event_model), t.name, constraint='True',
                            style='dashed')
 
+    for c in chains:
+        sequence = c.tasks
+        for i in range(len(sequence)-1):
+            g.add_edge(sequence[i], sequence[i+1], len=elen, style='dotted', arrowhead='open', color='blue')
 
     if filename is not None:
         g.draw(filename, prog=layout)
