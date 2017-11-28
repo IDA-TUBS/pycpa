@@ -27,7 +27,7 @@ def run(s, paths=list(), plot_in=list(), chains=list()):
     # print the worst case response times (WCRTs)
     print("Result:")
     for r in sorted(s.resources, key=str):
-        for t in sorted(r.tasks & task_results.keys(), key=str):
+        for t in sorted(r.tasks & set(task_results.keys()), key=str):
             print("%s: wcrt=%d" % (t.name, task_results[t].wcrt))
             print("    b_wcrt=%s" % (task_results[t].b_wcrt_str()))
 
