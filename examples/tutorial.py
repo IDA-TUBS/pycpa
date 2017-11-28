@@ -229,21 +229,28 @@ def taskchain_scenario():
 
     run(s, paths=[s1])
 
+options.parser.add_argument('--steps', type=str, nargs='+', default=['step1', 'step2', 'step3', 'step4', 'step5'])
+
 if __name__ == "__main__":
     # init pycpa and trigger command line parsing
     options.init_pycpa()
 
     # Step 1
-    base_scenario()
+    if 'step1' in options.get_opt('steps'):
+        base_scenario()
 
     # Step 2 (refining the analysis)
-    refined_scenario()
+    if 'step2' in options.get_opt('steps'):
+        refined_scenario()
     
     # Step 3 (junctions and forks)
-    junction_scenario()
+    if 'step3' in options.get_opt('steps'):
+        junction_scenario()
 
     # Step 4 (cause-effect chains)
-    effectchain_scenario()
+    if 'step4' in options.get_opt('steps'):
+        effectchain_scenario()
 
     # Step 5 (complex run-time environments)
-    taskchain_scenario()
+    if 'step5' in options.get_opt('steps'):
+        taskchain_scenario()
