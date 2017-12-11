@@ -279,7 +279,10 @@ class SPPSchedulerActivationOffsets(SPPScheduler):
                     details['q*WCET'] = str(q) + '*' + str(task.wcet) + '=' + str(q * task.wcet)
                     for ti in task.get_resource_interferers():
                         if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):
-                            if ti.in_event_model.delta_min(2) <= task.in_event_model.delta_min(2):
+                            if hasattr(ti.in_event_model, 'P') and hasattr(task.in_event_model, 'P') and \
+                                ti.in_event_model.P <= task.in_event_model.P and \
+                                task.in_event_model.P % ti.in_event_model.P ==0:
+
                                 phi_diff = ti.in_event_model.phi - task.in_event_model.phi
                                 if phi_diff < 0:
                                     phi_diff = 0

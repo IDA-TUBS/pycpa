@@ -247,23 +247,33 @@ def _calculate_backward_distance(writer, reader, task_results, details):
     if _period(reader) < _period(writer): # oversampling 
 
         candidates = set()
-        for n in range(int(math.ceil(_period(writer)/_period(reader)))):
-            candidates.add(_rplus(reader, task_results, n) - _wmin(writer, task_results, 0))
 
-            # include previous cycle?
-            if _wplus(writer, task_results) > _rmin(reader, task_results, n):
-                candidates.add(_rplus(reader, task_results, n) - _wmin(writer, task_results, -1))
+        if _period(writer) % _period(reader) != 0:
+            candidates.add(_period(writer) + task_results[writer].wcrt - task_results[writer].bcrt)
+        else:
+
+            for n in range(int(math.ceil(_period(writer)/_period(reader)))):
+                candidates.add(_rplus(reader, task_results, n) - _wmin(writer, task_results, 0))
+
+                # include previous cycle?
+                if _wplus(writer, task_results) > _rmin(reader, task_results, n):
+                    candidates.add(_rplus(reader, task_results, n) - _wmin(writer, task_results, -1))
 
     else: # undersampling or same period
 
         candidates = set()
-        # include previous cycle?
-        if _wplus(writer, task_results) > _rmin(reader, task_results):
-            candidates.add(_rplus(reader, task_results) - _wmin(writer, task_results, -1))
 
-        # include all other possible writers
-        for n in range(int(math.ceil(_period(reader)/_period(writer)))):
-            candidates.add(_rplus(reader, task_results) - _wmin(writer, task_results, n))
+        if _period(reader) % _period(writer) != 0:
+            candidates.add(_period(writer) + task_results[writer].wcrt - task_results[writer].bcrt)
+        else:
+
+            # include previous cycle?
+            if _wplus(writer, task_results) > _rmin(reader, task_results):
+                candidates.add(_rplus(reader, task_results) - _wmin(writer, task_results, -1))
+
+            # include all other possible writers
+            for n in range(int(math.ceil(_period(reader)/_period(writer)))):
+                candidates.add(_rplus(reader, task_results) - _wmin(writer, task_results, n))
 
     result = max(candidates)
     details[writer.name+'-'+reader.name+'-delay'] = result
