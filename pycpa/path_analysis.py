@@ -244,8 +244,6 @@ def _calculate_backward_distance(writer, reader, task_results, details):
     """ computes backward distance (for data age)
     """
 
-    _period(reader) % _period(writer) != 0
-
     if _period(reader) < _period(writer): # oversampling 
 
         candidates = set()
