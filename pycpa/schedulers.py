@@ -263,14 +263,14 @@ class SPPSchedulerActivationOffsets(SPPScheduler):
                 assert(ti.scheduling_parameter != None)
                 assert(ti.resource == task.resource)
                 if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):  # equal priority also interferes (FCFS)
-                    if ti.in_event_model.delta_min(2) <= task.in_event_model.delta_min(2):
-                        phi_diff = ti.in_event_model.phi - task.in_event_model.phi
-                        if phi_diff < 0:
-                            phi_diff = 0
+                    if hasattr(ti.in_event_model, 'P') and hasattr(task.in_event_model, 'P') and \
+                        ti.in_event_model.P <= task.in_event_model.P and \
+                        task.in_event_model.P % ti.in_event_model.P == 0:
+                            diff = task.in_event_model.phi - ti.in_event_model.phi
                     else:
-                        phi_diff = 0
+                        diff = ti.in_event_model.phiJ
 
-                    s += ti.wcet * ti.in_event_model.eta_plus(w - phi_diff)
+                    s += ti.wcet * ti.in_event_model.eta_plus(w + diff)
 
             w_new = q * task.wcet + s
             if w == w_new:
@@ -281,15 +281,13 @@ class SPPSchedulerActivationOffsets(SPPScheduler):
                         if self.priority_cmp(ti.scheduling_parameter, task.scheduling_parameter):
                             if hasattr(ti.in_event_model, 'P') and hasattr(task.in_event_model, 'P') and \
                                 ti.in_event_model.P <= task.in_event_model.P and \
-                                task.in_event_model.P % ti.in_event_model.P ==0:
-
-                                phi_diff = ti.in_event_model.phi - task.in_event_model.phi
-                                if phi_diff < 0:
-                                    phi_diff = 0
+                                task.in_event_model.P % ti.in_event_model.P == 0:
+                                    diff = task.in_event_model.phi - ti.in_event_model.phi
                             else:
-                                phi_diff = 0
-                            details[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w-phi_diff)) + '*'\
-                                + str(ti.wcet) + '=' + str(ti.wcet * ti.in_event_model.eta_plus(w-phi_diff))
+                                diff = ti.in_event_model.phiJ
+
+                            details[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w+diff)) + '*'\
+                                + str(ti.wcet) + '=' + str(ti.wcet * ti.in_event_model.eta_plus(w+diff))
                 return w
 
             if q > 1:
