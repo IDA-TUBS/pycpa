@@ -202,6 +202,20 @@ def cause_effect_chain_data_age(chain, task_results, details=None):
     :param chain: model.EffectChain
     :param task_results: dict of analysis.TaskResult
     """
+    return cause_effect_chain(chain, task_results, details, 'data-age')
+
+def cause_effect_chain_reaction_time(chain, task_results, details=None):
+    """ computes the data age of the given cause effect chain
+    :param chain: model.EffectChain
+    :param task_results: dict of analysis.TaskResult
+    """
+    return cause_effect_chain(chain, task_results, details, 'reaction-time')
+
+def cause_effect_chain(chain, task_results, details=None, semantics='data-age'):
+    """ computes the data age of the given cause effect chain
+    :param chain: model.EffectChain
+    :param task_results: dict of analysis.TaskResult
+    """
 
     sequence = chain.task_sequence(writers_only=True)
 
@@ -213,9 +227,16 @@ def cause_effect_chain_data_age(chain, task_results, details=None):
     for i in range(len(sequence)):
         # add write-to-read delay for all but the last task
         if i < len(sequence)-1:
-            # add write to read delay
-            delay = _calculate_backward_distance(sequence[i], sequence[i+1], task_results, 
-                    details=details)
+            if semantics == 'data-age':
+                # add write to read delay
+                delay = _calculate_backward_distance(sequence[i], sequence[i+1], task_results, 
+                        details=details)
+            elif semantics == 'reaction-time':
+                delay = _calculate_forward_distance(sequence[i], sequence[i+1], task_results, 
+                        details=details)
+            else:
+                raise NotImplementedException()
+
             l_max += delay
 
         # add read-to-write delay (response time) for all tasks
@@ -259,12 +280,56 @@ def _calculate_backward_distance(writer, reader, task_results, details):
                 if _wplus(writer, task_results) > _rmin(reader, task_results, n):
                     candidates.add(_rplus(reader, task_results, n) - _wmin(writer, task_results, -1))
 
+        result = max(candidates)
+
+    else: # undersampling or same period
+
+        candidates = set()
+        candidates.add(_period(writer) + task_results[writer].wcrt - task_results[writer].bcrt)
+
+        if _period(reader) % _period(writer) == 0:
+
+            # include previous cycle?
+            if _wplus(writer, task_results) > _rmin(reader, task_results):
+                candidates.add(_rplus(reader, task_results) - _wmin(writer, task_results, -1))
+
+            # include all other possible writers
+            for n in range(int(math.ceil(_period(reader)/_period(writer)))):
+                if _wplus(writer, task_results, n) <= _rplus(reader, task_results):
+                    candidates.add(_rplus(reader, task_results) - _wmin(writer, task_results, n))
+
+        result = min([c for c in candidates if c >= 0])
+
+    details[writer.name+'-'+reader.name+'-delay'] = result
+    return result
+
+def _calculate_forward_distance(writer, reader, task_results, details):
+    """ computes forward distance (for reaction time)
+    """
+
+    if _period(reader) < _period(writer): # oversampling 
+
+        candidates = set()
+        candidates.add(_period(reader))
+
+        if _period(writer) % _period(reader) == 0:
+
+            for n in range(int(math.ceil(_period(writer)/_period(reader)))):
+                if _rmin(reader, task_results, n) >= _wplus(writer, task_results, 0):
+                    candidates.add(_rplus(reader, task_results, n) - _wmin(writer, task_results, 0))
+
+                # include previous cycle?
+                if _wplus(writer, task_results) > _rmin(reader, task_results, n):
+                    candidates.add(_rplus(reader, task_results, n) - _wmin(writer, task_results, -1))
+
+        result = min([c for c in candidates if c >= 0])
+
     else: # undersampling or same period
 
         candidates = set()
 
         if _period(reader) % _period(writer) != 0:
-            candidates.add(_period(writer) + task_results[writer].wcrt - task_results[writer].bcrt)
+            candidates.add(_period(reader))
         else:
 
             # include previous cycle?
@@ -275,7 +340,8 @@ def _calculate_backward_distance(writer, reader, task_results, details):
             for n in range(int(math.ceil(_period(reader)/_period(writer)))):
                 candidates.add(_rplus(reader, task_results) - _wmin(writer, task_results, n))
 
-    result = max(candidates)
+        result = max(candidates)
+
     details[writer.name+'-'+reader.name+'-delay'] = result
     return result
 
