@@ -268,7 +268,7 @@ class SPPSchedulerActivationOffsets(SPPScheduler):
                         task.in_event_model.P % ti.in_event_model.P == 0:
                             diff = task.in_event_model.phi - ti.in_event_model.phi
                     else:
-                        diff = ti.in_event_model.phiJ
+                        diff = ti.in_event_model.J
 
                     s += ti.wcet * ti.in_event_model.eta_plus(w + diff)
 
@@ -284,7 +284,7 @@ class SPPSchedulerActivationOffsets(SPPScheduler):
                                 task.in_event_model.P % ti.in_event_model.P == 0:
                                     diff = task.in_event_model.phi - ti.in_event_model.phi
                             else:
-                                diff = ti.in_event_model.phiJ
+                                diff = ti.in_event_model.J
 
                             details[str(ti) + ':eta*WCET'] = str(ti.in_event_model.eta_plus(w+diff)) + '*'\
                                 + str(ti.wcet) + '=' + str(ti.wcet * ti.in_event_model.eta_plus(w+diff))

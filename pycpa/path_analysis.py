@@ -256,8 +256,8 @@ def _period(task):
     return task.in_event_model.P
 
 def _jitter(task):
-    if hasattr(task.in_event_model, 'phiJ'):
-        return task.in_event_model.phiJ
+    if hasattr(task.in_event_model, 'J'):
+        return task.in_event_model.J
     else:
         return 0
 
