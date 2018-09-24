@@ -24,6 +24,7 @@ from __future__ import division
 
 from . import options
 from . import model
+from . import util
 
 import math
 
@@ -221,6 +222,10 @@ def cause_effect_chain(chain, task_results, details=None, semantics='data-age'):
 
     if details is None:
         details = dict()
+
+    periods = [_period(t) for t in sequence]
+    if util.GCD(periods) != min(periods):
+        print("Error: cause-effect chain analysis requires harmonic periods")
 
     l_max = _phi(sequence[0]) + _jitter(sequence[0])
     details[sequence[0].name+'-PHI+J'] = l_max
