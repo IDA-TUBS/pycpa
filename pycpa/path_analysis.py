@@ -337,13 +337,13 @@ def _calculate_forward_distance(writer, reader, task_results, details):
             candidates.add(_period(reader))
         else:
 
-            # include previous cycle?
-            if _wplus(writer, task_results) > _rmin(reader, task_results):
-                candidates.add(_rplus(reader, task_results) - _wmin(writer, task_results, -1))
-
-            # include all other possible writers
+            # include all possible writers
             for n in range(int(math.ceil(_period(reader)/_period(writer)))):
                 candidates.add(_rplus(reader, task_results) - _wmin(writer, task_results, n))
+
+                # if write time can be earlier than read time, add distance to next reader
+                if _wplus(writer, task_results, n) > _rmin(reader, task_results):
+                    candidates.add(_rplus(reader, task_results, 1) - _wmin(writer, task_results, n))
 
         result = max(candidates)
 
