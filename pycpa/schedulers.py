@@ -115,11 +115,11 @@ class SPNPScheduler(analysis.Scheduler):
                 b = max(b, ti.wcet)
         return b
 
-    def spnp_busy_period(self, task):
+    def spnp_busy_period(self, task, w):
         """ Calculated the busy period of the current task
         """
         b = self._blocker(task) + self.ctx_switch_overhead
-        w = b
+        w = max(b, w)
 
         while True:
             w_new = b
@@ -142,7 +142,7 @@ class SPNPScheduler(analysis.Scheduler):
         """
 
         # if there are no new activations when the current busy period has been completed, we terminate
-        if task.in_event_model.delta_min(q + 1) >= self.spnp_busy_period(task):
+        if task.in_event_model.delta_min(q + 1) >= self.spnp_busy_period(task, w):
             return True
         return False
 
