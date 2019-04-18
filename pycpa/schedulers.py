@@ -321,6 +321,9 @@ class SPPSchedulerCorrelatedRox(SPPScheduler):
         Computes the approximate response time bound as presented in [Rox2010]_.
     """
 
+    def get_dependent_tasks(self, task):
+        return task.get_resource_interferers()
+
     def b_plus_idle(self, task, q, details=None, task_results=None):
         """ Implements Case 2 in [Rox2010]_.
         """

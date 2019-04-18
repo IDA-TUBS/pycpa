@@ -157,6 +157,9 @@ class Scheduler(object):
     def __init__(self):
         pass
 
+    def get_dependent_tasks(self, task):
+        return set()
+
     def b_plus(self, task, q, details=None, **kwargs):
         """ Maximum Busy-Time for q activations of a task.
 
@@ -589,6 +592,11 @@ class GlobalAnalysisState(object):
                 # all tasks on the same shared resource
                 inputDependentTask[task] |= set(task.get_mutex_interferers())
                 self._add_dependent_tasks(task, task.next_tasks, inputDependentTask)
+
+            # add local dependent tasks (scheduler-dependent)
+            for task in r.tasks:
+                for t in r.scheduler.get_dependent_tasks(task):
+                    inputDependentTask[t].add(task)
 
         self.dependentTask = inputDependentTask
 
