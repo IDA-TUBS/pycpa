@@ -532,10 +532,6 @@ class CTEventModel (EventModel):
         EventModel.__init__(self, name, kwargs)
 
         self.set_c_in_T(c, T, dmin)
-        self.c = c
-        self.T = T
-        self.dmin = dmin
-
 
     def set_c_in_T(self, c, T, dmin=1):
         """ Sets the event-model to a periodic Task
@@ -543,6 +539,7 @@ class CTEventModel (EventModel):
          No minimum arrival rate is assumed (delta_plus = infinity)!
          Cf. Equation 1 in [Diemer2010]_.
         """
+        assert c*dmin <= T
         self.__description__ = "%d every %d, dmin=%d" % (c, T, dmin)
         self.c = c
         self.T = T
