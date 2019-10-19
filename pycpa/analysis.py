@@ -131,8 +131,8 @@ class JunctionStrategy(object):
 
     def get_weak_event_model(self):
         new_output_event_model = model.EventModel()
-        new_output_event_model.deltamin_func = lambda n: (INFINITY)
-        new_output_event_model.deltaplus_func = lambda n: (INFINITY)
+        new_output_event_model.deltamin_func = lambda n: (model.INFINITY)
+        new_output_event_model.deltaplus_func = lambda n: (model.INFINITY)
         return new_output_event_model
 
 
