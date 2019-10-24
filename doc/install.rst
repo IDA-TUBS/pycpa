@@ -77,11 +77,11 @@ For downloading the pyCPA source code, you have two options:
 
 A. **Easisest**: Download and extract the latest pyCPA release from `Bitbucket <https://bitbucket.org/pycpa/pycpa/downloads/>`_.
 
-B. For experts: If you are familiar with mercurial, you can alternatively clone the repository using `tortoise-hg <https://www.mercurial-scm.org/wiki/TortoiseHg>`_ or installing mercurial using your Linux distribution's tools and running the following command:
+B. For experts: If you are familiar with git, you can alternatively clone the repository using `git <https://git-scm.com/>`_, e.g. by running the following command:
 
    .. code-block:: bash
 
-      $ hg clone https://bitbucket.org/pycpa/pycpa/
+      $ git clone https://bitbucket.org/pycpa/pycpa/
 
 Depending on how you want to use pyCPA, there are two ways of making pyCPA available to your python installation:
 
