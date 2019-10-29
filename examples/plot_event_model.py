@@ -17,7 +17,7 @@ try:
     import matplotlib
     matplotlib.use('Agg')
 except ImportError:
-    print "matplotlib not available"
+    print("matplotlib not available")
     exit(0)
 
 from pycpa import model
@@ -34,8 +34,8 @@ d = 0  # 1
 em = model.PJdEventModel(P=P, J=J, dmin=d)
 
 
-print "delta_min(0) =", em.delta_min(0)
-print "eta_plus(0) =", em.eta_plus(0)
-print "eta_plus(eps) =", em.eta_plus(1e-12)
+print("delta_min(0) =", em.delta_min(0))
+print("eta_plus(0) =", em.eta_plus(0))
+print("eta_plus(eps) =", em.eta_plus(1e-12))
 
 plot.plot_event_model(em, 7, separate_plots=False, file_format='pdf', file_prefix='event-model-', ticks_at_steps=True)

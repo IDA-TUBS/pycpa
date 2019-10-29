@@ -36,7 +36,7 @@ def time_bases_test(auto=True):
     if auto == True:
         common_time_base = util.calculate_base_time([r.frequency for r in s.resources])
 
-    print "Basetime is %d Hz" % common_time_base
+    print("Basetime is %d Hz" % common_time_base)
 
     # create and bind tasks to r1. Here the timing is specified in absolute time (i.e. 10 ms)
     t11 = r1.bind_task(model.Task("T11",

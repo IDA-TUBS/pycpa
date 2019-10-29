@@ -73,10 +73,10 @@ def junction_test(expected_wcrt, expected_wclat):
     n = 0
     print("Result:")
     for r in sorted(s.resources, key=str):
-        print "load on resource %s: %0.2f" % (r.name, r.load())
+        print("load on resource %s: %0.2f" % (r.name, r.load()))
         for t in sorted(r.tasks, key=str):
-            print "  task %s - wcrt: %d" % (t.name, results[t].wcrt)
-            assert(results[t].wcrt == expected_wcrt[n])
+            print("  task %s - wcrt: %d" % (t.name, results[t].wcrt))
+            assert results[t].wcrt == expected_wcrt[n], "%d != %d" % (results[t].wcrt, expected_wcrt[n])
             n = n+1
 
     # calculate the S1 latency for the first 50 events
@@ -85,10 +85,10 @@ def junction_test(expected_wcrt, expected_wclat):
         for n in range(1, 6):
             best_case_latency, worst_case_latency = path_analysis.end_to_end_latency(paths[p], results, n)
             print("stream %s e2e latency. best case: %d, worst case: %d" % (paths[p].name, best_case_latency, worst_case_latency))
-            assert(worst_case_latency == expected_wclat[i])
+            assert worst_case_latency == expected_wclat[i], "%d != %d" % (worst_case_latency, expected_wclat[i])
             i += 1
 
 if __name__ == "__main__":
-    expected_wcrt = [3, 6, 4, 10]
-    expected_wclat = [66, 81, 111, 141, 171, 72, 87, 117, 147, 177]
+    expected_wcrt = [3, 9, 4, 10]
+    expected_wclat = [16, 31, 61, 91, 121, 22, 37, 67, 97, 127]
     junction_test(expected_wcrt, expected_wclat)

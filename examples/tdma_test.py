@@ -54,8 +54,8 @@ def tdma_test():
     print("Result:")
     for r in sorted(s.resources, key=str):
         for t in sorted(r.tasks, key=str):
-            print str(t), " - ", results[t].wcrt
-            print "    ", results[t].b_wcrt_str()
+            print(str(t), " - ", results[t].wcrt)
+            print("    ", results[t].b_wcrt_str())
 
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@ try:
     import matplotlib
     matplotlib.use('Agg')
 except ImportError:
-    print "matplotlib not available"
+    print("matplotlib not available")
     exit(0)
 
 

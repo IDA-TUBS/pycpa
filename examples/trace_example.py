@@ -26,18 +26,17 @@ def trace_example():
     periodic_trace = [0, 10]
     em = model.TraceEventModel()
     em.set_limited_trace(periodic_trace, 1)
-    print "input trace:", periodic_trace
-    print "output delta(n): ", [em.delta_min(p) for p in range (1, 10)]
+    print("input trace:", periodic_trace)
+    print("output delta(n): ", [em.delta_min(p) for p in range (1, 10)])
 
     # this a more realistic event model. periodic in nature with
     # a burst at time 32
     em = model.TraceEventModel()
     bursty_trace = [0, 10 , 20 , 30, 32, 40, 50]
     em.set_limited_trace(bursty_trace, 1)
-    print "input trace:", bursty_trace
-    print "output delta_min(n): ", [em.delta_min(p) for p in range (1, 10)]
-    print "output delta_plus(n): ", [em.delta_plus(p) for p in range (1, 10)
-                                     ]
+    print("input trace:", bursty_trace)
+    print("output delta_min(n): ", [em.delta_min(p) for p in range (1, 10)])
+    print("output delta_plus(n): ", [em.delta_plus(p) for p in range (1, 10)])
     # plot.plot_event_model(em, 50)
 
 if __name__ == "__main__":

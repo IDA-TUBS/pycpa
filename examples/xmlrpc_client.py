@@ -16,24 +16,24 @@ XML-RPC client for pyCPA. Resembles a client-side version of the spp-test.
 
 
 
-import xmlrpclib
+import xmlrpc.client as xmlrpclib
 import logging
 
 try:
     proxy = xmlrpclib.ServerProxy("http://localhost:7080/")
     version = proxy.protocol()
 
-    print "pyCPA XMLRPC Server Protocol Version:", version
+    print("pyCPA XMLRPC Server Protocol Version:", version)
 
-    print "Available schedulers:", proxy.get_valid_schedulers()
+    print("Available schedulers:", proxy.get_valid_schedulers())
 
     proxy.set_id_type('name')
 
     s = proxy.new_system("system")
-    print "System id:", s
+    print("System id:", s)
 
     r1 = proxy.new_resource(s, "r1")
-    print "r1 id", r1
+    print("r1 id", r1)
     r2 = proxy.new_resource(s, "r2")
 
     proxy.assign_scheduler(r1, "spp")
@@ -67,12 +67,12 @@ try:
     proxy.graph_system_dot(s, 'xmlrpc_client_test.dot')
 
     results = proxy.analyze_system(s)
-    print "Results id:", results
+    print("Results id:", results)
 
     tasks = [t11, t12, t21, t22]
     for t in tasks:
-        print "results for " + proxy.get_attribute(t, "name")
-        print proxy.get_task_result(results, t)
-except Exception, v:
-    print v
+        print("results for " + proxy.get_attribute(t, "name"))
+        print(proxy.get_task_result(results, t))
+except Exception as v:
+    print(v)
 

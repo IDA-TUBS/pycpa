@@ -59,9 +59,9 @@ def sampling_test(wclat_results):
     # print the results
     print("Result:")
     for r in sorted(s.resources, key=str):
-        print "load on resource %s: %0.2f" % (r.name, r.load())
+        print("load on resource %s: %0.2f" % (r.name, r.load()))
         for t in sorted(r.tasks, key=str):
-            print "  task %s - wcrt: %d" % (t.name, results[t].wcrt)
+            print("  task %s - wcrt: %d" % (t.name, results[t].wcrt))
 
     # calculate the latency for the first 10 events
     for n in range(1, 11):
