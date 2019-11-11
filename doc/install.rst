@@ -1,30 +1,54 @@
 Installation
 ============
 
-Before you can install pyCPA, you must set up Python 2.7 and all required python packages (`Step 1`_).
+Before you can install pyCPA, you must set up Python (`Prerequisites`_).
+If you already have a Python installation, you may directly proceed with `Quickstart`_.
+Alternatively, if you want to modify the pyCPA code, please consult `For Developers`_.
 
-In a second step, pyCPA will be installed in a manual procedure.
+A brief introduction in how to test your installation is provided in `Using pyCPA`_.
 
-The guide below explains both steps.
-If you have already set up a sophisticated Python environment, you may directly proceed with `Step 2`_.
 
-.. _Step 1: 
+.. _Prerequisites:
 
-Step 1: Setting up prerequisites
---------------------------------
+Prerequisites
+-------------
 
-In this step, we are going to install a compatible version of Python on your system along with additional Python packages
-required by pyCPA.
-Please note, that the preferred version is Python 2.7, but most parts of pyCPA are also compatible with Python 3.
+First of all, you need a basic Python (2.7 or 3.x) environment.
+As a Linux user, you most probably have Python already installed.
+On Windows, we recommend to use `Python(x,y) <https://python-xy.github.io/>`_, which includes a comprehensive set of scientific Python libraries and tools as well as related documentation.
+Python(x,y) comes with several interactive consoles (based on IPython), editors and applications.
+For your first hands-on experience, we recommend using ``Spyder`` as an IDE.
+You can also run a command prompt via the Python(x,y) icon on the Desktop and choosing ``IPython (sh)`` as an interactive console.
+
+
+.. _Quickstart:
+
+Quickstart
+----------
+
+The easiest way to install pyCPA is by using `pip <https://pypi.org/project/pip/>`_.
+For a system-wide installation of the current pyCPA version, you simply run the following command:
+
+.. code-block:: bash
+
+   $ pip install https://bitbucket.org/pycpa/pycpa/get/master.zip
+
+Alternatively, e.g. if you do not have admin privileges, you can install pyCPA for the current user:
+
+.. code-block:: bash
+
+   $ pip install --user https://bitbucket.org/pycpa/pycpa/get/master.zip
+
+
+.. _For Developers:
+
+For Developers
+--------------
+
+pyCPA has the following dependencies:
 
 * Required Python packages: setuptools, argparse, pygraphviz, matplotlib
 * Optional Python packages: numpy, simpy, xlrd
-
-Linux
-^^^^^
-
-We assume, Linux users will be familiar with installing any packages from their distribution's repositories.
-Most likely, Python will already be installed on your system and if not it will typically be installed automatically (as a dependency) when installing the additional Python packages.
 
 Before proceeding, you might want to check the status of your Python installation, i.e. what version is installed (if
 at all) and what Python packages are already available, using the following commands:
@@ -34,80 +58,26 @@ at all) and what Python packages are already available, using the following comm
    $ python --version
    $ pydoc modules
 
-If you use Ubuntu/Debian, you can install missing packages using the following commands:
+For downloading the pyCPA source code, you simply create a clone from the git `git <https://git-scm.com/>`_ repository, e.g. by running the following command:
 
 .. code-block:: bash
 
-   $ sudo apt-get install python-setuptools python-argparse python-pygraphviz python-matplotlib python-numpy python-simpy python-xlrd
+   $ git clone https://bitbucket.org/pycpa/pycpa/
 
-If your distribution does not provide similar packages, you can use ``pip`` to install additional python packages.
 
-.. code-block:: bash
-
-   $ pip install simpy
-
-Windows
-^^^^^^^
-We recommend to use `Python(x,y) <https://python-xy.github.io/>`_, which includes a comprehensive set of scientific
-Python libraries and tools as well as related documentation.
-Most of the required Python modules such as matplotlib are already included,
-but some (SimPy) have to be installed by hand if required.
-It is recommended to uninstall any other Python distribution before installing Python(x,y).
-
-In order to safe disk space, you may choose the recommended setting during installation and additionally check xlrd and pygraphviz.
-Python(x,y) comes with several interactive consoles (based on IPython), editors and applications.
-For your first hands-on experience, we recommend using ``Spyder`` as an IDE.
-You can also run a command prompt via the Python(x,y) icon on the Desktop and choosing ``IPython (sh)`` as an interactive
-console.
-
-You can install missing packages using the recommended installer for python packages, ``pip``, from the command prompt. ``pip`` is included in Python(x,y).
+From within the pyCPA repository, execute the following command to install pyCPA in editable mode (i.e. changes to the
+source code do not require re-installation to be effective):
 
 .. code-block:: bash
 
-   $ python -m pip install simpy
+   $ pip install --user -e .
 
-For a detailed documentation regarding package installation you may consult the `official website <https://packaging.python.org/tutorials/installing-packages/>`_.
 
-.. _Step 2: 
 
-Step 2: Downloading and setting up pyCPA
-----------------------------------------
+.. _Using pyCPA:
 
-For downloading the pyCPA source code, you have two options:
-
-A. **Easisest**: Download and extract the latest pyCPA release from `Bitbucket <https://bitbucket.org/pycpa/pycpa/downloads/>`_.
-
-B. For experts: If you are familiar with git, you can alternatively clone the repository using `git <https://git-scm.com/>`_, e.g. by running the following command:
-
-   .. code-block:: bash
-
-      $ git clone https://bitbucket.org/pycpa/pycpa/
-
-Depending on how you want to use pyCPA, there are two ways of making pyCPA available to your python installation:
-
-A. **Easiest**: Install pyCPA into your python installation using the command prompt from the pyCPA directory.
-   This is for people who just want to use pyCPA as it comes.
-
-   .. code-block:: bash
-
-      $ python setup.py install
-
-B. For experts: Leave pyCPA where it is and tell Python to use the module in-place.
-   This is for people who want to modify pyCPA or use different versions in parallel.
-   You achieve this by setting the PYTHONPATH variable to the pyCPA directory.
-   For command line users, this is done as follows:
-
-   .. code-block:: bash
-
-      $ export PYTHONPATH="/path/to/pyCPA:$PYTHONPATH"
-
-   Note that you must *NOT* specify the subdirectory ``pycpa`` within the pyCPA directory.
-   If you prefer using an IDE, please refer to `Using an IDE: PyDev`_.
-
-.. _Step 3: 
-
-Step 3: Testing and using pyCPA
--------------------------------
+Testing and using pyCPA
+-----------------------
 
 Congratulations, you have installed pyCPA!
 
@@ -135,7 +105,7 @@ Using an IDE: PyDev
 
 You may also use Eclipse with PyDev as IDE, which can be installed by the following steps:
 
-1. Make sure that you have installed Python 2.7 *BEFORE* you install Eclipse.
+1. Make sure that you have installed Python *BEFORE* you install Eclipse.
 2. Download from `<http://www.eclipse.org/downloads/eclipse-packages/>`_ the current Eclipse release for Windows 32 bit (!). Extract the zip-file, execute ``eclipse.exe`` and follow the installation instructions.
 3. Open Eclipse and specify a workspace. If you open a workspace for the first time, you will have to close the Welcome tab, before proceeding to your workspace.
 4. Select the menu item ``Help –> Install New Software``, search for the site `<http://pydev.org/updates>`_. Select and install the item “PyDev” which will be displayed in the list of available software. 
