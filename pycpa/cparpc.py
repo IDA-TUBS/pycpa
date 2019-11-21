@@ -233,7 +233,8 @@ class CPARPC(xmlrpc.XMLRPC):
         :rtype: list of strings
         """
 
-        return self.scheduling_policies.keys()
+        # xmlrpc client cannot handly python3 dict_keys, hence converting to list
+        return list(self.scheduling_policies.keys())
 
 
     def xmlrpc_set_attribute(self, obj_id, attribute, value):
