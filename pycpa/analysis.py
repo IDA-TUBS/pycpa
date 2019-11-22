@@ -686,7 +686,7 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
         for t in analysis_state.analysisOrder:
             if t not in analysis_state.dirtyTasks:
                 continue
-            start = time.clock()
+            start = time.process_time()
 
             analysis_state.dirtyTasks.remove(t)
 
@@ -724,7 +724,7 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
                 analysis_state._mark_dependents_dirty(t)
                 break  # break the for loop to restart iteration
 
-            elapsed = (time.clock() - start)
+            elapsed = (time.process_time() - start)
             logger.debug("iteration: %d, time: %.1f task: %s wcrt: %f dirty: %d"
                          % (iteration, elapsed, t.name,
                             task_results[t].wcrt,
