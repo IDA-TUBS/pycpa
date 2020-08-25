@@ -49,6 +49,15 @@ class NotSchedulableException(Exception):
     def __str__(self):
         return repr(self.value)
 
+class TimeoutException(Exception):
+    """ Thrown if the analysis timed out"""
+    def __init__(self, value):
+        super(TimeoutException, self).__init__()
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
+
 
 class TaskResult(object):
     """ This class stores all analysis results for a single task """
@@ -671,6 +680,7 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
     analysis_state = GlobalAnalysisState(system, task_results)
 
     iteration = 0
+    start = time.process_time()
     logger.debug("analysisOrder: %s" % (analysis_state.analysisOrder))
     while len(analysis_state.dirtyTasks) > 0:
 
@@ -686,7 +696,6 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
         for t in analysis_state.analysisOrder:
             if t not in analysis_state.dirtyTasks:
                 continue
-            start = time.process_time()
 
             analysis_state.dirtyTasks.remove(t)
 
@@ -729,6 +738,8 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
                          % (iteration, elapsed, t.name,
                             task_results[t].wcrt,
                             len(analysis_state.dirtyTasks)))
+            if elapsed > options.get_opt('timeout'):
+                raise TimeoutException("Timeout reached after iteration %d" % iteration)
             iteration += 1
 
         # # check for constraint violations

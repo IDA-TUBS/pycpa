@@ -27,6 +27,7 @@ IMPROVED_OUTPUT_MODEL = True
 EPSILON = 1e-12
 MAX_ERRORS = 10
 INFINITY = float('inf')
+TIMEOUT = INFINITY
 
 import argparse
 import logging
@@ -48,6 +49,9 @@ parser.add_argument('--max_iterations', type=int,
 parser.add_argument('--max_wcrt', type=int,
                     default=MAX_WCRT,
                     help='Maximum response-time in a local analysis (default=%f)' % (MAX_WCRT))
+parser.add_argument('--timeout', type=float,
+                    default=TIMEOUT,
+                    help='Analysis timeout dfault=%f)' % (TIMEOUT))
 parser.add_argument('--e2e_improved', action='store_true',
                     help='enable improved end to end analysis (experimental)')
 parser.add_argument('--nocaching', action='store_true',
