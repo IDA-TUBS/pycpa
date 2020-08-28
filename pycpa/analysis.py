@@ -284,12 +284,17 @@ class Scheduler(object):
         # datatype of task.wcet is not known here
         # (e.g. variable execution times)
         wcrt = 0
+        start = time.process_time()
 
         b_wcrt = dict()  # store details of busy window leading to wcrt
         if task_results:
             task_results[task].busy_times = [0]  # busy time of 0 activations
         self.b_plus(task, 1, details=b_wcrt, task_results=task_results)
         while True:
+            elapsed = time.process_time() - start
+            if elapsed > options.get_opt('timeout'):
+                raise TimeoutException("Timeout reached in compute_wcrt at q=%d" % (q-1))
+
             logger.debug('iteration for q=%d' %(q))
             w = self.b_plus(task, q, task_results=task_results)
             if task_results:
@@ -299,6 +304,10 @@ class Scheduler(object):
             current_response = w - task.in_event_model.delta_min(q)
             # logger.debug("%s window(q=%f):%d, response: %d" % (task.name, q,
             # w, current_response))
+
+            elapsed = time.process_time() - start
+            if elapsed > options.get_opt('timeout'):
+                raise TimeoutException("Timeout reached in compute_wcrt at q=%d" % (q-1))
 
             if current_response > wcrt:
                 wcrt = current_response
@@ -324,6 +333,7 @@ class Scheduler(object):
                 raise NotSchedulableException("max_iterations for %s reached, "
                                               "tasks (likely) not schedulable!"
                                               % task.name)
+
                 # return  float("inf")  #-1
         if task_results:
             task_results[task].q_wcrt = q_wcrt
@@ -741,6 +751,10 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
             if elapsed > options.get_opt('timeout'):
                 raise TimeoutException("Timeout reached after iteration %d" % iteration)
             iteration += 1
+
+        elapsed = time.process_time() - start
+        if elapsed > options.get_opt('timeout'):
+            raise TimeoutException("Timeout reached after iteration %d" % iteration)
 
         # # check for constraint violations
         if options.get_opt("check_violations"):
