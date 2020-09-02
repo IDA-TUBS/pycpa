@@ -128,8 +128,8 @@ class JunctionStrategy(object):
             new_output_event_model = self.calculate_out_event_model(junction)
         else:
             # Some input event models of this junction are still invalid,
-            # i.e. None. Propagate "weak" event model in this case.
-            new_output_event_model = self.get_weak_event_model()
+            # i.e. None. Propagate "None" event model in this case.
+            new_output_event_model = None
 
         # _assert_event_model_conservativeness(junction.out_event_model,
         # new_output_event_model)
