@@ -27,14 +27,14 @@ def smff_test(filename, outfile, plot, verbose):
 
     options.init_pycpa()
 
-    print "loading", filename
+    print ("loading " + filename)
     loader = smff_loader.SMFFLoader()
     s = loader.parse(filename)
 
 
     if plot == True:
         # graph the smff system
-        graph_file = string.replace(os.path.basename(filename), ".xml", "") + ".pdf"
+        graph_file = os.path.basename(filename).replace(".xml", "") + ".pdf"
         graph.graph_system(s, sched_param=True, exec_times=True, filename=graph_file)
 
     try:
@@ -45,7 +45,7 @@ def smff_test(filename, outfile, plot, verbose):
 
         print("Result:")
         for r in sorted(s.resources, key=str):
-            print "results for resource %s" % r.name
+            print ("results for resource %s" % r.name)
             for t in sorted(r.tasks, key=str):
                 print("%s - %d " % (str(t.name) , results[t].wcrt))
 
@@ -56,8 +56,8 @@ def smff_test(filename, outfile, plot, verbose):
             # write it
             loader.write(filename=outfile)
 
-    except analysis.NotSchedulableException as (e):
-        print str(e)
+    except analysis.NotSchedulableException as e:
+        print(str(e))
 
 if __name__ == "__main__":
     # this is necessary because the file is also called from the regression test suite
