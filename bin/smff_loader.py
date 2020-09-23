@@ -25,8 +25,6 @@ from pycpa import options
 
 def smff_test(filename, outfile, plot, verbose):
 
-    options.init_pycpa()
-
     print ("loading " + filename)
     loader = smff_loader.SMFFLoader()
     s = loader.parse(filename)
@@ -71,4 +69,6 @@ if __name__ == "__main__":
     options.parser.add_argument('--graph', '-g', action='store_true',
                     help='Graph the system, file will be saved to FILE.pdf. Where FILE is the input xml.')
 
+    # TODO this explicit init  might break something in a regression test suite
+    options.init_pycpa()
     smff_test(options.get_opt('file'), options.get_opt('ofile'), options.get_opt('graph'), options.get_opt('verbose'))
