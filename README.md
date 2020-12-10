@@ -51,7 +51,7 @@ Requirements:
 * Python packages: setuptools, argparse, pygraphviz, matplotlib
 * Optional python packages: numpy, simpy, xlrd
 
-Download the [latest version](https://bitbucket.org/pycpa/pycpa) of the package, extract and install through setup.py.
+Download the [latest version](https://github.com/IDA-TUBS/pycpa) of the package, extract and install through setup.py.
 
 Please refer to the more detailed [installation instructions](https://pycpa.readthedocs.io/en/latest/install.html) on readthedocs.org.
 
@@ -66,3 +66,10 @@ You may also want to look at [SMFF](http://smff.sourceforge.net/).
 ## Publications
 A list of related publications can be found at [Bibliography](https://pycpa.readthedocs.io/en/latest/bibliography.html).
 Please let us know about if you used/extended pyCPA for any of your publications so we can add it to the list.
+
+## Extensions
+
+More complex analysis and use cases are hosted in separate repositories, i.e.
+
+* a [task-chain analysis](https://github.com/IDA-TUBS/pycpa_taskchain)
+* an analysis of the [WATERS industrial challenge 2017](https://github.com/IDA-TUBS/waters2017)

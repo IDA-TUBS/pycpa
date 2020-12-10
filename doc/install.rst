@@ -31,13 +31,13 @@ For a system-wide installation of the current pyCPA version, you simply run the 
 
 .. code-block:: bash
 
-   $ pip install https://bitbucket.org/pycpa/pycpa/get/master.zip
+   $ pip install https://github.com/IDA-TUBS/pycpa/archive/master.zip
 
 Alternatively, e.g. if you do not have admin privileges, you can install pyCPA for the current user:
 
 .. code-block:: bash
 
-   $ pip install --user https://bitbucket.org/pycpa/pycpa/get/master.zip
+   $ pip install --user https://github.com/IDA-TUBS/pycpa/archive/master.zip
 
 
 .. _For Developers:
@@ -62,7 +62,7 @@ For downloading the pyCPA source code, you simply create a clone from the git `g
 
 .. code-block:: bash
 
-   $ git clone https://bitbucket.org/pycpa/pycpa/
+   $ git clone https://github.com/IDA-TUBS/pycpa/
 
 
 From within the pyCPA repository, execute the following command to install pyCPA in editable mode (i.e. changes to the

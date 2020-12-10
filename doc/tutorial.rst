@@ -418,7 +418,7 @@ On the resource itself, we end up with task chains that can be analysed as a who
 
    Task Chains
 
-The implementation of this approach is available as an extension to the pyCPA core at `<https://bitbucket.org/pycpa/pycpa_taskchain>`_.
+The implementation of this approach is available as an extension to the pyCPA core at `<https://github.com/IDA-TUBS/pycpa_taskchain>`_.
 It replaces the :py:class:`pycpa.model.Resource` with a `TaskchainResource` and also the Scheduler with an appropriate
 implementation.
 
