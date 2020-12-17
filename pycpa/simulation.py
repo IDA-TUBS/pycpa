@@ -30,8 +30,9 @@ class SimTask  (Process):
     """ A task will produce the activations with a distance according to delta_minus
         It stops, when the resource is idle (end of busy window)
     """
-    def __init__(self, task, sim):
-        Process.__init__(self, name=task.name, sim=sim)
+    def __init__(self, env, task):
+        self.env = env
+        Process.__init__(self, name=task.name, sim=env)
         # link to the pycpa model
         self.task = task
 
@@ -53,19 +54,19 @@ class SimTask  (Process):
             return
 
         while True:
-            a = SimActivation(name="Activation%s,%d" % (self.task.name, n,), sim=self.sim, task=self.task)
+            a = SimActivation(name="Activation%s,%d" % (self.task.name, n,), env=self.env, task=self.task)
             a.q = n
 
             self.activations.append(a)
 
-            self.sim.activate(a, a.execute(self.task, scheduler))
+            self.env.activate(a, a.execute(self.task, scheduler))
 
             scheduler.pending.append(a)
             scheduler.arrival_event.signal()
             self.interrupt(scheduler)
 
             n += 1
-            yield hold, self, self.task.in_event_model.delta_min(n) - self.sim.now()
+            yield hold, self, self.task.in_event_model.delta_min(n) - self.env.now()
 
             # check if the resource is idle
             if scheduler.idle() == True:
@@ -75,8 +76,9 @@ class SimActivation (Process):
     """ Representation of an activation
     """
 
-    def __init__(self, name, sim, task):
-        Process.__init__(self, name=name, sim=sim)
+    def __init__(self, env, name, task):
+        self.env = env
+        Process.__init__(self, name=name, sim=env)
 
         # number of the action
         self.q = 0
@@ -85,7 +87,7 @@ class SimActivation (Process):
         self.task = task
 
         # the signal used to wake up the activation event
-        self.signal_event = SimEvent(sim=sim)
+        self.signal_event = SimEvent(sim=env)
 
         # workload left to consume
         self.workload = task.wcet
@@ -109,14 +111,14 @@ class SimActivation (Process):
         """ Called by the scheduler to log executions
         """
         assert self.recent_window_start == None
-        logger.info("Executing %s q=%d @t=%d" % (self.task.name, self.q, self.sim.now()))
-        self.recent_window_start = self.sim.now()
+        logger.info("Executing %s q=%d @t=%d" % (self.task.name, self.q, self.env.now()))
+        self.recent_window_start = self.env.now()
 
     def log_preemtion(self):
         """
             Called by the scheduler to log preemtions
         """
-        self.exec_windows.append((self.recent_window_start, self.sim.now()))
+        self.exec_windows.append((self.recent_window_start, self.env.now()))
         self.recent_window_start = None
 
     def execute(self, task, scheduler):
@@ -126,14 +128,14 @@ class SimActivation (Process):
             execution time if that is necessary.
 
         """
-        logger.info("Activated %s q=%d @t=%d" % (self.task.name, self.q, self.sim.now()))
-        self.start_time = self.sim.now()
+        logger.info("Activated %s q=%d @t=%d" % (self.task.name, self.q, self.env.now()))
+        self.start_time = self.env.now()
 
         while self.workload > 0:
             yield waitevent, self, self.signal_event
 
-        logger.info("Finished %s q=%d @t=%d" % (self.task.name, self.q, self.sim.now()))
-        self.finishing_time = self.sim.now()
+        logger.info("Finished %s q=%d @t=%d" % (self.task.name, self.q, self.env.now()))
+        self.finishing_time = self.env.now()
         self.response_time = self.finishing_time - self.start_time
 
         # add the execution windows to the pycpa task
@@ -142,17 +144,18 @@ class SimActivation (Process):
 class SimSPP (Process):
     """ SPP Resource model
     """
-    def __init__(self, sim, name="SPP", tasks=list()):
+    def __init__(self, env, name="SPP", tasks=list()):
 
-        assert sim != None
-        Process.__init__(self, name=name, sim=sim)
+        assert env != None
+        self.env = env
+        Process.__init__(self, name=name, sim=env)
         self.tasks = tasks
         self.pending = list()
 
         # list of simtasks
         self.simtasks = list()
 
-        self.arrival_event = SimEvent('Arrival Event', sim=sim)
+        self.arrival_event = SimEvent('Arrival Event', sim=env)
     def select(self):
         """ Select the next activation from the pending list
         """
@@ -176,7 +179,7 @@ class SimSPP (Process):
 
         for simtask in self.simtasks:
             if simtask.task.scheduling_parameter <= task.scheduling_parameter:
-                self.sim.activate(simtask, simtask.run(self))
+                self.env.activate(simtask, simtask.run(self))
 
         activation = None
         while True:
@@ -185,7 +188,7 @@ class SimSPP (Process):
             while self.idle() == True:
                 yield waitevent, self, self.arrival_event
 
-            logger.info("pendings: %d @t=%d" % (len(self.pending), self.sim.now()))
+            logger.info("pendings: %d @t=%d" % (len(self.pending), self.env.now()))
             # get event
             next_activation = self.select()
             if  next_activation != activation:
@@ -196,7 +199,7 @@ class SimSPP (Process):
             yield hold, self, activation.workload
             activation.workload = 0
 
-            logger.info("pendings: %d @t=%d" % (len(self.pending), self.sim.now()))
+            logger.info("pendings: %d @t=%d" % (len(self.pending), self.env.now()))
             if self.interrupted() == True:
                 # a new activation is ready
                 self.interruptReset()
@@ -217,10 +220,11 @@ class SimSPP (Process):
 class SimSPNP (Process):
     """ SPP Resource model
     """
-    def __init__(self, sim, name="SPNP", tasks=list()):
+    def __init__(self, env, name="SPNP", tasks=list()):
 
-        assert sim != None
-        Process.__init__(self, name=name, sim=sim)
+        assert env != None
+        self.env = env
+        Process.__init__(self, name=name, sim=env)
 
         # list of pending activations
         self.pending = list()
@@ -232,7 +236,7 @@ class SimSPNP (Process):
         self.simtasks = list()
 
         # signals a new activation
-        self.arrival_event = SimEvent('Arrival Event', sim=sim)
+        self.arrival_event = SimEvent('Arrival Event', sim=env)
 
     def select(self):
         """ Select the next activation from the pending list
@@ -268,14 +272,14 @@ class SimSPNP (Process):
 
         # if there is a blocker, create one activation and put it in the queue
         if blocker:
-            blocker_activation = SimActivation(name="Blocker %s" % (self.lowprio_simblocker.name), sim=self.sim, task=blocker)
+            blocker_activation = SimActivation(name="Blocker %s" % (self.lowprio_simblocker.name), env=self.env, task=blocker)
             self.blockers.append(blocker_activation)
             self.lowprio_simblocker.activations.append(blocker_activation)
-            self.sim.activate(blocker_activation, blocker_activation.execute(blocker, self))
+            self.env.activate(blocker_activation, blocker_activation.execute(blocker, self))
 
         for simtask in self.simtasks:
             if simtask.task.scheduling_parameter <= task.scheduling_parameter:
-                self.sim.activate(simtask, simtask.run(self))
+                self.env.activate(simtask, simtask.run(self))
 
         activation = None
         while True:
@@ -324,7 +328,7 @@ class ResourceModel(Simulation):
         self.scheduler = scheduler
 
         for t in self.resource.tasks:
-            simtask = SimTask(t, sim=self)
+            simtask = SimTask(self, t)
             self.scheduler.simtasks.append(simtask)
 
         self.activate(self.scheduler , self.scheduler.execute(self.resource, task))

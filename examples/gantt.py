@@ -62,7 +62,7 @@ def gantt_test():
             print("%s: wcrt=%d" % (t.name, results[t].wcrt))
 
     simmodel = simulation.ResourceModel(r1)
-    simmodel.runModel(task=t12, scheduler=simulation.SimSPP(name="SPP", sim=simmodel))
+    simmodel.runModel(task=t12, scheduler=simulation.SimSPP(name="SPP", env=simmodel))
 
 
     # plot
