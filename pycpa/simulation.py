@@ -17,7 +17,7 @@ gantt charts.
 from __future__ import absolute_import
 
 
-from SimPy.Simulation import Process, Simulation, SimEvent, waitevent, hold
+from simpy import Environment
 
 import logging
 
@@ -26,13 +26,12 @@ logger = logging.getLogger("sim")
 
 ## Model components -------------------------------
 
-class SimTask  (Process):
+class SimTask:
     """ A task will produce the activations with a distance according to delta_minus
         It stops, when the resource is idle (end of busy window)
     """
     def __init__(self, env, task):
         self.env = env
-        Process.__init__(self, name=task.name, sim=env)
         # link to the pycpa model
         self.task = task
 
@@ -48,7 +47,7 @@ class SimTask  (Process):
             create event -> put event into scheduler -> sleep for delta_min --> create event...
         """
         n = 1
-        logger.info("Starting task %s" % self.name)
+        logger.info("Starting task %s" % self.task.name)
 
         if  self.task.in_event_model.delta_min(n) == float('inf'):
             return
@@ -59,26 +58,25 @@ class SimTask  (Process):
 
             self.activations.append(a)
 
-            self.env.activate(a, a.execute(self.task, scheduler))
+            self.env.process(a.execute(self.task, scheduler))
 
             scheduler.pending.append(a)
-            scheduler.arrival_event.signal()
-            self.interrupt(scheduler)
+            scheduler.arrival_event.succeed()
+            scheduler.arrival_event = self.env.event()
 
             n += 1
-            yield hold, self, self.task.in_event_model.delta_min(n) - self.env.now()
+            yield self.env.timeout(self.task.in_event_model.delta_min(n) - self.env.now)
 
             # check if the resource is idle
             if scheduler.idle() == True:
                 break
 
-class SimActivation (Process):
+class SimActivation:
     """ Representation of an activation
     """
 
     def __init__(self, env, name, task):
         self.env = env
-        Process.__init__(self, name=name, sim=env)
 
         # number of the action
         self.q = 0
@@ -87,7 +85,7 @@ class SimActivation (Process):
         self.task = task
 
         # the signal used to wake up the activation event
-        self.signal_event = SimEvent(sim=env)
+        self.signal_event = env.event()
 
         # workload left to consume
         self.workload = task.wcet
@@ -111,14 +109,14 @@ class SimActivation (Process):
         """ Called by the scheduler to log executions
         """
         assert self.recent_window_start == None
-        logger.info("Executing %s q=%d @t=%d" % (self.task.name, self.q, self.env.now()))
-        self.recent_window_start = self.env.now()
+        logger.info("Executing %s q=%d @t=%d" % (self.task.name, self.q, self.env.now))
+        self.recent_window_start = self.env.now
 
     def log_preemtion(self):
         """
             Called by the scheduler to log preemtions
         """
-        self.exec_windows.append((self.recent_window_start, self.env.now()))
+        self.exec_windows.append((self.recent_window_start, self.env.now))
         self.recent_window_start = None
 
     def execute(self, task, scheduler):
@@ -128,34 +126,33 @@ class SimActivation (Process):
             execution time if that is necessary.
 
         """
-        logger.info("Activated %s q=%d @t=%d" % (self.task.name, self.q, self.env.now()))
-        self.start_time = self.env.now()
+        logger.info("Activated %s q=%d @t=%d" % (self.task.name, self.q, self.env.now))
+        self.start_time = self.env.now
 
         while self.workload > 0:
-            yield waitevent, self, self.signal_event
+            yield self.signal_event
 
-        logger.info("Finished %s q=%d @t=%d" % (self.task.name, self.q, self.env.now()))
-        self.finishing_time = self.env.now()
+        logger.info("Finished %s q=%d @t=%d" % (self.task.name, self.q, self.env.now))
+        self.finishing_time = self.env.now
         self.response_time = self.finishing_time - self.start_time
 
         # add the execution windows to the pycpa task
         self.task.q_exec_windows.append(self.exec_windows)
 
-class SimSPP (Process):
+class SimSPP:
     """ SPP Resource model
     """
     def __init__(self, env, name="SPP", tasks=list()):
 
         assert env != None
         self.env = env
-        Process.__init__(self, name=name, sim=env)
         self.tasks = tasks
         self.pending = list()
 
         # list of simtasks
         self.simtasks = list()
 
-        self.arrival_event = SimEvent('Arrival Event', sim=env)
+        self.arrival_event = env.event()
     def select(self):
         """ Select the next activation from the pending list
         """
@@ -179,16 +176,16 @@ class SimSPP (Process):
 
         for simtask in self.simtasks:
             if simtask.task.scheduling_parameter <= task.scheduling_parameter:
-                self.env.activate(simtask, simtask.run(self))
+                self.env.process(simtask.run(self))
 
         activation = None
         while True:
 
             # passivate and wait for new events
             while self.idle() == True:
-                yield waitevent, self, self.arrival_event
+                yield self.arrival_event
 
-            logger.info("pendings: %d @t=%d" % (len(self.pending), self.env.now()))
+            logger.info("pendings: %d @t=%d" % (len(self.pending), self.env.now))
             # get event
             next_activation = self.select()
             if  next_activation != activation:
@@ -196,16 +193,15 @@ class SimSPP (Process):
                 # store the beginning of the execution window
                 activation.log_execution()
 
-            yield hold, self, activation.workload
-            activation.workload = 0
+            service_start = self.env.now
+            service_event = self.env.timeout(activation.workload)
 
-            logger.info("pendings: %d @t=%d" % (len(self.pending), self.env.now()))
-            if self.interrupted() == True:
+            yield service_event | self.arrival_event
+            logger.info("pendings: %d @t=%d" % (len(self.pending), self.env.now))
+            activation.workload -= self.env.now - service_start
+
+            if not service_event.processed:
                 # a new activation is ready
-                self.interruptReset()
-
-                activation.workload = self.interruptLeft
-
                 # log if this is a real preemtion:
                 if self.select() != activation and  activation.workload > 0:
                     activation.log_preemtion()
@@ -213,18 +209,17 @@ class SimSPP (Process):
             if activation.workload == 0:
                 # done
                 activation.log_preemtion()
-                activation.signal_event.signal()
+                activation.signal_event.succeed()
                 self.pending.remove(activation)
 
 
-class SimSPNP (Process):
+class SimSPNP:
     """ SPP Resource model
     """
     def __init__(self, env, name="SPNP", tasks=list()):
 
         assert env != None
         self.env = env
-        Process.__init__(self, name=name, sim=env)
 
         # list of pending activations
         self.pending = list()
@@ -236,7 +231,7 @@ class SimSPNP (Process):
         self.simtasks = list()
 
         # signals a new activation
-        self.arrival_event = SimEvent('Arrival Event', sim=env)
+        self.arrival_event = env.event()
 
     def select(self):
         """ Select the next activation from the pending list
@@ -275,17 +270,17 @@ class SimSPNP (Process):
             blocker_activation = SimActivation(name="Blocker %s" % (self.lowprio_simblocker.name), env=self.env, task=blocker)
             self.blockers.append(blocker_activation)
             self.lowprio_simblocker.activations.append(blocker_activation)
-            self.env.activate(blocker_activation, blocker_activation.execute(blocker, self))
+            self.env.process(blocker_activation.execute(blocker, self))
 
         for simtask in self.simtasks:
             if simtask.task.scheduling_parameter <= task.scheduling_parameter:
-                self.env.activate(simtask, simtask.run(self))
+                self.env.process(simtask.run(self))
 
         activation = None
         while True:
             # passivate and wait for new events
             while self.idle() == True:
-                yield waitevent, self, self.arrival_event
+                yield self.arrival_event
 
             # get event
             new_activation = self.select()
@@ -295,43 +290,31 @@ class SimSPNP (Process):
                 activation.log_execution()
 
             # eat up workload until the activation is done
-            while activation.workload > 0:
-                yield hold, self, activation.workload
-                activation.workload = 0
-
-                if self.interrupted() == True:
-                    # we will be interrupted by new arrivals
-                    self.interruptReset()
-                    activation.workload = self.interruptLeft
-
-            assert activation.workload == 0
+            yield self.env.timeout(activation.workload)
+            activation.workload = 0
             activation.log_preemtion()
-            activation.signal_event.signal()
+            activation.signal_event.succeed()
 
             # remove from whatever list
             if activation in self.pending: self.pending.remove(activation)
             if activation in self.blockers: self.blockers.remove(activation)
 
 
-class ResourceModel(Simulation):
+class ResourceModel:
 
     def __init__(self, resource, name="Experiment"):
-        Simulation.__init__(self)
+        self.env = Environment()
         self.name = name
         self.resource = resource
         self.scheduler = None
 
     def runModel(self, task, scheduler, until=float('inf')):
-        # # Initialize Simulation instance
-        self.initialize()
-
         self.scheduler = scheduler
 
         for t in self.resource.tasks:
-            simtask = SimTask(self, t)
+            simtask = SimTask(self.env, t)
             self.scheduler.simtasks.append(simtask)
 
-        self.activate(self.scheduler , self.scheduler.execute(self.resource, task))
-
-        self.simulate(until=until)
+        self.env.scheduler_proc = self.env.process(self.scheduler.execute(self.resource, task))
+        self.env.run(until=until)
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
