@@ -311,6 +311,7 @@ class ResourceModel:
             simtask = SimTask(self.env, t)
             self.scheduler.simtasks.append(simtask)
 
-        self.env.scheduler_proc = self.env.process(self.scheduler.execute(self.resource, task))
+        self.env.process(self.scheduler.execute(self.resource, task))
         self.env.run(until=until)
+
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
