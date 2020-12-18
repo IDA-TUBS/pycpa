@@ -158,12 +158,7 @@ class SimSPP:
         if len(self.pending) == 0:
             return None
 
-        s = self.pending[-1]
-
-        # we look
-        for a in reversed(self.pending):
-            if a.task.scheduling_parameter <= s.task.scheduling_parameter:
-                s = a
+        s = min(self.pending, key=lambda a: a.task.scheduling_parameter)
         return s
 
     def idle(self):
@@ -242,10 +237,7 @@ class SimSPNP:
         if len(self.pending) == 0:
             return None
 
-        s = self.pending[-1]
-        for a in reversed(self.pending):
-            if a.task.scheduling_parameter <= s.task.scheduling_parameter:
-                s = a
+        s = min(self.pending, key=lambda a: a.task.scheduling_parameter)
         return s
 
     def idle(self):
