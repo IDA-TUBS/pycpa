@@ -30,6 +30,11 @@ import time
 from collections import deque
 import functools
 
+try:
+    from time import process_time as timefunc
+except:
+    from time import clock as timefunc
+
 from . import model
 from . import propagation
 from . import options
@@ -284,14 +289,14 @@ class Scheduler(object):
         # datatype of task.wcet is not known here
         # (e.g. variable execution times)
         wcrt = 0
-        start = time.process_time()
+        start = timefunc()
 
         b_wcrt = dict()  # store details of busy window leading to wcrt
         if task_results:
             task_results[task].busy_times = [0]  # busy time of 0 activations
         self.b_plus(task, 1, details=b_wcrt, task_results=task_results)
         while True:
-            elapsed = time.process_time() - start
+            elapsed = timefunc() - start
             if elapsed > options.get_opt('timeout'):
                 raise TimeoutException("Timeout reached in compute_wcrt at q=%d" % (q-1))
 
@@ -305,7 +310,7 @@ class Scheduler(object):
             # logger.debug("%s window(q=%f):%d, response: %d" % (task.name, q,
             # w, current_response))
 
-            elapsed = time.process_time() - start
+            elapsed = timefunc() - start
             if elapsed > options.get_opt('timeout'):
                 raise TimeoutException("Timeout reached in compute_wcrt at q=%d" % (q-1))
 
@@ -690,7 +695,7 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
     analysis_state = GlobalAnalysisState(system, task_results)
 
     iteration = 0
-    start = time.process_time()
+    start = timefunc()
     logger.debug("analysisOrder: %s" % (analysis_state.analysisOrder))
     while len(analysis_state.dirtyTasks) > 0:
 
@@ -743,7 +748,7 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
                 analysis_state._mark_dependents_dirty(t)
                 break  # break the for loop to restart iteration
 
-            elapsed = (time.process_time() - start)
+            elapsed = (timefunc() - start)
             logger.debug("iteration: %d, time: %.1f task: %s wcrt: %f dirty: %d"
                          % (iteration, elapsed, t.name,
                             task_results[t].wcrt,
@@ -752,7 +757,7 @@ def analyze_system(system, task_results=None, only_dependent_tasks=False,
                 raise TimeoutException("Timeout reached after iteration %d" % iteration)
             iteration += 1
 
-        elapsed = time.process_time() - start
+        elapsed = timefunc() - start
         if elapsed > options.get_opt('timeout'):
             raise TimeoutException("Timeout reached after iteration %d" % iteration)
 
