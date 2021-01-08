@@ -112,6 +112,16 @@ In case of communication-overhead it must be modeled by using other resources/ta
    :language: python
    :lines: 42-44
 
+Lastly we must set the input event models for all tasks that are not activated by another task.
+An event model is an abstraction of possible activation patterns and are commonly parametrized by
+an activation period P, a jitter J (optional) and an minimum distance d (optional).
+Such an event model is created by :py:class:`pycpa.model.PJdEventModel`.
+
+.. literalinclude:: ../examples/spp_test.py
+   :language: python
+   :lines: 46-48
+
+
 Plotting the Task-Graph
 -----------------------
        
